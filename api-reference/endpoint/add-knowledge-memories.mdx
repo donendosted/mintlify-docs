@@ -17,15 +17,15 @@ openapi: "POST /ingestion/upload_knowledge"
     -F 'file_metadata=[
     {
       "id": "doc_a",
-      "tenant_metadata": { "dept": "sales" },
-      "document_metadata": { "author": "Alice" },
-      "relations": false
+      "metadata": { "dept": "sales" },
+      "additional_metadata": { "author": "Alice" },
+      "relations": {"cortex_source_ids": ["source_id_1", "source_id_2"]}
     },
     {
       "id": "doc_b",
-      "tenant_metadata": { "dept": "marketing" },
-      "document_metadata": { "author": "Bob" },
-      "relations": true
+      "metadata": { "dept": "marketing" },
+      "additional_metadata": { "author": "Bob" },
+      "relations": {"cortex_source_ids": []}
     }
     ]'
 
@@ -53,7 +53,7 @@ openapi: "POST /ingestion/upload_knowledge"
             "author": "Alice",
             "priority": "high"
           },
-          "relations": true
+          "relations": {"cortex_source_ids": ["source_id_1", "source_id_2"]}
         }
       ]
     }'
@@ -238,7 +238,7 @@ The `file_metadata` parameter accepts a JSON array where each object corresponds
 
 - **Description**: Object containing `cortex_source_ids` array that specifies source IDs the current source has relations with. When provided, the system will create relationships between the current source and the specified source IDs.
 - **Use Case**: Create explicit relationships between documents for knowledge graph connections.
-- **Default**: `{"cortex_source_ids": []}` (empty array - no relations)
+- **Default**: {`{"cortex_source_ids": []}`} (empty array - no relations)
 - **Example**:
   - `{"cortex_source_ids": ["source_id_1", "source_id_2"]}`: Create relations to sources with those IDs
   - `{"cortex_source_ids": []}`: No relations
@@ -267,7 +267,7 @@ The `app_knowledge` parameter accepts an array of `AppKnowledgeModel` objects. E
     "content": {},
     "metadata": {},
     "additional_metadata": {},
-    "relations": boolean
+    "relations": {"cortex_source_ids": []}
   }
 ]
 ```
@@ -354,12 +354,14 @@ The `app_knowledge` parameter accepts an array of `AppKnowledgeModel` objects. E
   }
   ```
 
-#### `relations` (ForcefulRelationsPayload | null, optional, default: null)
+#### `relations` (object, optional, default: {`{"cortex_source_ids": []}`})
 
-- **Description**: Controls relationship extraction and knowledge graph creation.
-- **Use Case**: When set, the system will analyze the content for entity relationships and create a knowledge graph.
-- **Default**: `null` (no relationship extraction)
-- **Example**: `true` for documents where understanding connections between entities is important.
+- **Description**: Object containing `cortex_source_ids` array that specifies source IDs the current source has relations with. When provided, the system will create relationships between the current source and the specified source IDs.
+- **Use Case**: Create explicit relationships between documents for knowledge graph connections.
+- **Default**: `{"cortex_source_ids": []}` (empty array - no relations)
+- **Example**:
+  - `{"cortex_source_ids": ["source_id_1", "source_id_2"]}`: Create relations to sources with those IDs
+  - `{"cortex_source_ids": []}`: No relations
 
 <Info>
   **Content Model**: The `content` field in AppKnowledgeModel supports multiple formats including text, HTML (base64), CSV (base64), markdown, file attachments, and structured layouts. Choose the format that best represents your knowledge source content.

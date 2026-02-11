@@ -19,6 +19,7 @@ description: "Fetch personalized context that your agent needs to perform an act
     "query": "string",
     "mode": "fast",
     "max_results": 10,
+    "search_mode": "sources",
     "additional_context": "string",
     }'
     ```
@@ -30,7 +31,8 @@ description: "Fetch personalized context that your agent needs to perform an act
       tenantId: "tenant_1234",
       subTenantId: "sub_tenant_4567",
       alpha: 0.8,
-      recencyBias: 0
+      recencyBias: 0,
+      searchMode: "sources"
     });
     ```
   </Tab>
@@ -42,7 +44,8 @@ description: "Fetch personalized context that your agent needs to perform an act
         tenant_id="tenant_1234",
         sub_tenant_id="sub_tenant_4567",
         alpha=0.8,
-        recency_bias=0
+        recency_bias=0,
+        search_mode="sources"
     )
     ```
   </Tab>
@@ -98,6 +101,6 @@ Results are automatically enriched with knowledge graph context, providing entit
 **What's included in responses:**
 
 - **`graph_context.chunk_relations`** — Entities and relationships found within each chunk
-- **`additional_context`** — Additional entity relationships extracted from your query
+- **`additional_context`** — Additional context provided by the user to guide retrieval
 
 This helps your AI understand not just _what_ is mentioned, but _how_ things relate—like knowing that "Sarah Chen" leads "Project Phoenix" which depends on the "Authentication Service".
