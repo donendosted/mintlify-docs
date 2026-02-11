@@ -134,7 +134,7 @@
           }
         ],
         "x-fern-sdk-group-name": "upload",
-        "x-fern-sdk-method-name": "upload_knowledge",
+        "x-fern-sdk-method-name": "knowledge",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -392,7 +392,7 @@
           }
         ],
         "x-fern-sdk-group-name": "tenant",
-        "x-fern-sdk-method-name": "create_tenant",
+        "x-fern-sdk-method-name": "create",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -507,7 +507,7 @@
           }
         },
         "x-fern-sdk-group-name": "tenant",
-        "x-fern-sdk-method-name": "stats",
+        "x-fern-sdk-method-name": "monitor",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -1145,7 +1145,7 @@
           }
         ],
         "x-fern-sdk-group-name": "fetch",
-        "x-fern-sdk-method-name": "list_knowledge",
+        "x-fern-sdk-method-name": "list_data",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -1402,7 +1402,7 @@
             "HTTPBearer": []
           }
         ],
-        "x-fern-sdk-group-name": "sources",
+        "x-fern-sdk-group-name": "data",
         "x-fern-sdk-method-name": "delete",
         "x-fern-sdk-audience": [
           "public"
@@ -1514,7 +1514,7 @@
           }
         ],
         "x-fern-sdk-group-name": "fetch",
-        "x-fern-sdk-method-name": "source_content",
+        "x-fern-sdk-method-name": "content",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -1634,8 +1634,8 @@
             "HTTPBearer": []
           }
         ],
-        "x-fern-sdk-group-name": "search",
-        "x-fern-sdk-method-name": "retrieve",
+        "x-fern-sdk-group-name": "recall",
+        "x-fern-sdk-method-name": "full_recall",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -1755,8 +1755,8 @@
             "HTTPBearer": []
           }
         ],
-        "x-fern-sdk-group-name": "search",
-        "x-fern-sdk-method-name": "full_text_search",
+        "x-fern-sdk-group-name": "recall",
+        "x-fern-sdk-method-name": "boolean_recall",
         "x-fern-sdk-audience": [
           "public"
         ]
@@ -1876,7 +1876,7 @@
             "HTTPBearer": []
           }
         ],
-        "x-fern-sdk-group-name": "search",
+        "x-fern-sdk-group-name": "recall",
         "x-fern-sdk-method-name": "qna",
         "x-fern-sdk-audience": [
           "public"
@@ -2984,7 +2984,7 @@
               }
             ],
             "title": "File Metadata",
-            "description": "JSON array of file metadata objects; length must match files when provided."
+            "description": "JSON array of file metadata objects; length must match files when provided. Each object may include: file_id (optional), tenant_metadata, document_metadata, and relations (forceful relations to other cortex source IDs)."
           },
           "app_sources": {
             "anyOf": [
@@ -3551,7 +3551,7 @@
           },
           "mode": {
             "$ref": "#/components/schemas/RetrieveMode",
-            "description": "Retrieval mode to use ('fast' or 'accurate')",
+            "description": "Retrieval mode to use ('fast' or 'thinking')",
             "default": "fast"
           },
           "alpha": {
@@ -4126,7 +4126,7 @@
           },
           "mode": {
             "$ref": "#/components/schemas/RetrieveMode",
-            "description": "Retrieval mode: 'fast' for single query, 'accurate' for multi-query with reranking",
+            "description": "Retrieval mode: 'fast' for single query, 'thinking' for multi-query with reranking",
             "default": "fast"
           },
           "alpha": {
@@ -4991,6 +4991,17 @@
             "type": "array",
             "title": "Attachments",
             "description": "Attachments related to the source such as images, PDFs, or supplemental files."
+          },
+          "relations": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForcefulRelationsPayload"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Forcefully connect 2 sources based on cortex source ids or common properties."
           }
         },
         "type": "object",
@@ -5594,7 +5605,7 @@
               }
             ],
             "title": "Extra Context Ids",
-            "description": "IDs of related chunks providing extra context (from forceful relations). Only present in accurate mode when sources have forceful relations."
+            "description": "IDs of related chunks providing extra context (from forceful relations). Only present in thinking mode when sources have forceful relations."
           }
         },
         "type": "object",
