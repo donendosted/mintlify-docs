@@ -36,7 +36,8 @@
               "essentials/memories",
               "essentials/context-graph",
               "essentials/multi-tenant",
-              "essentials/metadata"
+              "essentials/metadata",
+              "essentials/use-api-results"
             ]
           },
           {
