@@ -1,5 +1,5 @@
 ---
-title: "Building an AI Chief of Staff - n8n in Natural Language"
+title: "AI Chief of Staff - n8n in Natural Language"
 description: "Guide to creating an autonomous AI that orchestrates actions across all workplace applications using HydraDB's function-calling capabilities."
 ---
 
@@ -98,7 +98,7 @@ This isn't just about security - it's about **cognitive focus**. By limiting fun
 
 ---
 
-## Step 1  -  Define & Register Functions
+## Step 1 - Define & Register Functions
 
 ### 1.1 Function Schema
 
@@ -129,21 +129,28 @@ HydraDB treats each callable as a **knowledge object**. The minimal schema:
 
 ### 1.2 Upload to HydraDB
 
-Use the _same_ `/upload/upload_app_sources` endpoint you already know - set `type: “function”`.
+Use the `/ingestion/upload_knowledge` endpoint with `app_knowledge` to register each function as a knowledge object.
 
 
-```js
-await hydradb.uploadBatch([
-  {
-    id: "send_slack_message",
-    title: "Send a Slack message",
-    type: "function",      // 👈 tells HydraDB this is callable
-    timestamp: new Date().toISOString(),
-    content: { text: JSON.stringify(schema) },
-    collections: ["automation", "slack"],
-    meta: { permissions: ["workspace_admins"] }
-  }
-]);
+```ts
+import { HydraDBClient } from “@hydra_db/node”;
+
+const client = new HydraDBClient({ token: process.env.HYDRADB_API_KEY });
+
+await client.upload.knowledge({
+  app_knowledge: [
+    {
+      id: “send_slack_message”,
+      tenant_id: “your_tenant_id”,
+      sub_tenant_id: “your_sub_tenant_id”,
+      title: “Send a Slack message”,
+      source: “slack”,
+      timestamp: new Date().toISOString(),
+      content: { text: JSON.stringify(schema) },
+      additional_metadata: { permissions: [“workspace_admins”], tags: [“automation”, “slack”] }
+    }
+  ]
+});
 ```
 
 
@@ -155,39 +162,55 @@ Store new versions with `id: functionName_v2`. Mark old versions' `hydradb_metad
 
 ---
 
-## Step 2  -  Build the Action Orchestrator
+## Step 2 - Build the Action Orchestrator
 
 The orchestrator bridges HydraDB ↔ real APIs.
 
 
 ```ts
+import { HydraDBClient } from "@hydra_db/node";
+
 class Orchestrator {
-  constructor(hydradb, registry) {
-    this.hydradb = hydradb;          // SDK wrapper
-    this.registry = registry;      // Map<id, executeFn>
+  private client: HydraDBClient;
+  private registry: Map<string, Function>;
+
+  constructor(client: HydraDBClient, registry: Map<string, Function>) {
+    this.client = client;
+    this.registry = registry;
   }
 
-  async handleTask(task, userContext) {
-    // 1️⃣ Ask HydraDB which function solves the task
-    const suggestion = await this.hydradb.functionSuggest(task, {
-      userName: userContext.email,
-      sessionId: userContext.sessionId,
-      context: userContext.recentEvents
+  async handleTask(task: string, userContext: { tenantId: string; subTenantId: string }) {
+    // 1️⃣ Ask HydraDB which function best matches the task
+    const result = await this.client.recall.fullRecall({
+      tenantId: userContext.tenantId,
+      subTenantId: userContext.subTenantId,
+      query: task,
+      mode: "thinking",
+      maxResults: 5
     });
 
-    if (!suggestion.function_call) return { status: "noop" };
+    if (!result.chunks || result.chunks.length === 0) return { status: "noop" };
 
-    // 2️⃣ Execute
-    const exec = this.registry[suggestion.function_call.name];
-    const result = await exec(suggestion.function_call.arguments);
+    // 2️⃣ Use the top-ranked chunk to identify and execute the function
+    const topChunk = result.chunks[0];
+    const functionId = topChunk.id;
+    const exec = this.registry.get(functionId);
+    if (!exec) return { status: "noop" };
+    const execResult = await exec(topChunk);
 
-    // 3️⃣ Optional: feed result back to HydraDB for memory
-    await this.hydradb.logFunctionResult({
-      functionId: suggestion.function_call.name,
-      resultSummary: summarize(result)
+    // 3️⃣ Optional: feed result back to HydraDB as a user memory
+    await this.client.userMemory.add({
+      tenant_id: userContext.tenantId,
+      sub_tenant_id: userContext.subTenantId,
+      memories: [
+        {
+          text: `Executed function "${functionId}" for task: "${task}". Result: ${summarize(execResult)}`,
+          infer: true
+        }
+      ]
     });
 
-    return { status: "done", result };
+    return { status: "done", result: execResult };
   }
 }
 ```
@@ -257,13 +280,13 @@ Same trigger, different responses based on learned patterns and context.
 
 ---
 
-## Step 3  -  Event & Trigger Model
+## Step 3 - Event & Trigger Model
 
 Your Chief of Staff should react to:
 
-1. **Direct Commands**  -  “Book me a 30-min call with Alice next week.”
-2. **Scheduled Jobs**  -  Daily stand-up summary at 9 AM.
-3. **System Events**  -  New ticket in Jira → triage.
+1. **Direct Commands** - “Book me a 30-min call with Alice next week.”
+2. **Scheduled Jobs** - Daily stand-up summary at 9 AM.
+3. **System Events** - New ticket in Jira → triage.
 
 Create a thin wrapper per event source that forwards the _natural-language_ description to the orchestrator.
 
@@ -276,7 +299,7 @@ Create a thin wrapper per event source that forwards the _natural-language_ desc
 
 ---
 
-## Step 4  -  Planning & Multi-Step Execution
+## Step 4 - Planning & Multi-Step Execution
 
 Sometimes the task requires **multiple** calls.
 
@@ -331,7 +354,7 @@ When a finance manager requests expense approval during business hours, HydraDB 
 
 ---
 
-## Step 5  -  Security, Auth & Governance
+## Step 5 - Security, Auth & Governance
 
 - **OAuth Vault**: Store per-user tokens; Orchestrator injects correct token at runtime.
 - **Policy Engine**: Prevent _“delete all records”_ unless requester ∈ `admins`.
@@ -340,7 +363,7 @@ When a finance manager requests expense approval during business hours, HydraDB 
 
 ---
 
-## Step 6  -  Observability & Self-Improvement
+## Step 6 - Observability & Self-Improvement
 
 | Metric                     | Why it matters                        |
 | -------------------------- | ------------------------------------- |
@@ -351,11 +374,16 @@ When a finance manager requests expense approval during business hours, HydraDB 
 Auto-tune by feeding metrics back to HydraDB's memory:
 
 
-```js
-await hydradb.feedback({
-  functionId: "create_calendar_event",
-  signal: "slow_response",
-  details: { p95_ms: 2500 }
+```ts
+await client.userMemory.add({
+  tenant_id: "your_tenant_id",
+  sub_tenant_id: "your_sub_tenant_id",
+  memories: [
+    {
+      text: 'Function "create_calendar_event" had slow_response signal with p95 of 2500ms.',
+      infer: true
+    }
+  ]
 });
 ```
 
