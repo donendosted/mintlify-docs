@@ -1532,6 +1532,8 @@ for _ in range(30):  # Poll for up to 5 minutes
         break
     print(f"Status: {[s.indexing_status for s in status.statuses]}")
     time.sleep(10)
+else:
+    raise TimeoutError("Processing did not complete within 5 minutes")
 
 # --- Step 7: Recall context ---
 recall_result = client.recall.full_recall(
@@ -1634,6 +1636,7 @@ for (let i = 0; i < 30; i++) {
     console.log("Processing complete.");
     break;
   }
+  if (i === 29) throw new Error("Processing did not complete within 5 minutes");
   console.log(`Status: ${status.statuses.map((s) => s.indexing_status)}`);
   await new Promise((r) => setTimeout(r, 10000));
 }
