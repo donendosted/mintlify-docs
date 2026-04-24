@@ -34,20 +34,18 @@ If you pass `tenant_id` as a query parameter, that ID will be used. If not provi
             {
                 "name": "department",
                 "data_type": "string",
-                "enable_match": True,
-                "enable_dense_embedding": True,
-                "enable_sparse_embedding": True,
+                "searchable": True,
+                "filterable": True,
             },
             {
                 "name": "compliance_framework",
                 "data_type": "string",
-                "enable_dense_embedding": True,
-                "enable_sparse_embedding": True,
+                "searchable": True,
             },
             {
                 "name": "data_classification",
                 "data_type": "string",
-                "enable_match": True,
+                "filterable": True,
             },
         ]
     )
@@ -133,60 +131,59 @@ These keywords are used internally by HydraDB for document processing and search
 Each schema object in the `tenant_metadata_schema` array should specify:
 
 - **name**: The metadata field name (immutable once set)
+- **name**: The metadata field name (immutable once set)
 - **data_type**: The field's data type (see supported types below)
-- **enable_match**: Whether this field supports exact keyword filtering
-- **enable_dense_embedding**: Whether this field is indexed for semantic search
-- **enable_sparse_embedding**: Whether this field is indexed for keyword search
+- **searchable**: Whether this field can be searched semantically
+- **filterable**: Whether this field can be used for exact filtering
 
 ## Supported Metadata Types
 
-| `data_type`  | Description        | Use Cases                                          |
-| ------------ | ------------------ | -------------------------------------------------- |
-| `string`     | Text (default)     | Labels, identifiers, categories, searchable fields |
-| `integer`    | Whole number       | Counts, versions, priorities                       |
-| `float`      | Decimal number     | Scores, percentages, measurements                  |
-| `boolean`    | True / false       | Flags, status indicators                           |
-| `object`     | Nested JSON        | Hierarchical / structured data                     |
-| `array`      | List of values     | Tags, categories, multi-value attributes           |
+### Primitive Types
 
-## Search Capability Flags
+| Type        | Description       | Example Values                              | Use Cases                                  |
+| ----------- | ----------------- | ------------------------------------------- | ------------------------------------------ |
+| `string`    | Text data         | `"Engineering"`, `"SOC2"`, `"confidential"` | Categorical data, identifiers, labels      |
+| `integer`   | Whole number      | `5`, `100`, `2024`                          | Counts, versions, priorities               |
+| `float`     | Decimal number    | `0.95`, `3.14`, `99.9`                      | Scores, percentages, measurements          |
+| `boolean`   | True/false        | `true`, `false`                             | Binary flags, status indicators            |
 
-Understanding the capability flags is crucial for optimal metadata design:
+### Complex Types
 
-**1. `enable_dense_embedding` — Semantic search**
+| Type      | Description     | Example Values                      | Use Cases                                |
+| --------- | --------------- | ----------------------------------- | ---------------------------------------- |
+| `object`  | Structured data | `{"city": "SF", "country": "USA"}`  | Hierarchical relationships, nested data  |
+| `array`   | Multiple values | `["security", "api", "compliance"]` | Multi-value attributes, tags, categories |
 
-Index this field for AI-powered semantic similarity search. Use when you want users to find documents by asking natural-language questions about this field (e.g. "Which documents are from Engineering?").
+## Searchable vs Filterable
+
+**`searchable: true`** — indexes the field for semantic and keyword search. Use when you want users to find documents by asking questions about this field.
 
 ```json
 {
   "name": "department",
   "data_type": "string",
-  "enable_dense_embedding": true,
-  "enable_sparse_embedding": true
+  "searchable": true
 }
 ```
 
-**2. `enable_match` — Exact keyword filtering**
-
-Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`). Use for filtering, not open-ended search.
+**`filterable: true`** — enables exact-match filtering (e.g. `department = "Engineering"`). Use for precise narrowing before semantic ranking.
 
 ```json
 {
   "name": "data_classification",
   "data_type": "string",
-  "enable_match": true
+  "filterable": true
 }
 ```
 
-**3. Combined — filter + search**
+**Combined — filterable and searchable:**
 
 ```json
 {
   "name": "compliance_framework",
   "data_type": "string",
-  "enable_match": true,
-  "enable_dense_embedding": true,
-  "enable_sparse_embedding": true
+  "searchable": true,
+  "filterable": true
 }
 ```
 
@@ -196,40 +193,12 @@ Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`
 
 ```json
 [
-  {
-    "name": "department",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "compliance_framework",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "data_classification",
-    "data_type": "string",
-    "enable_match": true
-  },
-  {
-    "name": "business_unit",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "retention_period",
-    "data_type": "integer"
-  },
-  {
-    "name": "is_confidential",
-    "data_type": "boolean"
-  }
+  { "name": "department",           "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "compliance_framework", "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "data_classification",  "data_type": "string",  "filterable": true },
+  { "name": "business_unit",        "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "retention_period",     "data_type": "integer", "filterable": true },
+  { "name": "is_confidential",      "data_type": "boolean", "filterable": true }
 ]
 ```
 
@@ -237,38 +206,12 @@ Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`
 
 ```json
 [
-  {
-    "name": "practice_area",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "client_id",
-    "data_type": "string",
-    "enable_match": true
-  },
-  {
-    "name": "confidentiality_level",
-    "data_type": "string",
-    "enable_match": true
-  },
-  {
-    "name": "jurisdiction",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "case_priority",
-    "data_type": "integer"
-  },
-  {
-    "name": "requires_approval",
-    "data_type": "boolean"
-  }
+  { "name": "practice_area",        "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "client_id",            "data_type": "string",  "filterable": true },
+  { "name": "confidentiality_level","data_type": "string",  "filterable": true },
+  { "name": "jurisdiction",         "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "case_priority",        "data_type": "integer", "filterable": true },
+  { "name": "requires_approval",    "data_type": "boolean", "filterable": true }
 ]
 ```
 
@@ -276,39 +219,12 @@ Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`
 
 ```json
 [
-  {
-    "name": "product_line",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "team",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "component",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "priority",
-    "data_type": "integer"
-  },
-  {
-    "name": "is_critical",
-    "data_type": "boolean"
-  },
-  {
-    "name": "tags",
-    "data_type": "array"
-  }
+  { "name": "product_line", "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "team",         "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "component",    "data_type": "string",  "searchable": true, "filterable": true },
+  { "name": "priority",     "data_type": "integer", "filterable": true },
+  { "name": "is_critical",  "data_type": "boolean", "filterable": true },
+  { "name": "tags",         "data_type": "array",   "filterable": true }
 ]
 ```
 
@@ -316,18 +232,8 @@ Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`
 
 ```json
 [
-  {
-    "name": "organization",
-    "data_type": "string",
-    "enable_match": true,
-    "enable_dense_embedding": true,
-    "enable_sparse_embedding": true
-  },
-  {
-    "name": "environment",
-    "data_type": "string",
-    "enable_match": true
-  }
+  { "name": "organization", "data_type": "string", "searchable": true, "filterable": true },
+  { "name": "environment",  "data_type": "string", "filterable": true }
 ]
 ```
 
@@ -348,12 +254,12 @@ Enable fast exact-match lookups on this field (e.g. `department = "Engineering"`
 - **`object`**: Structured, hierarchical data
 - **`array`**: Multi-value fields like tags and categories
 
-**3. Search Capability Strategy**
+**3. Searchable vs Filterable Strategy**
 
-- **`enable_dense_embedding: true`**: Fields users will query semantically ("find docs about X")
-- **`enable_sparse_embedding: true`**: Pair with dense for hybrid search
-- **`enable_match: true`**: Fields used for precise exact-match filtering
-- **Non-string types** (`integer`, `boolean`, etc.): Support scalar filtering natively — no flags needed
+- **`searchable: true`**: Fields users will ask natural-language questions about
+- **`filterable: true`**: Fields used for precise exact-match filtering
+- **Combine both**: For fields that need to support both free-text search and exact filtering
+- Non-string types (`integer`, `boolean`) support scalar filtering without any flags needed
 
 **4. Performance Considerations**
 
@@ -382,8 +288,8 @@ With the metadata schema defined above, users can perform sophisticated queries:
 department = "Engineering" AND data_classification = "internal" AND is_confidential = false
 ```
 
-- Exact match on `department` (`enable_match: true`)
-- Exact match on `data_classification` (`enable_match: true`)
+- Exact match on `department` (`filterable: true`)
+- Exact match on `data_classification` (`filterable: true`)
 - Scalar filter on `is_confidential` (`data_type: "boolean"`)
 
 #### Combined Queries
@@ -392,8 +298,8 @@ department = "Engineering" AND data_classification = "internal" AND is_confident
 "Show me all SOC2 compliance documents from the Product business unit"
 ```
 
-- Semantic search for "SOC2 compliance" (`enable_dense_embedding: true` fields)
-- Precise filter: `business_unit = "Product"` (`enable_match: true`)
+- Semantic search for "SOC2 compliance" (`searchable: true` fields)
+- Precise filter: `business_unit = "Product"` (`filterable: true`)
 
 ### Real-World Use Cases
 
