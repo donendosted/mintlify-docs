@@ -31,7 +31,7 @@ openapi: "POST /ingestion/upload_knowledge"
 
     # App Knowledge Upload Example
     curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
-    -F 'app_sources=[
+    -F 'app_knowledge=[
       {
         "id": "doc_a",
         "tenant_id": "tenant_123",
@@ -85,7 +85,7 @@ openapi: "POST /ingestion/upload_knowledge"
 
     // App Knowledge Upload Example
     const appUploadResult = await client.upload.knowledge({
-      app_sources: [
+      app_knowledge: [
         {
           id: "doc_a",
           tenant_id: "tenant_123",
@@ -140,7 +140,7 @@ openapi: "POST /ingestion/upload_knowledge"
     # App Knowledge Upload Example
     # Async usage is similar, just use async_client and await
     app_upload_result = client.upload.knowledge(
-        app_sources=[
+        app_knowledge=[
             {
                 "id": "doc_a",
                 "tenant_id": "tenant_123",
@@ -171,7 +171,7 @@ openapi: "POST /ingestion/upload_knowledge"
 This endpoint supports two types of uploads:
 
 1. **File Uploads**: Upload documents (PDF, DOCX, TXT, etc.) using multipart form data
-2. **App Knowledge Uploads**: Upload structured knowledge from workplace apps using the `app_sources` multipart form field with an AppKnowledgeModel JSON array
+2. **App Knowledge Uploads**: Upload structured knowledge from workplace apps using the `app_knowledge` multipart form field with an AppKnowledgeModel JSON array
 
 ## File Upload Parameters
 
@@ -246,9 +246,13 @@ The `file_metadata` parameter accepts a JSON array where each object corresponds
 
 ## AppKnowledgeModel Parameters
 
-The `app_sources` parameter accepts an array of `AppKnowledgeModel` objects. Each object represents a knowledge source from a workplace app with comprehensive metadata and content.
+The `app_knowledge` parameter accepts an array of `AppKnowledgeModel` objects. Each object represents a knowledge source from a workplace app with comprehensive metadata and content.
 
-### `app_sources` Array Structure
+<Info>
+  **Backward Compatibility**: The legacy field name `app_sources` is still accepted as an alias for `app_knowledge` but is deprecated — migrate to `app_knowledge`.
+</Info>
+
+### `app_knowledge` Array Structure
 
 ```json
 [
@@ -383,7 +387,7 @@ The `app_sources` parameter accepts an array of `AppKnowledgeModel` objects. Eac
 </Info>
 
 <Warning>
-  **Required Fields**: The `tenant_id` and `sub_tenant_id` fields are required for all app knowledge. Ensure these are provided for each item in the `app_sources` array.
+  **Required Fields**: The `tenant_id` and `sub_tenant_id` fields are required for all app knowledge. Ensure these are provided for each item in the `app_knowledge` array.
 </Warning>
 
 ## Document Processing Pipeline
@@ -468,7 +472,7 @@ Your content will progress through these states:
 - **File Naming**: Descriptive filenames help with document identification
 
 **For App Knowledge Uploads:**
-- **Batch Uploads**: For multiple knowledge sources, include them in a single `app_sources` array
+- **Batch Uploads**: For multiple knowledge sources, include them in a single `app_knowledge` array
 - **Metadata Consistency**: Use consistent metadata schemas across your organization
 - **Source Naming**: Use descriptive titles and clear source identification
 - **Timestamp Accuracy**: Provide accurate timestamps for temporal search and filtering

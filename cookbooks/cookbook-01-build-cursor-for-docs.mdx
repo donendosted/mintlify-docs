@@ -1351,7 +1351,7 @@ A good progression: Phase 0 recall in the terminal → FastAPI `/ask` in Postman
 
 **Fix:** Correct paths: `/ingestion/upload_knowledge` (file upload), `/upload/upload_app_sources` (JSON batch), `/recall/full_recall`, `/ingestion/verify_processing`. If using `sub_tenant_id`, confirm at least one batch was successfully uploaded to that sub-tenant first.
 
-### 400 - Provide at least one of: files or app_sources
+### 400 - Provide at least one of: files or app_knowledge
 
 **Cause:** For file upload: the field name is wrong (`file` instead of `files`), or `Content-Type: application/json` was manually set (which breaks multipart). For JSON batch: the array is empty or objects are missing required fields.
 
