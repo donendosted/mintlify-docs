@@ -3263,7 +3263,7 @@
             },
             "type": "array",
             "title": "Files",
-            "description": "Files to upload (documents). Omit or leave empty when only sending app_sources.",
+            "description": "Files to upload (documents). Omit or leave empty when only sending app_knowledge.",
             "default": []
           },
           "file_metadata": {
@@ -3278,7 +3278,7 @@
             "title": "File Metadata",
             "description": "JSON array of file metadata objects; length must match files when provided. Each object may include: file_id (optional), metadata, additional_metadata, and relations (forceful relations to other HydraDB source IDs)."
           },
-          "app_sources": {
+          "app_knowledge": {
             "anyOf": [
               {
                 "type": "string"
@@ -3287,7 +3287,7 @@
                 "type": "null"
               }
             ],
-            "title": "App Sources",
+            "title": "App Knowledge",
             "description": "JSON: single source object or array of app-generated sources to index. Omit when only uploading files."
           }
         },
