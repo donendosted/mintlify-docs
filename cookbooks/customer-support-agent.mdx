@@ -97,9 +97,9 @@ Upload your help docs, FAQs, and past ticket resolutions into a shared `knowledg
 
 > **Batch limit**: Max 20 sources per request. Wait 1 second between batches.
 
-> **Important - tenant_id placement**: `tenant_id` and `sub_tenant_id` must appear in **two places**: as top-level SDK parameters AND inside each item in `app_sources`. The `AppKnowledgeModel` validates both independently. Omitting either location returns a 400 error.
+> **Important - tenant_id placement**: `tenant_id` and `sub_tenant_id` must appear in **two places**: as top-level SDK parameters AND inside each item in `app_knowledge`. The `AppKnowledgeModel` validates both independently. Omitting either location returns a 400 error.
 
-> **app_sources format**: The SDK parameter `app_sources` takes a **JSON string** - use `json.dumps(batch)`, not a Python list directly.
+> **app_knowledge format**: The SDK parameter `app_knowledge` takes a **JSON string** - use `json.dumps(batch)`, not a Python list directly.
 
 ### Help Docs & FAQs
 
@@ -150,7 +150,7 @@ def _upload_kb_batch(batch: list) -> list:
         tenant_id=TENANT_ID,
         sub_tenant_id=KB_SUB_TENANT,
         upsert=True,
-        app_sources=json.dumps(batch),     # JSON string, not a list
+        app_knowledge=json.dumps(batch),    # JSON string, not a list
     )
     return [r.source_id for r in (result.results or [])]
 ```
@@ -608,7 +608,7 @@ client.upload.knowledge(
     tenant_id=TENANT_ID,
     sub_tenant_id=KB_SUB_TENANT,
     upsert=True,
-    app_sources=json.dumps([{
+    app_knowledge=json.dumps([{
         "id":            "kb-article-001",
         "tenant_id":     "customer-support",    # also required inside each item
         "sub_tenant_id": "knowledge-base",      # also required inside each item

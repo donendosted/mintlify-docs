@@ -124,11 +124,11 @@ def ingest_earnings_pdf(
     Upload a single earnings PDF. Returns the file_id for verification.
 
     IMPORTANT: tenant_id and sub_tenant_id must appear both as top-level
-    SDK params AND inside the app_sources JSON - AppKnowledgeModel validates both.
+    SDK params AND inside the app_knowledge JSON - AppKnowledgeModel validates both.
     """
     sub_tenant_id = f"earnings-{ticker.lower()}"
 
-    app_sources = json.dumps([{
+    app_knowledge = json.dumps([{
         "id":           f"{ticker}-{doc_type}-{fiscal_year}-Q{fiscal_quarter}",
         "title":        f"{ticker} {period_label} {doc_type.replace('_', ' ').title()}",
         "source":       "pdf",
@@ -151,7 +151,7 @@ def ingest_earnings_pdf(
         result = client.upload.knowledge(
             tenant_id=TENANT_ID,
             sub_tenant_id=sub_tenant_id,
-            app_sources=app_sources,
+            app_knowledge=app_knowledge,
             files=[f],          # <-- was: file=f  (wrong - causes TypeError)
         )
 
@@ -407,7 +407,7 @@ def ingest_board_memo(
 ) -> str:
     sub_tenant_id = "board-memos"
 
-    app_sources = json.dumps([{
+    app_knowledge = json.dumps([{
         "id":           f"{ticker}-{memo_type}-{meeting_date[:10]}",
         "title":        f"{ticker} {period_label} - {memo_type.replace('_', ' ').title()}",
         "source":       "pdf",
@@ -427,7 +427,7 @@ def ingest_board_memo(
         result = client.upload.knowledge(
             tenant_id=TENANT_ID,
             sub_tenant_id=sub_tenant_id,
-            app_sources=app_sources,
+            app_knowledge=app_knowledge,
             files=[f],          # <-- was: file=f  (wrong)
         )
 
@@ -1462,7 +1462,7 @@ Content-Type: multipart/form-data
 ```
 
 ```json
-// app_sources - JSON string of the array below
+// app_knowledge - JSON string of the array below
 [{
   "id":           "ACME-earnings_transcript-2023-Q2",
   "title":        "ACME Q2 2023 Earnings Transcript",
