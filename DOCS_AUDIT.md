@@ -43,7 +43,7 @@ Quickstart documents endpoints that don’t match the current API reference or O
 | `POST /upload/upload_document` | `POST /ingestion/upload-document` |
 | `POST /upload/scrape_webpage` | Not in current OpenAPI (in archive) |
 | `POST /upload/verify_processing` | `POST /ingestion/verify-processing` |
-| `POST /search/qna` | `POST /search/qna` (path exists but recall flow is now Smart/Keyword) |
+| Legacy answer-generation search path | Use `POST /recall/full_recall` for retrieval, then generate answers in the app layer |
 | `POST /upload/batch_upload` | In archive only |
 | `/delete_source`, `/list/sources` | Current API uses `/delete/delete-sources`, `/list/list-sources` |
 
@@ -63,7 +63,7 @@ Quickstart documents endpoints that don’t match the current API reference or O
 | `api-reference/delete-memory.mdx` | [List User Memories](/api-reference/endpoint/list-user-memories) | Archived |
 | `api-reference/delete-memory.mdx` | [Add User Memory](/api-reference/endpoint/add-user-memory) | No such slug; current is `add-memories` |
 | `essentials/context-graph.mdx` | [Knowledge Ingestion](/api-reference/endpoint/upload-document) | No current `upload-document` in API reference (in archive) |
-| `essentials/context-graph.mdx` | [Search](/api-reference/endpoint/search), [Q&A](/api-reference/endpoint/qna) | No `search` or `qna` in current endpoint list; recall is Smart/Keyword |
+| `essentials/context-graph.mdx` | Legacy search and answer-generation links | Current endpoint list uses recall pages instead |
 | `api-reference/endpoint/add-knowledge-memories.mdx` | [Supported File Formats](/essentials/file-formats) | No `essentials/file-formats` page in repo |
 | `archive/.../upload-document.mdx` | [Supported File Formats](/essentials/file-formats) | Same missing page |
 

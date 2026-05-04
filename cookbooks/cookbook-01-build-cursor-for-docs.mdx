@@ -785,47 +785,46 @@ def ingest_markdown_folder(folder: str) -> list:
 ### P2 · Step 5 - Run a Multi-source Graph Query
 
 ```python
-import sys, os, uuid, requests
+import sys, os, requests
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import BASE_URL, TENANT_ID, HEADERS
 
-def multi_source_qna(question: str) -> dict:
+def multi_source_recall(question: str) -> dict:
     resp = requests.post(
-        f"{BASE_URL}/search/qna",
+        f"{BASE_URL}/recall/full_recall",
         headers=HEADERS,
         json={
-            "question":             question,
-            "session_id":           str(uuid.uuid4()),
-            "tenant_id":            TENANT_ID,
-            "user_name":            "dev",
-            "top_n":                15,
-            "search_modes":         ["creative"],
-            "ai_generation":        True,
-            "multi_step_reasoning": True,
-            "graph_context":        True,
-            "auto_agent_routing":   True,
-            "search_alpha":         0.65,
-            "recency_bias":         0.15,
+            "tenant_id":     TENANT_ID,
+            "query":         question,
+            "max_results":   15,
+            "mode":          "thinking",
+            "graph_context": True,
+            "alpha":         0.65,
+            "recency_bias":  0.15,
         }, timeout=60)
     resp.raise_for_status()
     return resp.json()
 
 if __name__ == "__main__":
-    result = multi_source_qna(
+    result = multi_source_recall(
         "Why does the auth middleware skip token validation for internal IPs?")
-    print(result.get("answer", "No answer field in response"))
+    for chunk in result.get("chunks", [])[:5]:
+        print(f"[{chunk.get('relevancy_score', 0):.2f}] {chunk.get('source_title', '')}")
+        print(chunk.get("chunk_content", "")[:240])
 ```
 
 **Expected output:**
 
 ```
-The auth middleware skips token validation for internal IPs per RFC-007
-[Source: wiki-rfc-007]. This was introduced in PR #142 [Source: pr-142]
-to resolve circular dependency issues at startup. The security team
-approved the exception in #eng-architecture [Source: Slack - 2024-02-14].
+[0.88] RFC-007 Internal Service Auth
+The auth middleware skips token validation for internal IPs...
+[0.82] PR #142 Auth Startup Fix
+The change resolved circular dependency issues at startup...
+[0.77] #eng-architecture
+Security approved the internal-network exception...
 ```
 
-> ✅ **Phase 2 complete.** A "why" question now returns a multi-hop cited answer. Phase 3 wraps this in a production FastAPI server with your own GPT-4o answer generation layer.
+> ✅ **Phase 2 complete.** A "why" question now returns multi-hop retrieved context. Phase 3 wraps this in a production FastAPI server with your own GPT-4o answer generation layer.
 
 ---
 
@@ -853,7 +852,7 @@ The flow through the backend is:
 backend/
 ├── __init__.py       - makes backend a package so imports work
 ├── config.py         - env vars, HYDRA_API_KEY, HEADERS, OpenAI keys, recall defaults
-├── hydra_client.py   - full_recall() as primary verified path; qna() marked advanced
+├── hydra_client.py   - full_recall() wrapper for HydraDB retrieval
 ├── recall.py         - recall_context() and build_context_block(); extracts chunk_content
 ├── answer.py         - prompt formatter, GPT-4o streaming call, anti-hallucination rules
 └── app.py            - FastAPI server; /chat (streaming) and /ask (sync JSON, easier for Postman)
@@ -862,7 +861,7 @@ backend/
 **Architecture summary:**
 
 - **`config.py`** - Loads `.env`, exposes `HYDRA_API_KEY`, `TENANT_ID`, `HEADERS`, `OPENAI_API_KEY`, and recall defaults. Every other file imports from here only.
-- **`hydra_client.py`** - `full_recall()` is the primary verified path - build and test on this first. `qna()` is available for advanced multi-hop use cases but is not required for the first working backend. Neither function formats prompts or calls OpenAI. Imported by → `recall.py`, `app.py`.
+- **`hydra_client.py`** - `full_recall()` is the HydraDB retrieval path. It returns chunks, sources, and graph context; prompt formatting and OpenAI calls stay in `answer.py`. Imported by → `recall.py`, `app.py`.
 - **`recall.py`** - `recall_context()` calls `full_recall()` and returns the raw payload. `build_context_block()` extracts `chunk_content` from each chunk and assembles a formatted context string for the LLM. Imported by → `app.py`.
 - **`answer.py`** - Takes the context block from `recall.py`, formats the system + user prompt, and calls the OpenAI streaming API. Contains all anti-hallucination rules. Never calls HydraDB. Imported by → `app.py`.
 - **`app.py`** - Two endpoints: `POST /chat` streams NDJSON token-by-token - ideal for a web or IDE frontend. `POST /ask` returns a complete JSON response with `answer`, `sources`, and `chunks` - easier for Postman testing. Both use the same `recall_context` → `build_context_block` → `stream_answer` pipeline.
@@ -920,10 +919,9 @@ RECALL_ALPHA       = 0.75  # semantic vs keyword balance
 
 ### backend/hydra_client.py
 
-`full_recall()` is the primary verified path - build and test your backend on this function first. `qna()` is an advanced endpoint for multi-hop "why" questions; it is not required for the first working backend and adds debugging complexity. Neither function formats prompts or decides routing.
+`full_recall()` is the HydraDB retrieval path. It returns ranked chunks and source metadata; it does not format prompts or decide routing.
 
 ```python
-import uuid
 import requests
 
 from backend.config import (
@@ -968,35 +966,6 @@ def full_recall(
     resp.raise_for_status()
     return resp.json()
 
-
-def qna(question: str, session_id: str = None, user_name: str = "dev") -> dict:
-    """
-    ADVANCED - not required for the first working backend.
-
-    Calls /search/qna for multi-hop "why" questions with multi-step reasoning.
-    Build and verify the full_recall() path before switching to this endpoint.
-    Adds debugging complexity and a longer response time.
-    """
-    resp = requests.post(
-        f"{BASE_URL}/search/qna",
-        headers=HEADERS,
-        json={
-            "question":             question,
-            "session_id":           session_id or str(uuid.uuid4()),
-            "tenant_id":            TENANT_ID,
-            "user_name":            user_name,
-            "top_n":                15,
-            "search_modes":         ["creative"],
-            "ai_generation":        True,
-            "multi_step_reasoning": True,
-            "graph_context":        True,
-            "auto_agent_routing":   True,
-            "search_alpha":         0.65,
-            "recency_bias":         0.15,
-        }, timeout=60,
-    )
-    resp.raise_for_status()
-    return resp.json()
 ```
 
 ---
@@ -1140,7 +1109,7 @@ def stream_answer(question: str, context: str) -> Generator[str, None, None]:
 
 The FastAPI server exposes two endpoints. **`POST /chat`** streams NDJSON - best for a web frontend or VS Code extension. **`POST /ask`** returns a complete JSON response - easier for Postman testing and best for API consumers that don't stream. Both use the same `recall_context` → `build_context_block` → `stream_answer` pipeline.
 
-> 💡 **Want WHY_SIGNALS routing?** Once this basic backend is working, add a question classifier that routes "why" questions to `hydra_client.qna()` for multi-step reasoning. Build on `full_recall()` first - `qna()` is an advanced endpoint and adds debugging complexity.
+> 💡 **Want WHY_SIGNALS routing?** Once this basic backend is working, add a question classifier that adjusts `full_recall()` parameters for "why" questions, such as lower `alpha`, higher `max_results`, and `graph_context: true`. Keep final answer generation in your app layer.
 
 ```python
 import json
@@ -1495,24 +1464,19 @@ requests.post(
 // relevancy_score on each chunk indicates ranked relevance.
 ```
 
-### Multi-hop QnA (Advanced)
+### Multi-hop Recall
 
-**POST** `/search/qna` - Advanced - verify `full_recall` path first · not required for first backend
+**POST** `/recall/full_recall` - Use for multi-hop retrieval, then generate the answer in your app layer
 
 ```json
 {
-  "question":             "Why does auth middleware skip token validation for internal IPs?",
-  "session_id":           "uuid-here",
-  "tenant_id":            "engineering-docs",
-  "user_name":            "alice",
-  "top_n":                15,
-  "search_modes":         ["creative"],
-  "ai_generation":        true,
-  "multi_step_reasoning": true,
-  "graph_context":        true,
-  "auto_agent_routing":   true,
-  "search_alpha":         0.65,
-  "recency_bias":         0.15
+  "tenant_id":     "engineering-docs",
+  "query":         "Why does auth middleware skip token validation for internal IPs?",
+  "max_results":   15,
+  "mode":          "thinking",
+  "graph_context": true,
+  "alpha":         0.65,
+  "recency_bias":  0.15
 }
 ```
 
