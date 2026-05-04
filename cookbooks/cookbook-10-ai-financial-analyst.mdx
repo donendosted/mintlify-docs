@@ -48,8 +48,7 @@ graph TD
     B --> E["Temporal Knowledge Graph\n+ Vector Index"]
     F["Analyst Profile\n(/memories/add_memory)"] --> E
     E -->|"/recall/full_recall\nrecency_bias + graph_context"| G["Context Assembly"]
-    E -->|"/search/qna\nmode: thinking"| H["Direct Answer"]
-    G --> I["LLM Synthesis\n(gpt-4o / gemini)"]
+    G --> I["App-Layer LLM Synthesis\n(gpt-4o / gemini)"]
     I --> J["Analyst Response\nwith Citations + Timeline"]
 ```
 
@@ -586,7 +585,7 @@ Use high `recency_bias` to surface the most relevant recent documents. For point
 
 ```python
 # query/point_in_time.py
-import requests, uuid, os
+import requests, os
 
 BASE_URL  = "https://api.hydradb.com"
 HEADERS   = {
@@ -601,23 +600,20 @@ def query_point_in_time(
     ticker: str,
     fiscal_year: int,
     fiscal_quarter: int,
-    session_id: str = None,
 ) -> dict:
     """
-    Answer questions about a specific quarter.
+    Retrieve context about a specific quarter.
     metadata_filters narrows to exact period BEFORE semantic search runs.
     recency_bias: 0.7 - prefer the targeted period but allow adjacent context.
     mode: "thinking" - multi-query reranking, personalised recall.
     """
     return requests.post(
-        f"{BASE_URL}/search/qna",
+        f"{BASE_URL}/recall/full_recall",
         headers=HEADERS,
         json={
-            "question":      question,
-            "session_id":    session_id or str(uuid.uuid4()),
             "tenant_id":     TENANT_ID,
             "sub_tenant_id": f"analyst-{user_id}",
-            "user_name":     user_id,
+            "query":         question,
             "max_results":   12,
             "graph_context": True,
             "mode":          "thinking",
@@ -640,13 +636,13 @@ result = query_point_in_time(
     fiscal_year=2023,
     fiscal_quarter=2,
 )
-print(result["answer"])
+for chunk in result.get("chunks", [])[:3]:
+    print(f"[{chunk.get('relevancy_score', 0):.2f}] {chunk.get('source_title', '')}")
+    print(chunk.get("chunk_content", "")[:240])
 # Output:
-# Based on data for Q2 2023: Financial Metrics -- Q2 2023
-#   revenue_usd: 9100000  arr_usd: 37200000  gross_margin_pct: 72.8
-#   churn_rate_pct: 1.6   cac_usd: 4050      ltv_usd: 40500
-#   burn_rate_usd: 980000 headcount: 156      ndr_pct: 115
-# [Source: Memory | Relevance: 0.75]
+# [0.75] Financial Metrics -- Q2 2023
+# revenue_usd: 9100000  arr_usd: 37200000  gross_margin_pct: 72.8
+# churn_rate_pct: 1.6   cac_usd: 4050      ltv_usd: 40500
 # Chunks returned: 2
 ```
 
@@ -1044,14 +1040,14 @@ print(arc)
 
 ---
 
-## Step 5 - Q&A Search Interface
+## Step 5 - Analyst Recall Interface
 
-For direct Q&A (e.g. a chatbot interface for analysts), use `/search/qna`. It returns an AI-generated `answer` string directly, maintaining conversation context via `session_id`.
+For analyst chat interfaces, use `POST /recall/full_recall` to retrieve chunks, sources, and graph context. Generate the final answer in your application layer with your LLM provider so citations, formatting, and conversation memory stay under your control.
 
 ```python
-# query/qna.py
+# query/financial_recall.py
 import requests, uuid, os
-from typing import Optional   # FIX: use Optional for Python 3.9 compatibility
+from typing import Optional   # Python 3.9 compatible
 
 BASE_URL  = "https://api.hydradb.com"
 HEADERS   = {
@@ -1060,10 +1056,10 @@ HEADERS   = {
 }
 TENANT_ID = "financial-analyst"
 
-# Per-analyst sessions - persist for the analyst's working session
+# Keep app-level sessions for your chat UI or LLM prompt history.
 analyst_sessions: dict[str, str] = {}
 
-def financial_qna(
+def financial_recall(
     question: str,
     user_id: str,
     ticker: Optional[str] = None,
@@ -1073,17 +1069,15 @@ def financial_qna(
     recency_bias: float = 0.5,           # default balanced; override per query type
 ) -> dict:
     """
-    General-purpose financial Q&A endpoint.
+    Retrieve financial context for an analyst question.
 
-    Returns: {"answer": str, "chunks": [...], "session_id": str}
+    Returns: {"chunks": [...], "sources": [...], "graph_context": {...}, "session_id": str}
 
-    The session_id maintains conversational context - a follow-up question
-    ("and what about the previous quarter?") remembers the prior exchange.
+    Your app should pass chunks and graph_context to an LLM to generate the final answer.
     """
     if user_id not in analyst_sessions:
         analyst_sessions[user_id] = str(uuid.uuid4())
 
-    # Build metadata filter from provided constraints
     filters: dict = {}
     if ticker:         filters["ticker"]         = ticker
     if doc_type:       filters["doc_type"]        = doc_type
@@ -1091,11 +1085,9 @@ def financial_qna(
     if fiscal_quarter: filters["fiscal_quarter"]  = fiscal_quarter
 
     payload: dict = {
-        "question":      question,
-        "session_id":    analyst_sessions[user_id],
         "tenant_id":     TENANT_ID,
         "sub_tenant_id": f"analyst-{user_id}",
-        "user_name":     user_id,
+        "query":         question,
         "max_results":   15,
         "graph_context": True,
         "mode":          "thinking",
@@ -1106,7 +1098,7 @@ def financial_qna(
         payload["metadata_filters"] = filters
 
     resp = requests.post(
-        f"{BASE_URL}/search/qna", headers=HEADERS, json=payload
+        f"{BASE_URL}/recall/full_recall", headers=HEADERS, json=payload
     )
     resp.raise_for_status()
     result = resp.json()
@@ -1114,10 +1106,17 @@ def financial_qna(
     return result
 
 
+def context_for_llm(result: dict) -> str:
+    return "\n\n".join(
+        chunk.get("chunk_content", "")
+        for chunk in result.get("chunks", [])
+    )
+
+
 # ── Usage examples ────────────────────────────────────────────────────────
 
 # Simple factual lookup - specific quarter
-r1 = financial_qna(
+r1 = financial_recall(
     "What was ACME's revenue in Q4 2023?",
     user_id="alice",
     ticker="ACME",
@@ -1125,25 +1124,20 @@ r1 = financial_qna(
     fiscal_quarter=4,
     recency_bias=0.8,   # point-in-time - want that specific quarter
 )
-print(r1["answer"])
-# Output: Based on data for Q4 2023: revenue_usd: 10,800,000  arr_usd: 43,500,000
-#         gross_margin_pct: 73.1  churn_rate_pct: 1.9  burn_rate_usd: 890,000
-#         [Source: Memory | Relevance: 0.75]
+print(context_for_llm(r1)[:1000])
 
 # Trend question - no quarter filter, low recency_bias
-r2 = financial_qna(
+r2 = financial_recall(
     "How did ACME's churn rate evolve through 2023?",
     user_id="alice",
     ticker="ACME",
     fiscal_year=2023,
     recency_bias=0.3,   # spread across all quarters
 )
-print(r2["answer"])
-# Output: Q1 1.8% → Q2 1.6% (improvement) → Q3 2.1% (deterioration) → Q4 1.9% (recovery)
-#         Chunks: 8 (all four quarters represented)
+print(f"Chunks: {len(r2.get('chunks', []))}")
 
 # Cross-doc question - no source filter, let HydraDB find relevant sources
-r3 = financial_qna(
+r3 = financial_recall(
     "Does the Q3 2023 data show a churn increase?",
     user_id="priya",
     ticker="ACME",
@@ -1151,12 +1145,10 @@ r3 = financial_qna(
     fiscal_quarter=3,
     recency_bias=0.7,
 )
-print(r3["answer"])
-# Output: Yes - Q3 2023 churn_rate_pct: 2.1%, up from 1.6% in Q2 2023 (+0.5pp).
-#         [Source: Internal Metrics Q3 2023]
+print(context_for_llm(r3)[:1000])
 
 # Narrative / management tone
-r4 = financial_qna(
+r4 = financial_recall(
     "What did the CFO say about burn rate guidance for 2024 on the Q4 call?",
     user_id="raj",
     ticker="ACME",
@@ -1165,9 +1157,7 @@ r4 = financial_qna(
     fiscal_quarter=4,
     recency_bias=0.9,   # very specific - most recent call only
 )
-print(r4["answer"])
-# Output: Based on data for Q4 2023: ACME Q4 2023 Earnings Transcript...
-#         [Source: ACME Q4 2023 Earnings Transcript | Relevance: 0.90]
+print(context_for_llm(r4)[:1000])
 ```
 
 ---
@@ -1372,11 +1362,11 @@ from flask import Flask, request, jsonify
 from typing import Optional, Tuple   # FIX: use typing imports for Python 3.9 compatibility
 import os, re
 
-# FIX: import financial_qna with sys.path - avoids ModuleNotFoundError when
+# FIX: import financial_recall with sys.path - avoids ModuleNotFoundError when
 # running slack_bot.py directly from the integrations/ directory.
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from query.qna import financial_qna
+from query.financial_recall import financial_recall, context_for_llm
 
 app = Flask(__name__)
 
@@ -1419,7 +1409,7 @@ def slack_analyst():
     )
     recency_bias = 0.3 if is_trend_question else 0.7
 
-    result = financial_qna(
+    result = financial_recall(
         question=question,
         user_id=analyst_id,
         ticker=ticker,
@@ -1430,7 +1420,7 @@ def slack_analyst():
 
     return jsonify({
         "response_type": "in_channel",
-        "text": result.get("answer", "No answer found."),
+        "text": context_for_llm(result)[:3000] or "No relevant context found.",
     })
 
 if __name__ == "__main__":
@@ -1517,19 +1507,17 @@ POST /memories/add_memory
 }
 ```
 
-### Point-in-Time Q&A
+### Point-in-Time Recall
 
 ```http
-POST /search/qna
+POST /recall/full_recall
 ```
 
 ```json
 {
-  "question":      "What did management say about gross margin in Q2 2023?",
-  "session_id":    "analyst-session-uuid",
   "tenant_id":     "financial-analyst",
   "sub_tenant_id": "analyst-alice",
-  "user_name":     "alice",
+  "query":         "What did management say about gross margin in Q2 2023?",
   "max_results":   12,
   "graph_context": true,
   "mode":          "thinking",

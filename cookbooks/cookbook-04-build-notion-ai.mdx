@@ -368,49 +368,41 @@ for chunk in context["chunks"]:
 
 ---
 
-## Step 05 - Q&A Search
+## Step 05 - Recall and Answer Generation
 
-For conversational, AI-generated answers, use `/search/qna`. Key parameters: `alpha` (0–1, balance semantic vs lexical), `recency_bias` (0–1, prefer newer content), `user_name` (enables personalized recall).
+For conversational, AI-generated answers, first retrieve context with `POST /recall/full_recall`. Then pass the returned `chunks` and `sources` into your application-layer LLM prompt. Key parameters: `alpha` (0-1, balance semantic vs lexical), `recency_bias` (0-1, prefer newer content), and `graph_context`.
 
-**Endpoint:** `POST /search/qna` - AI-generated answer with citations
+**Endpoint:** `POST /recall/full_recall` - retrieved context for app-layer answer generation
 
 ```python
 def ask_workspace(
     question: str,
-    user_name: str      = None,
-    session_id: str     = None,
     sub_tenant_id: str  = None,
     source_filter: str  = None,
-    alpha: float        = 0.5,   # FIX: single alpha definition, was duplicated
+    alpha: float        = 0.5,
     recency_bias: float = 0.3,
     max_results: int    = 10,
 ) -> dict:
     """
-    Ask a question against your knowledge base.
-    Returns AI answer + source chunks with citations.
-    Pass the same session_id across follow-up questions to maintain
-    conversation context - HydraDB remembers what was asked before.
+    Retrieve workspace context for a question.
+    Returns chunks, sources, and graph_context. Generate the final answer in your app layer.
     """
     payload = {
-        "question":      question,
-        "session_id":    session_id or str(uuid.uuid4()),
         "tenant_id":     TENANT_ID,
-        "stream":        False,
+        "query":         question,
         "max_results":   max_results,
         "graph_context": True,
         "mode":          "thinking",
-        "alpha":         alpha,       # FIX: one definition only
+        "alpha":         alpha,
         "recency_bias":  recency_bias,
     }
-    if user_name:
-        payload["user_name"] = user_name
     if sub_tenant_id:
         payload["sub_tenant_id"] = sub_tenant_id
     if source_filter:
-        payload["metadata"] = {"source_type": source_filter}
+        payload["metadata_filters"] = {"source_type": source_filter}
 
     resp = requests.post(
-        f"{BASE_URL}/search/qna",
+        f"{BASE_URL}/recall/full_recall",
         headers=HEADERS,
         json=payload,
     )
@@ -418,22 +410,20 @@ def ask_workspace(
     return resp.json()
 
 
-# Usage examples
-session = str(uuid.uuid4())
-result = ask_workspace(
-    "Why did we choose Postgres over MySQL?",
-    user_name="alice",
-    session_id=session,
-)
-print(result.get("answer", ""))
+def build_context(result: dict) -> str:
+    return "\n\n".join(
+        chunk.get("chunk_content", "")
+        for chunk in result.get("chunks", [])
+    )
 
-# Follow-up - same session, HydraDB remembers context
-result2 = ask_workspace(
-    "What were the tradeoffs they considered?",
-    user_name="alice",
-    session_id=session,   # same session = conversation memory
-)
-print(result2.get("answer", ""))
+
+# Usage examples
+result = ask_workspace("Why did we choose Postgres over MySQL?")
+print(build_context(result)[:1000])
+
+# Follow-up questions call recall again and your app includes any prior chat turns in the LLM prompt.
+result2 = ask_workspace("What were the tradeoffs they considered?")
+print(build_context(result2)[:1000])
 
 # Filter to only Notion pages
 notion_result = ask_workspace(
@@ -442,13 +432,13 @@ notion_result = ask_workspace(
 )
 ```
 
-> **Maintaining conversation context:** Pass the same `session_id` across follow-up questions. HydraDB uses it to maintain conversation memory - the agent remembers what was discussed earlier in the session without you re-sending it.
+> **Maintaining conversation context:** Store chat history in your application and include relevant prior turns in your LLM prompt. HydraDB returns retrieval context; your app owns the final answer and conversation state.
 
 ---
 
 ## Step 06 - Slack Interface
 
-Expose your knowledge base as a Slack bot. When a user mentions `@wiki`, the bot calls `/search/qna` with their Slack user ID so HydraDB personalizes the response based on their stored memory profile.
+Expose your knowledge base as a Slack bot. When a user mentions `@wiki`, the bot calls `ask_workspace()` to retrieve context, then your application can pass that context to an LLM for the final Slack response.
 
 ```python
 from slack_bolt import App
@@ -475,13 +465,10 @@ def handle_mention(event, client):
     )
 
     session_id = get_session(slack_user)
-    result     = ask_workspace(
-        question,
-        user_name=slack_user,
-        session_id=session_id,
-    )
+    result     = ask_workspace(question)
 
-    answer  = result.get("answer", "No results found.")
+    chunks = result.get("chunks", [])
+    answer = "\n\n".join(c.get("chunk_content", "") for c in chunks[:3]) or "No results found."
     sources = result.get("sources", [])
 
     if sources:
@@ -564,21 +551,20 @@ curl -X POST 'https://api.hydradb.com/ingestion/upload_knowledge' \
 }
 ```
 
-### Q&A search
+### Recall for answer generation
 
-**POST** `/search/qna` - AI-generated answer - personalized via user_name
+**POST** `/recall/full_recall` - retrieved context for app-layer answer generation
 
 ```json
 {
-  "question":      "Why did we choose Postgres?",
-  "session_id":    "user-alice-session-001",
-  "tenant_id":     "notion-ai-workspace",
-  "user_name":     "alice",
-  "max_results":   10,
-  "mode":          "thinking",
-  "alpha":         0.5,
-  "recency_bias":  0.3,
-  "metadata":      { "source_type": "notion_page" }
+  "tenant_id":        "notion-ai-workspace",
+  "query":            "Why did we choose Postgres?",
+  "max_results":      10,
+  "mode":             "thinking",
+  "graph_context":    true,
+  "alpha":            0.5,
+  "recency_bias":     0.3,
+  "metadata_filters": { "source_type": "notion_page" }
 }
 ```
 
