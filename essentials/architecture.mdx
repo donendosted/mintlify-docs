@@ -21,46 +21,52 @@ Your client talks only to the API. Storage, indexing, and graph internals stay b
 
 ```mermaid
 flowchart LR
-  %% HydraDB Architecture Diagram - HydraDB Dark Mode Design
-
-  %% Nodes with rounded edges and explicit colors
   Client([Your App or SDK])
+  style Client fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 
-  %% Control Plane
-  subgraph Control_Plane["Control Plane"]
+  subgraph Control[Control Plane]
+    direction LR
     API([HydraDB API])
     Tenants([Tenant Service])
     Status([Status APIs])
+    style API fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Tenants fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Status fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
-  %% Ingestion Plane (Async)
-  subgraph Ingestion_Plane["Ingestion Plane (async)"]
+  subgraph Ingestion[Ingestion Plane - async]
+    direction LR
     Queue([Ingestion Queue])
     Parser([Parse and Chunk])
     Embed([Embed and Index])
     Graph([Graph Builder])
+    style Queue fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Parser fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Embed fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Graph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
-  %% Retrieval Plane (Sync)
-  subgraph Retrieval_Plane["Retrieval Plane (sync)"]
+  subgraph Retrieval[Retrieval Plane - sync]
+    direction LR
     Recall([Recall Orchestrator])
     MemVec([Memories Vector Store])
     KnowVec([Knowledge Vector Store])
     Lexical([Lexical Index])
     ContextGraph([Context Graph])
     Sources([Source Store])
+    style Recall fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style MemVec fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style KnowVec fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Lexical fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style ContextGraph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Sources fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
-  %% Edges - Client/Control
-  Client -- "HTTPS + Bearer token" --> API
+  Client --|HTTPS + Bearer token| API
   API --> Tenants
   API --> Status
-
-  %% Edges - Control to Ingestion
-  API -- "upload_knowledge" --> Queue
-  API -- "add_memory" --> Queue
-
-  %% Ingestion Process Chain
+  API --|upload_knowledge|--> Queue
+  API --|add_memory|--> Queue
   Queue --> Parser
   Parser --> Sources
   Parser --> Embed
@@ -70,26 +76,13 @@ flowchart LR
   Parser --> Graph
   Graph --> ContextGraph
 
-  %% Retrieval interactions
-  API -- "full_recall" --> Recall
-  API -- "recall_preferences" --> Recall
+  API --|full_recall|--> Recall
+  API --|recall_preferences|--> Recall
   Recall --> MemVec
   Recall --> KnowVec
   Recall --> Lexical
   Recall --> ContextGraph
   Recall --> Sources
-
-  %% -- HydraDB Dark Mode Styles --
-  %% Global node shape and font color for readability
-  classDef nodeBase fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
-  classDef accent fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2.5px,color:#f8fafc,stroke-linecap:round
-  class Client,API,Tenants,Status,Queue,Parser,Embed,Recall,MemVec,KnowVec,Lexical,ContextGraph,Sources nodeBase
-  class Graph accent  %% Core innovation step
-
-  %% Subgraph boxes (for optional visual hint, but color stays dark mode)
-  %% If additional subgraph styling: -- but Mermaid subgraph styling is limited in vanilla Mermaid.
-
-  %% Done
 ```
 
 ---
@@ -100,12 +93,26 @@ Ingestion is asynchronous. A successful upload means HydraDB accepted the work a
 
 ```mermaid
 flowchart LR
-  A[Upload Knowledge or Memory] --> B[queued]
-  B --> C[processing]
-  C --> D[graph_creation]
-  D --> E[completed]
-  C -.failure.-> F[errored]
-  D -.failure.-> F
+  Upload([Upload Knowledge or Memory])
+  Queued([Queued])
+  Processing([Processing])
+  Graph([Graph Creation])
+  Completed([Completed])
+  Errored([Errored])
+
+  Upload --> Queued
+  Queued --> Processing
+  Processing --> Graph
+  Graph --> Completed
+  Processing -.failure.-> Errored
+  Graph -.failure.-> Errored
+
+  style Upload fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Queued fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Processing fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Graph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2.5px,color:#f8fafc,stroke-linecap:round
+  style Completed fill:#22c55e,stroke:#166534,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Errored fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 ```
 
 Use `POST /ingestion/verify_processing` with the returned `source_id` to track indexing. Wait for `completed` when you need full recall and graph context.
