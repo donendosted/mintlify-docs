@@ -7,29 +7,56 @@ description: "Quick reference for ingestion endpoints, their lifecycle, and when
 
 ```mermaid
 flowchart LR
-    A[Choose endpoint] --> B{Content type?}
-    B -- Files / app sources --> UK[POST /ingestion/upload_knowledge]
-    B -- User memories --> AM[POST /memories/add_memory]
-    UK --> Q[queued]
+    A([Choose endpoint]) --> B{Content type?}
+    
+    subgraph Ingestion [" "]
+      direction LR
+      UK([POST /ingestion/upload_knowledge])
+      AM([POST /memories/add_memory])
+    end
+
+    B -- Files / app sources --> UK
+    B -- User memories --> AM
+    
+    UK --> Q([queued])
     AM --> Q
-    Q --> P[processing]
-    P --> G[graph_creation]
-    G --> C[completed]
-    P -.failure.-> E[errored]
-    G -.failure.-> E
-    C --> R[Recall ready]
+    
+    subgraph Pipeline [" "]
+      direction LR
+      Q --> P([processing])
+      P --> G([graph_creation])
+    end
 
-    style UK fill:#e8f4f8
-    style AM fill:#e8f4f8
-    style Q fill:#fff4e8
-    style P fill:#fff4e8
-    style G fill:#fff4e8
-    style C fill:#e8f8ea
-    style E fill:#ffe8e8
-    style R fill:#e8f8ea
+    G --> C([completed])
+    
+    P -. failure .-> E([errored])
+    G -. failure .-> E
+    
+    C --> R([Recall ready])
+
+    %% Global Link Styling
+    linkStyle default stroke:#64748b,stroke-width:2px,color:#f8fafc
+
+    %% Standard Node Styling (Deep Slate)
+    style A fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style B fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style UK fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style AM fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style Q fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style P fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    
+    %% Hydra Purple Accent (Core Innovation)
+    style G fill:#4c1d95,stroke:#8b5cf6,stroke-width:3px,color:#ffffff,font-weight:bold
+    
+    %% Status Highlights
+    style C fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc
+    style R fill:#0f172a,stroke:#10b981,stroke-width:3px,color:#f8fafc
+    style E fill:#0f172a,stroke:#ef4444,stroke-width:2px,color:#f8fafc
+
+    %% Subgraph Transparency
+    style Ingestion fill:none,stroke:none
+    style Pipeline fill:none,stroke:none
 ```
-
-Blue = ingestion endpoints. Orange = async pipeline. Green = ready. Red = failure state.
 
 ## Endpoint reference
 

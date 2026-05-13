@@ -28,18 +28,24 @@ description: "Complete reference for every HydraDB endpoint, organized by group.
 
 ```mermaid
 flowchart LR
-    A[Create Tenant] --> B[Wait for Provisioning]
-    B --> C[Ingest Knowledge / Memories]
-    C --> D[Verify Processing]
-    D --> E[Recall Context]
-    E --> F[Pass to LLM]
-    E --> G[List / Fetch / Inspect]
 
-    style A fill:#e8f4f8
-    style C fill:#e8f4f8
-    style E fill:#e8f8ea
-    style F fill:#e8f8ea
-    style G fill:#fff4e8
+    subgraph Tenant Lifecycle [" "]
+      direction LR
+      A([Create Tenant])-->B([Wait for Provisioning])
+      B-->C([Ingest Knowledge / Memories])
+      C-->D([Verify Processing])
+      D-->E([Recall Context])
+      E-->F([Pass to LLM])
+      E-->G([List / Fetch / Inspect])
+    end
+
+    style A fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style B fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style C fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style D fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style E fill:#8b5cf6,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style F fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc
+    style G fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc
 ```
 
 ## SDKs

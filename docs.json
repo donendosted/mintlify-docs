@@ -91,54 +91,55 @@
           {
             "group": "Tenants",
             "pages": [
-              "api-reference/tenants-overview",
-              "api-reference/create-tenant",
-              "api-reference/monitor-tenant",
-              "api-reference/infra-status",
-              "api-reference/list-sub-tenant-ids",
-              "api-reference/list-tenant-ids",
-              "api-reference/delete-tenant"
+              "api-reference/endpoint/tenants-overview",
+              "api-reference/endpoint/create-tenant",
+              "api-reference/endpoint/monitor-tenant",
+              "api-reference/endpoint/infra-status",
+              "api-reference/endpoint/list-sub-tenant-ids",
+              "api-reference/endpoint/list-tenant-ids",
+              "api-reference/endpoint/delete-tenant"
             ]
           },
           {
             "group": "Memories & Knowledge",
             "pages": [
-              "api-reference/ingestion-overview",
-              "api-reference/upload-knowledge",
-              "api-reference/verify-processing",
-              "api-reference/memories-overview",
-              "api-reference/add-memory",
-              "api-reference/delete-memory"
+              "api-reference/endpoint/ingestion-overview",
+              "api-reference/endpoint/upload-knowledge",
+              "api-reference/endpoint/verify-processing",
+              "api-reference/endpoint/memories-overview",
+              "api-reference/endpoint/add-memory",
+              "api-reference/endpoint/delete-memory"
             ]
           },
           {
             "group": "Recall",
             "pages": [
-              "api-reference/recall-overview",
-              "api-reference/full-recall",
-              "api-reference/recall-preferences",
-              "api-reference/boolean-recall"
+              "api-reference/endpoint/recall-overview",
+              "api-reference/endpoint/full-recall",
+              "api-reference/endpoint/recall-preferences",
+              "api-reference/endpoint/boolean-recall"
             ]
           },
           {
             "group": "Manage Data",
             "pages": [
-              "api-reference/list-overview",
-              "api-reference/list-data",
-              "api-reference/graph-relations",
-              "api-reference/fetch-content",
-              "api-reference/delete-knowledge"
+              "api-reference/endpoint/list-overview",
+              "api-reference/endpoint/list-data",
+              "api-reference/endpoint/graph-relations",
+              "api-reference/endpoint/fetch-content",
+              "api-reference/endpoint/delete-knowledge"
             ]
           },
           {
             "group": "Embeddings",
             "pages": [
-              "api-reference/embeddings-overview",
-              "api-reference/insert-raw-embeddings",
-              "api-reference/search-raw-embeddings",
-              "api-reference/filter-raw-embeddings",
-              "api-reference/delete-raw-embeddings"
+              "api-reference/endpoint/embeddings-overview",
+              "api-reference/endpoint/insert-raw-embeddings",
+              "api-reference/endpoint/search-raw-embeddings",
+              "api-reference/endpoint/filter-raw-embeddings",
+              "api-reference/endpoint/delete-raw-embeddings"
             ]
+       
           }
         ]
       }
