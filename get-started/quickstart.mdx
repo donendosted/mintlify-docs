@@ -3,9 +3,9 @@ title: "Quickstart"
 description: "Build your first working recall in five minutes."
 ---
 
-**Already have a tenant?** Jump to [Step 2 — Ingest data](#step-2-ingest-data)
+**Already have a tenant?** Jump to [Step 2 - Ingest data](#step-2-ingest-data)
 
-**Already ingested data?** Jump to [Step 4 — Recall context](#step-4-recall-context)
+**Already ingested data?** Jump to [Step 4 - Recall context](#step-4-recall-context)
 
 ---
 
@@ -25,7 +25,7 @@ flowchart LR
   style E fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 ```
 
-Step 3 is async — HydraDB parses, chunks, embeds, and graphs your content in the background. Steps 1, 2, 4, and 5 run in real time.
+Step 3 is async - HydraDB parses, chunks, embeds, and graphs your content in the background. Steps 1, 2, 4, and 5 run in real time.
 
 ---
 
@@ -41,7 +41,7 @@ Step 3 is async — HydraDB parses, chunks, embeds, and graphs your content in t
 
 <CodeGroup>
 ```bash cURL
-# No install needed — use curl directly
+# No install needed - use curl directly
 ```
 ```typescript TypeScript SDK
 npm install @hydradb/sdk
@@ -77,7 +77,7 @@ client = HydraDB(token=os.environ["HYDRADB_API_KEY"])
 
 <Steps>
 
-<Step title="Step 1 — Create a Tenant">
+<Step title="Step 1 - Create a Tenant">
 
 A tenant is your fully isolated workspace. Everything you ingest and recall lives inside it.
 
@@ -148,11 +148,11 @@ Wait until `graph_status` is `true` and both values in `vectorstore_status` are 
 
 </Step>
 
-<Step title="Step 2 — Ingest Data">
+<Step title="Step 2 - Ingest Data">
 
 HydraDB has two distinct data primitives. Pick the one that matches what you're ingesting.
 
-### Knowledge — documents and app sources
+### Knowledge - documents and app sources
 
 [Knowledge](/essentials/knowledge) is shared, tenant-wide content that all users can recall: PDFs, DOCX files, Slack threads, Notion pages, CSVs.
 
@@ -193,7 +193,7 @@ with open("/path/to/contract.pdf", "rb") as f:
 }
 ```
 
-### Memories — user preferences and conversation history
+### Memories - user preferences and conversation history
 
 [Memories](/essentials/memories) are user-specific, dynamic context: preferences, chat history, behavioral signals, inferred traits. Each memory is scoped to a `sub_tenant_id` and is fully isolated from other users.
 
@@ -259,7 +259,7 @@ Both paths return a `source_id` you can use to track processing in the next step
 
 </Step>
 
-<Step title="Step 3 — Verify Processing">
+<Step title="Step 3 - Verify Processing">
 
 Ingestion is asynchronous. Content passes through a pipeline before it is searchable:
 
@@ -316,11 +316,11 @@ Poll every few seconds until `indexing_status` is `"completed"`. Most documents 
 
 </Step>
 
-<Step title="Step 4 — Recall Context">
+<Step title="Step 4 - Recall Context">
 
-HydraDB exposes two recall endpoints — one per store. Use the one that matches what you ingested.
+HydraDB exposes two recall endpoints - one per store. Use the one that matches what you ingested.
 
-### For Knowledge — documents
+### For Knowledge - documents
 
 <CodeGroup>
 ```bash cURL
@@ -355,7 +355,7 @@ result = client.recall.full_recall(
 ```
 </CodeGroup>
 
-### For Memories — user preferences
+### For Memories - user preferences
 
 <CodeGroup>
 ```bash cURL
@@ -392,8 +392,8 @@ memories = client.recall.recall_preferences(
 
 **Key flags:**
 
-- `mode: "thinking"` — multi-stage recall with query expansion and reranking. Better results, higher latency. Default is `"fast"`.
-- `graph_context: true` — enriches results with entity relationships from the knowledge graph. Only applies to `full_recall`.
+- `mode: "thinking"` - multi-stage recall with query expansion and reranking. Better results, higher latency. Default is `"fast"`.
+- `graph_context: true` - enriches results with entity relationships from the knowledge graph. Only applies to `full_recall`.
 
 **Sample response** (`full_recall`):
 
@@ -430,11 +430,11 @@ memories = client.recall.recall_preferences(
   **`relevancy_score`:** A metric to evaluate each chunk's relevance to the query. Ranges from `0.0` to `2.0`.
 </Note>
 
-`chunks` is retrieved content ranked by relevance. `graph_context` contains entity relationships extracted from your data — useful for reasoning about *how* things connect, not just *what* was said.
+`chunks` is retrieved content ranked by relevance. `graph_context` contains entity relationships extracted from your data - useful for reasoning about *how* things connect, not just *what* was said.
 
 </Step>
 
-<Step title="Step 5 — Pass it to your LLM">
+<Step title="Step 5 - Pass it to your LLM">
 
 For personalized, grounded answers, call both `full_recall` and `recall_preferences` in parallel and merge the results into one prompt:
 
@@ -516,14 +516,14 @@ For the `build_context_string()` helper, see [How to Use API Results](/essential
 
 ## You're done
 
-That's the full loop: create a tenant, ingest Knowledge and Memories, wait for processing, recall context, feed it to an LLM. Everything else in HydraDB — metadata filters, sub-tenants, graph traversal, personalization — builds on this foundation.
+That's the full loop: create a tenant, ingest Knowledge and Memories, wait for processing, recall context, feed it to an LLM. Everything else in HydraDB - metadata filters, sub-tenants, graph traversal, personalization - builds on this foundation.
 
 **Where to go next:**
 
-- [Essentials → Memories](/essentials/memories) — how user-scoped memory works
-- [Essentials → Knowledge](/essentials/knowledge) — how document ingestion works
-- [Essentials → Recall](/essentials/recall) — parameters, modes, and tuning
-- [API Reference](/api-reference) — full endpoint documentation
-- [Cookbooks](/cookbooks) — end-to-end use case guides
+- [Essentials → Memories](/essentials/memories) - how user-scoped memory works
+- [Essentials → Knowledge](/essentials/knowledge) - how document ingestion works
+- [Essentials → Recall](/essentials/recall) - parameters, modes, and tuning
+- [API Reference](/api-reference) - full endpoint documentation
+- [Cookbooks](/cookbooks) - end-to-end use case guides
 
 Stuck? Reach out at [founders@hydradb.com](mailto:founders@hydradb.com).

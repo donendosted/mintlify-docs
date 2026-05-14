@@ -79,7 +79,7 @@ The CLI resolves credentials in this order (first match wins):
 | `HYDRADB_TENANT_ID` | Your HydraDB tenant identifier | *Required* |
 | `HYDRADB_API_URL` | API base URL | `https://api.hydradb.com` |
 | `HYDRADB_OUTPUT` | Default output format (`human` or `json`) | `human` |
-| `HYDRADB_SUB_TENANT_ID` | Sub-tenant for data partitioning | — |
+| `HYDRADB_SUB_TENANT_ID` | Sub-tenant for data partitioning | - |
 
 ### Output Formats
 
@@ -102,7 +102,7 @@ hydradb -o json memories list TENANT_ID
 
 | Command | Description |
 |---|---|
-| `hydradb login` | Interactive login — saves API key and tenant ID to `~/.hydradb/config.json` |
+| `hydradb login` | Interactive login - saves API key and tenant ID to `~/.hydradb/config.json` |
 | `hydradb logout` | Remove stored credentials |
 | `hydradb whoami` | Show current authentication status and tenant info |
 

@@ -148,8 +148,8 @@ flowchart LR
   style F fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc
 ```
 
-- **Auto-Recall** — Before every AI turn, queries HydraDB (`POST /recall/recall_preferences`) for relevant memories and injects graph-enriched context: entity paths, chunk relations, and linked extra context.
-- **Auto-Capture** — After every AI turn, the last user/assistant exchange is sent to HydraDB (`POST /memories/add_memory`) with `infer: true` and `upsert: true`. The session ID is used as `source_id` so HydraDB groups exchanges per session and builds the knowledge graph automatically.
+- **Auto-Recall** - Before every AI turn, queries HydraDB (`POST /recall/recall_preferences`) for relevant memories and injects graph-enriched context: entity paths, chunk relations, and linked extra context.
+- **Auto-Capture** - After every AI turn, the last user/assistant exchange is sent to HydraDB (`POST /memories/add_memory`) with `infer: true` and `upsert: true`. The session ID is used as `source_id` so HydraDB groups exchanges per session and builds the knowledge graph automatically.
 
 ---
 
@@ -174,7 +174,7 @@ flowchart LR
 | `hydra_search`         | Search HydraDB memories (returns graph-enriched context)       |
 | `hydra_list_memories`  | List all stored user memories (IDs and summaries)              |
 | `hydra_get_content`    | Fetch full content for a specific `source_id`                  |
-| `hydra_delete_memory`  | Delete a memory by `memory_id` — use only on explicit request  |
+| `hydra_delete_memory`  | Delete a memory by `memory_id` - use only on explicit request  |
 
 ---
 
@@ -196,8 +196,8 @@ openclaw hydra status              # Show plugin configuration
 
 Recalled context is injected inside `<hydra-context>` tags containing:
 
-- **Entity Paths** — Knowledge graph paths connecting entities relevant to the query
-- **Context Chunks** — Retrieved memory chunks with source titles, graph relations, and linked extra context
+- **Entity Paths** - Knowledge graph paths connecting entities relevant to the query
+- **Context Chunks** - Retrieved memory chunks with source titles, graph relations, and linked extra context
 
 ---
 

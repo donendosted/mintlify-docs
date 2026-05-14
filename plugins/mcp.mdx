@@ -141,7 +141,7 @@ Use `HYDRA_DB_SUB_TENANT_ID` to partition data across projects:
 
 ## How It Works
 
-At recall time, `hydra_db_search` queries HydraDB and returns graph-enriched context — entity paths, chunk relations, and linked extra context — injected directly into the model's prompt.
+At recall time, `hydra_db_search` queries HydraDB and returns graph-enriched context - entity paths, chunk relations, and linked extra context - injected directly into the model's prompt.
 
 At capture time, `hydra_db_store` and `hydra_db_ingest_conversation` send content with `infer: true` and `upsert: true`, triggering HydraDB's knowledge graph extraction pipeline automatically.
 
@@ -150,7 +150,7 @@ At capture time, `hydra_db_store` and `hydra_db_ingest_conversation` send conten
 | Tool | Endpoint | Description |
 | ---- | -------- | ----------- |
 | `hydra_db_search` | `POST /recall/recall_preferences` | Query for relevant memories; returns graph-enriched context (entity paths, chunk relations, extra context) |
-| `hydra_db_store` | `POST /memories/add_memory` | Store text with `infer: true` and `upsert: true` — HydraDB extracts insights and builds a knowledge graph automatically |
+| `hydra_db_store` | `POST /memories/add_memory` | Store text with `infer: true` and `upsert: true` - HydraDB extracts insights and builds a knowledge graph automatically |
 | `hydra_db_ingest_conversation` | `POST /memories/add_memory` | Store user-assistant pairs as conversation turns, grouped by `source_id` |
 | `hydra_db_list_memories` | `GET /list/data` | Browse all stored memories |
 | `hydra_db_list_sources` | `GET /list/data` | Browse all stored sources |

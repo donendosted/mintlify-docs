@@ -1,6 +1,6 @@
 # HydraDB Test Suite
 
-Three test runners — one per protocol. Each creates its own uniquely-named tenant, runs every documented endpoint/method, and writes a log file. Run them in order.
+Three test runners - one per protocol. Each creates its own uniquely-named tenant, runs every documented endpoint/method, and writes a log file. Run them in order.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ npm install @hydradb/sdk ts-node typescript @types/node
 ```bash
 export HYDRADB_API_KEY="sk_live_..."
 
-# 1. cURL (REST layer — most comprehensive)
+# 1. cURL (REST layer - most comprehensive)
 bash tests/test_curl.sh
 
 # 2. Python SDK
@@ -31,9 +31,9 @@ npx ts-node tests/test_typescript.ts
 
 | File | Contents |
 |---|---|
-| `tests/results_curl.log` | cURL results — every HTTP status code and response body |
-| `tests/results_python.log` | Python SDK results — method return values and errors |
-| `tests/results_typescript.log` | TypeScript SDK results — method return values and errors |
+| `tests/results_curl.log` | cURL results - every HTTP status code and response body |
+| `tests/results_python.log` | Python SDK results - method return values and errors |
+| `tests/results_typescript.log` | TypeScript SDK results - method return values and errors |
 
 ## What's tested
 

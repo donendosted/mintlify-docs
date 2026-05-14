@@ -61,7 +61,7 @@ User Memory captures preferences, communication style, past questions, likes, di
 
 **What your AI knows from documents, apps, and data.**
 
-Knowledge Memory is your AI's factual foundation — company policies, product docs, Slack threads, emails, Notion pages, and any unstructured data your agents need.
+Knowledge Memory is your AI's factual foundation - company policies, product docs, Slack threads, emails, Notion pages, and any unstructured data your agents need.
 
 - **Ingest files**: [`POST /ingestion/upload_knowledge`](/api-reference/endpoint/add-knowledge-memories) (PDF, DOCX, TXT, etc.)
 - **Ingest app knowledge**: same endpoint with `app_knowledge` form field (Gmail, Slack, Notion, etc.)
@@ -80,7 +80,7 @@ Every piece of knowledge is parsed, chunked, and indexed for recall.
 
 **What all your agents learn together.**
 
-Hive Memory is collective intelligence — learnings and institutional knowledge that every agent in your system can access.
+Hive Memory is collective intelligence - learnings and institutional knowledge that every agent in your system can access.
 
 - **Ingest**: [`POST /memories/add_memory`](/api-reference/endpoint/add-memories) (coming soon: dedicated endpoint)
 - **Recall**: [`POST /recall/full_recall`](/api-reference/endpoint/full-recall)
@@ -89,7 +89,7 @@ Hive Memory is collective intelligence — learnings and institutional knowledge
 
 ## Tenants and Sub-Tenants
 
-A **tenant** (`tenant_id`) is the top-level isolation boundary — one per customer organization or application.
+A **tenant** (`tenant_id`) is the top-level isolation boundary - one per customer organization or application.
 
 A **sub-tenant** (`sub_tenant_id`) is a workspace within a tenant. Sub-tenants are created automatically on first use.
 
@@ -121,9 +121,9 @@ At query time, HydraDB retrieves the most relevant context using hybrid retrieva
 
 Tag any memory with key-value metadata for deterministic filtering at recall time.
 
-- **`metadata`** — tenant-level attributes set at ingestion (scoped by tenant schema)
-- **`additional_metadata`** — document-level attributes set at ingestion
-- **`metadata_filters`** — filter applied in recall requests before semantic ranking
+- **`metadata`** - tenant-level attributes set at ingestion (scoped by tenant schema)
+- **`additional_metadata`** - document-level attributes set at ingestion
+- **`metadata_filters`** - filter applied in recall requests before semantic ranking
 
 **Common patterns:** `department`, `team`, `project`, `source`, `created_at`, `is_confidential`
 
