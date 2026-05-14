@@ -35,6 +35,7 @@
               "essentials/memories",
               "essentials/knowledge",
               "essentials/recall",
+              "essentials/webhooks",
               "essentials/multi-tenant",
               "essentials/metadata",
               "essentials/context-graphs",
