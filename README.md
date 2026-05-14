@@ -72,15 +72,15 @@ mintlify-docs/
 
 ## Adding & Editing Documentation
 
-1. **Edit an existing page** — Open the corresponding `.mdx` file and modify the content. The dev server hot-reloads changes.
+1. **Edit an existing page** - Open the corresponding `.mdx` file and modify the content. The dev server hot-reloads changes.
 
-2. **Add a new page** — Create a new `.mdx` file in the appropriate directory, then add its path to the `navigation` section in `docs.json`.
+2. **Add a new page** - Create a new `.mdx` file in the appropriate directory, then add its path to the `navigation` section in `docs.json`.
 
-3. **Update navigation** — All page ordering and grouping is controlled in `docs.json` under `navigation.tabs`.
+3. **Update navigation** - All page ordering and grouping is controlled in `docs.json` under `navigation.tabs`.
 
-4. **API reference pages** — Endpoint docs live in `api-reference/endpoint/`. The OpenAPI spec is at `api-reference/openapi.json`.
+4. **API reference pages** - Endpoint docs live in `api-reference/endpoint/`. The OpenAPI spec is at `api-reference/openapi.json`.
 
-5. **Reusable content** — Shared snippets go in the `snippets/` directory and can be imported into any page.
+5. **Reusable content** - Shared snippets go in the `snippets/` directory and can be imported into any page.
 
 ## Useful Links
 

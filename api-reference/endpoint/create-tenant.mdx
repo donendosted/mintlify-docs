@@ -240,7 +240,7 @@ Only fields declared with `enable_match: true` are usable in `metadata_filters` 
 
 **`enable_dense_embedding` and `enable_sparse_embedding` fields**
 
-`enable_dense_embedding` makes a field semantically searchable (dense vector). `enable_sparse_embedding` makes it keyword-searchable (BM25/sparse vector). Use these when the field itself is a body of text you want included in semantic or keyword recall — for example, a `product_description` that should be retrieved alongside the document.
+`enable_dense_embedding` makes a field semantically searchable (dense vector). `enable_sparse_embedding` makes it keyword-searchable (BM25/sparse vector). Use these when the field itself is a body of text you want included in semantic or keyword recall, for example a `product_description` that should be retrieved alongside the document.
 
 ```json
 {

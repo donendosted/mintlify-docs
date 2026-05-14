@@ -103,7 +103,7 @@ Once configured, the plugin runs in the background: it syncs workspace docs on s
 
 ## Modes
 
-### `captureMode` — how conversations are saved
+### `captureMode` - how conversations are saved
 
 | Value            | Behavior                                                                                    |
 | ---------------- | ------------------------------------------------------------------------------------------- |
@@ -112,7 +112,7 @@ Once configured, the plugin runs in the background: it syncs workspace docs on s
 | `both`           | Saves isolated turns and a rolling session transcript                                       |
 | `off`            | No automatic saves; manual saves still work via `/hydradb:save-session`                    |
 
-### `searchMode` — what is recalled at prompt time
+### `searchMode` - what is recalled at prompt time
 
 | Value       | Behavior                                                               |
 | ----------- | ---------------------------------------------------------------------- |
@@ -120,7 +120,7 @@ Once configured, the plugin runs in the background: it syncs workspace docs on s
 | `knowledge` | Recalls from [Knowledge](/essentials/knowledge) only                   |
 | `both`      | Recalls from both in parallel, then merges results                     |
 
-### `ingestionMode` — where workspace docs are synced
+### `ingestionMode` - where workspace docs are synced
 
 | Value       | Behavior                                                                                               |
 | ----------- | ------------------------------------------------------------------------------------------------------ |
@@ -128,7 +128,7 @@ Once configured, the plugin runs in the background: it syncs workspace docs on s
 | `knowledge` | Syncs workspace docs into the [Knowledge](/essentials/knowledge) base                                  |
 | `auto`      | Prefers memory; falls back to knowledge for larger files. Pair with `searchMode: "both"`               |
 
-### `recallMode` — speed vs. depth
+### `recallMode` - speed vs. depth
 
 | Value      | Behavior                                       |
 | ---------- | ---------------------------------------------- |
@@ -198,11 +198,11 @@ Once configured, the plugin runs in the background: it syncs workspace docs on s
 
 | Variable                             | Default                  | Description                                               |
 | ------------------------------------ | ------------------------ | --------------------------------------------------------- |
-| `subTenantId`                        | —                        | Workspace-level namespace within your tenant              |
-| `userName`                           | —                        | Optional user name attached to memories                   |
+| `subTenantId`                        | -                        | Workspace-level namespace within your tenant              |
+| `userName`                           | -                        | Optional user name attached to memories                   |
 | `apiBaseUrl`                         | `https://api.hydradb.com`| HydraDB API base URL                                      |
-| `memoryCustomInstructions`           | —                        | Custom instructions for how conversation memories are extracted |
-| `workspaceMemoryCustomInstructions`  | —                        | Custom instructions for how workspace doc memories are extracted |
+| `memoryCustomInstructions`           | -                        | Custom instructions for how conversation memories are extracted |
+| `workspaceMemoryCustomInstructions`  | -                        | Custom instructions for how workspace doc memories are extracted |
 | `debug`                              | `false`                  | Enable debug logging to `.hydradb-plugin-data/debug.log`  |
 
 ---
@@ -215,8 +215,8 @@ The plugin resolves config in this order (later sources override earlier ones):
 2. `HYDRADB_PLUGIN_CONFIG` env var (absolute path to a JSON file)
 3. `${CLAUDE_PLUGIN_DATA}/config.json`
 4. `.hydradb-plugin-data/config.json`
-5. `.hydradb-plugin.json` *(workspace-shared — safe to commit to git)*
-6. `.hydradb-plugin.local.json` *(workspace-local — add to `.gitignore`)*
+5. `.hydradb-plugin.json` *(workspace-shared - safe to commit to git)*
+6. `.hydradb-plugin.local.json` *(workspace-local - add to `.gitignore`)*
 7. Environment variable overrides
 
 ---

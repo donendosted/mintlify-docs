@@ -10,7 +10,7 @@ category: Essentials
 
 Metadata is structured data attached to knowledge and memories. It lets you narrow recall to a known scope before semantic retrieval runs.
 
-Use metadata when you already know a concrete attribute of the content you want back — for example:
+Use metadata when you already know a concrete attribute of the content you want back - for example:
 
 - `environment: "production"`
 - `document_type: "runbook"`
@@ -151,8 +151,8 @@ Use it when the filter value is known exactly. Operators such as range, contains
 
 HydraDB exposes two common metadata patterns:
 
-- **`metadata`** — schema-aligned fields intended for deterministic filtering. If a field is declared in the tenant metadata schema and match-enabled, it can be used in `metadata_filters`.
-- **`additional_metadata`** — free-form fields for display, bookkeeping, or downstream application use. Do not rely on these for deterministic filtering.
+- **`metadata`** - schema-aligned fields intended for deterministic filtering. If a field is declared in the tenant metadata schema and match-enabled, it can be used in `metadata_filters`.
+- **`additional_metadata`** - free-form fields for display, bookkeeping, or downstream application use. Do not rely on these for deterministic filtering.
 
 If a field needs to be filterable at recall time, put it in `metadata` and plan it in the tenant metadata schema. Otherwise, prefer `additional_metadata`.
 
@@ -326,8 +326,8 @@ Too many filters can remove the chunk that would have answered the question. Sta
 
 ## Related
 
-- [Recall](/essentials/recall) — using `metadata_filters` during retrieval
-- [Memories](/essentials/memories) — metadata fields on memory items
-- [Multi-Tenant Support](/essentials/multi-tenant) — tenant and sub-tenant scoping
-- [Create Tenant API Reference](/api-reference/endpoint/create-tenant) — defining tenant metadata schema
-- [Full Recall API Reference](/api-reference/endpoint/full-recall) — using metadata filters in recall
+- [Recall](/essentials/recall) - using `metadata_filters` during retrieval
+- [Memories](/essentials/memories) - metadata fields on memory items
+- [Multi-Tenant Support](/essentials/multi-tenant) - tenant and sub-tenant scoping
+- [Create Tenant API Reference](/api-reference/endpoint/create-tenant) - defining tenant metadata schema
+- [Full Recall API Reference](/api-reference/endpoint/full-recall) - using metadata filters in recall

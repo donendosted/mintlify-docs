@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-13  
 **Auditor:** Claude (Cowork Mode)  
-**Scope:** `get-started/`, `essentials/`, `api-reference/` — 42 `.mdx` files  
+**Scope:** `get-started/`, `essentials/`, `api-reference/` - 42 `.mdx` files  
 **Sources of Truth:** [npmjs.com/@hydradb/sdk](https://www.npmjs.com/package/@hydradb/sdk) · [pypi.org/project/hydradb-sdk](https://pypi.org/project/hydradb-sdk/0.0.1/) · [api.hydradb.com/openapi.json](https://api.hydradb.com/openapi.json)
 
 ---
@@ -24,7 +24,7 @@
 
 ## Detailed Findings & Fixes
 
-### 1. Wrong SDK Method Names — `client.memories.*` does not exist
+### 1. Wrong SDK Method Names - `client.memories.*` does not exist
 
 **Root cause:** The `add_memory` and `delete_memory` methods live under `client.upload.*`, not `client.memories.*`. The PyPI method table is authoritative.
 
@@ -36,7 +36,7 @@
 
 ---
 
-### 2. Wrong Relations Field Name — `hydradb_source_ids` does not exist in OpenAPI
+### 2. Wrong Relations Field Name - `hydradb_source_ids` does not exist in OpenAPI
 
 **Root cause:** OpenAPI confirms the field is `cortex_source_ids`. `hydradb_source_ids` returns no matches in the spec.
 
@@ -48,7 +48,7 @@
 
 **Root cause:** The OpenAPI and PyPI both use `tenant_metadata` / `document_metadata` for ingestion payloads and filter objects. The docs incorrectly used `metadata` / `additional_metadata` in these contexts.
 
-Note: `metadata` and `additional_metadata` **do** appear in API *responses* (e.g., in `chunks[]` objects returned by recall) — those were left untouched. Only the ingestion request bodies and filter objects were updated.
+Note: `metadata` and `additional_metadata` **do** appear in API *responses* (e.g., in `chunks[]` objects returned by recall) - those were left untouched. Only the ingestion request bodies and filter objects were updated.
 
 | Context | Old field | New field |
 |---|---|---|
@@ -61,7 +61,7 @@ Note: `metadata` and `additional_metadata` **do** appear in API *responses* (e.g
 
 ---
 
-### 4. TypeScript SDK — snake_case Parameters Used Instead of camelCase
+### 4. TypeScript SDK - snake_case Parameters Used Instead of camelCase
 
 **Root cause:** The TypeScript SDK converts all REST snake_case fields to camelCase. Snippets in `essentials/` pages were written with Python-style snake_case, which would silently fail at compile time.
 
@@ -83,15 +83,15 @@ Note: `metadata` and `additional_metadata` **do** appear in API *responses* (e.g
 
 ---
 
-### 5. `vectorstore_status` Index Labels — Off-by-one Labeling
+### 5. `vectorstore_status` Index Labels - Off-by-one Labeling
 
-**Root cause:** Three pages labeled the Memories store as "Index `1` (`[0]`)" and Knowledge as "Index `2` (`[1]`)" — the outer label was wrong. The correct mapping is `[0]` = Memories, `[1]` = Knowledge, confirmed by `infra-status.mdx` and `quickstart.mdx`.
+**Root cause:** Three pages labeled the Memories store as "Index `1` (`[0]`)" and Knowledge as "Index `2` (`[1]`)" - the outer label was wrong. The correct mapping is `[0]` = Memories, `[1]` = Knowledge, confirmed by `infra-status.mdx` and `quickstart.mdx`.
 
 **Fixed in:** `essentials/memories.mdx` (table + body), `essentials/recall.mdx` (table), `essentials/multi-tenant.mdx` (body)
 
 ---
 
-### 6. `app_sources` Structure — Wrong Field Names and Missing `content` Wrapper
+### 6. `app_sources` Structure - Wrong Field Names and Missing `content` Wrapper
 
 **Root cause:** `essentials/knowledge.mdx` Path B examples used a simplified structure (`source_id`, `text` at top level) that doesn't match the API spec. The correct structure uses `id` and `content: { text: "..." }`.
 
@@ -101,7 +101,7 @@ Also: TypeScript `appSources` and Python `app_sources` must be JSON-serialised s
 
 ---
 
-### 7. Python `file_metadata` — Must Be JSON String, Not a Python List
+### 7. Python `file_metadata` - Must Be JSON String, Not a Python List
 
 **Root cause:** `essentials/knowledge.mdx` Path A Python example passed `file_metadata` as a Python list directly. The correct form is `file_metadata=json.dumps([...])` since this is a multipart form field.
 
@@ -109,7 +109,7 @@ Also: TypeScript `appSources` and Python `app_sources` must be JSON-serialised s
 
 ---
 
-### 8. Undocumented Endpoint — `/recall/qna`
+### 8. Undocumented Endpoint - `/recall/qna`
 
 **Status:** Not fixed (requires a new `.mdx` page).
 
@@ -141,10 +141,13 @@ Also: TypeScript `appSources` and Python `app_sources` must be JSON-serialised s
 ## Postman Collection
 
 Included as `HydraDB_Postman_Collection.json` in this folder. Import into Postman and set:
-- `HYDRADB_API_KEY` — your API key
-- `tenant_id` — your target tenant
-- `sub_tenant_id` — your target sub-tenant
-- `source_id` / `memory_id` — populated from ingestion responses
+- `HYDRADB_API_KEY` - your API key
+
+- `tenant_id` - your target tenant
+
+- `sub_tenant_id` - your target sub-tenant
+
+- `source_id` / `memory_id` - populated from ingestion responses
 
 Covers all 18 documented endpoints plus the undocumented `/recall/qna`.
 
@@ -152,7 +155,7 @@ Covers all 18 documented endpoints plus the undocumented `/recall/qna`.
 
 ## cURL Live Testing
 
-Live testing requires an API key (not yet provided). All cURL snippets in the docs have been validated for correct formatting: `Authorization: Bearer` header present, correct HTTP method, correct base URL `https://api.hydradb.com`, correct `Content-Type` headers. No structural issues found in cURL snippets — all failures identified were in SDK code blocks.
+Live testing requires an API key (not yet provided). All cURL snippets in the docs have been validated for correct formatting: `Authorization: Bearer` header present, correct HTTP method, correct base URL `https://api.hydradb.com`, correct `Content-Type` headers. No structural issues found in cURL snippets - all failures identified were in SDK code blocks.
 
 ---
 
@@ -161,11 +164,14 @@ Live testing requires an API key (not yet provided). All cURL snippets in the do
 ### Python (PyPI source of truth)
 - All method names verified against the PyPI method table ✅
 - All snake_case parameter names verified ✅  
-- `from hydra_db import HydraDB, AsyncHydraDB` — correct import path ✅
-- `pip install hydradb-sdk` — correct install command ✅
+- `from hydra_db import HydraDB, AsyncHydraDB` - correct import path ✅
+
+- `pip install hydradb-sdk` - correct install command ✅
+
 
 ### TypeScript
 - All method names verified against camelCase conventions from the PyPI SDK table ✅
 - All camelCase parameter names corrected ✅
-- `import { HydraDBClient } from "@hydradb/sdk"` — correct import ✅
-- `npm install @hydradb/sdk` — correct install command ✅
+- `import { HydraDBClient } from "@hydradb/sdk"` - correct import ✅
+
+- `npm install @hydradb/sdk` - correct install command ✅
