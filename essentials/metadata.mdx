@@ -1,177 +1,333 @@
 ---
-title: "Metadata"
-description: "Metadata is the foundation of deterministic retrieval in HydraDB."
+title: Metadata
+description: How HydraDB uses metadata fields to filter recall results deterministically.
+category: Essentials
 ---
 
-Semantic and graph-based recall are powerful, but production systems still need explicit control: filter by owner, project, team, time range, source, compliance scope, or any custom logic.
+# Metadata
 
-HydraDB metadata lets you **structure, scope, and constrain** recall  -  so your agents retrieve the right context _on purpose_, not by luck.
+## 1. What it is
 
-> Mental model: **Metadata defines the search space. HydraDB recall ranks what matters inside it.**
+Metadata is structured data attached to knowledge and memories. It lets you narrow recall to a known scope before semantic retrieval runs.
+
+Use metadata when you already know a concrete attribute of the content you want back - for example:
+
+- `environment: "production"`
+- `document_type: "runbook"`
+- `compliance_framework: "SOC2"`
+- `status: "published"`
+
+Metadata filtering is different from semantic search. Semantic search finds content by meaning; metadata filtering narrows the candidate set using structured fields.
 
 ---
 
-## Where Metadata Is Used
+## 2. What it does
 
-- **Ingestion / Upload**: attach metadata at the time you add knowledge or documents.
-- **Recall & Search**: apply metadata filters to deterministically include/exclude results.
-- **Ranking**: metadata can also act as a scoring signal (e.g., boost approved docs).
+When you pass `metadata_filters` to recall, HydraDB uses those filters to narrow the candidate set before ranking retrieved chunks.
 
-**Note:** When ingesting and reading recall responses, use `metadata` for tenant-level fields and `additional_metadata` for flexible source-level fields. If you configure `tenant_metadata_schema`, HydraDB validates and indexes matching `metadata` keys; `schema-backed` is documentation terminology, not a request parameter.
+This gives you more predictable recall when the query needs to stay inside a known slice of data.
+
+For example, this query:
+
+```json
+{
+  "query": "How does authentication work?",
+  "metadata_filters": {
+    "compliance_framework": "SOC2"
+  }
+}
+```
+
+does not ask HydraDB to semantically interpret "SOC2". It narrows recall to content tagged with that metadata value, then runs retrieval inside that filtered set.
+
+Use metadata filters for hard constraints. Use semantic recall for fuzzy or conceptual matching.
 
 ---
 
-## Two-Tier Metadata Architecture
+## 3. When to use it
 
-HydraDB supports two metadata fields for enterprise-scale systems.
+Use metadata filtering when:
 
-### Tenant Metadata (`metadata`)
+- The result must come from a known category, environment, customer tier, language, status, or document type.
+- You need deterministic narrowing alongside semantic recall.
+- You want to avoid mixing content from different operational scopes.
+- You want to keep draft, archived, internal, or region-specific content out of a user-facing answer.
 
-Tenant-level metadata for stable organizational context. These keys can be free-form, or you can define `tenant_metadata_schema` during tenant creation when you want validation and stronger indexing guarantees.
+Do not use metadata filtering for:
 
-- **Purpose:** stable, filterable organizational context
-- **Optional schema:** keys can be defined at tenant creation via `tenant_metadata_schema`
-- **Best for:** compliance, business unit, region, retention policy, data classification
+- Synonyms
+- Partial matches
+- Fuzzy intent
+- Conceptual similarity
+- Ranking preferences
+- Range or contains-style operators
+
+Those belong in the query, recall mode, or downstream reranking logic.
+
+---
+
+## 4. How it works
+
+### 1. Define filterable fields
+
+Filterable top-level metadata fields are defined in the tenant metadata schema.
+
+Plan filterable fields before ingestion. If your application needs to filter on a field, define it in the tenant metadata schema before writing data that depends on that filter, and enable matching for it.
+
+### 2. Attach metadata when writing data
+
+Attach metadata when adding knowledge or memories.
+
+Use metadata for stable attributes that you expect to filter on later, such as:
+
+```json
+{
+  "environment": "production",
+  "document_type": "runbook",
+  "status": "published"
+}
+```
+
+### 3. Filter during recall
+
+Pass `metadata_filters` during recall to narrow the candidate set.
+
+```json
+{
+  "tenant_id": "acme_corp",
+  "query": "How do I rotate API keys?",
+  "metadata_filters": {
+    "environment": "production",
+    "document_type": "runbook"
+  }
+}
+```
+
+Recall then runs over candidates matching the filter.
+
+---
+
+## 5. Key concepts
+
+### Tenant metadata schema
+
+The tenant metadata schema defines which top-level metadata fields can be matched during recall.
+
+Use it for fields that your application will filter on repeatedly, such as:
+
+- `environment`
+- `language`
+- `region`
+- `document_type`
+- `status`
+- `customer_tier`
+
+For complete `tenant_metadata_schema` examples, supported field types, and advanced configuration options, see [Create Tenant API Reference](/api-reference/endpoint/create-tenant).
+
+### `enable_match`
+
+A metadata field must be match-enabled to be usable in `metadata_filters`.
+
+If a field is stored but not match-enabled, do not rely on it for deterministic filtering.
+
+### `metadata_filters`
+
+`metadata_filters` is the recall parameter used to apply deterministic filters.
 
 Example:
 
 ```json
 {
+  "metadata_filters": {
+    "status": "published",
+    "language": "en"
+  }
+}
+```
+Multiple keys are treated as structured filter constraints; use semantic recall or downstream reranking for fuzzy, range, or preference-based matching.
+Use it when the filter value is known exactly. Operators such as range, contains, or fuzzy matching are not supported.
+
+### `metadata` vs `additional_metadata`
+
+HydraDB exposes two metadata fields on every source object:
+
+- **`metadata`** — schema-aligned fields intended for deterministic filtering. If a field is declared in the tenant metadata schema and match-enabled, it can be used in `metadata_filters`.
+- **`additional_metadata`** — free-form fields for display, bookkeeping, or downstream application use. Do not rely on these for deterministic filtering.
+
+If a field needs to be filterable at recall time, put it in `metadata` and plan it in the tenant metadata schema. Otherwise, prefer `additional_metadata`.
+
+### Metadata filtering vs `sub_tenant_id`
+
+Use `sub_tenant_id` to partition data by user, workspace, team, or another logical scope.
+
+Use `metadata_filters` to narrow results inside that scope.
+
+They are complementary:
+
+```text
+tenant_id      -> primary scope
+sub_tenant_id  -> logical partition inside the tenant
+metadata       -> deterministic filters inside that partition
+```
+
+Do not use metadata filters as a substitute for choosing the right tenant or sub-tenant.
+
+---
+
+## 6. Minimal working example
+
+This example shows the full pattern:
+
+1. Create a tenant with a filterable metadata field.
+2. Write content tagged with that metadata.
+3. Recall content matching that metadata.
+
+### 1. Define filterable metadata
+
+```json
+{
+  "tenant_id": "acme_corp",
   "tenant_metadata_schema": [
     {
       "name": "compliance_framework",
-      "data_type": "string",
-      "filterable": true
-    },
-    {
-      "name": "product_description",
-      "data_type": "string",
-      "searchable": true
+      "data_type": "VARCHAR",
+      "enable_match": true
     }
   ]
 }
 ```
 
-### Additional Metadata (`additional_metadata`)
+The exact tenant creation request may include additional fields depending on your setup. See the [Create Tenant API Reference](/api-reference/endpoint/create-tenant) for the complete schema.
 
-Flexible source-level metadata that can vary across memories and knowledge sources.
-
-- **Purpose:** fine-grained filtering and discovery
-- **Flexibility:** fully dynamic and mutable
-- **Best for:** owner, project, status, source, created_at, tags, version
-
-Example:
+### 2. Attach metadata when writing content
 
 ```json
 {
-  "additional_metadata": {
-    "title": "API Security Guidelines",
-    "project": "phoenix",
-    "owner": "sarah.chen@acme.com",
-    "status": "approved",
-    "created_at": "2024-01-15T10:30:00Z",
-    "tags": ["security", "api"]
-  }
+  "tenant_id": "acme_corp",
+  "app_knowledge": [
+    {
+      "tenant_id": "acme_corp",
+      "sub_tenant_id": "default",
+      "id": "auth-controls-001",
+      "content": { "text": "Authentication controls are reviewed quarterly for SOC2." },
+      "metadata": {
+        "compliance_framework": "SOC2"
+      }
+    }
+  ]
 }
 ```
 
+Use the metadata field names you planned in the tenant metadata schema.
+
+### 3. Recall with `metadata_filters`
+
+```python
+result = client.recall.full_recall(
+    tenant_id="acme_corp",
+    query="How does authentication control review work?",
+    metadata_filters={
+        "compliance_framework": "SOC2",
+    },
+)
+```
+
+```typescript
+const result = await client.recall.fullRecall({
+  tenant_id: "acme_corp",
+  query: "How does authentication control review work?",
+  metadata_filters: {
+    compliance_framework: "SOC2",
+  },
+});
+```
+
+Recall then runs over candidates matching the filter.
+
 ---
 
-## Why Two Tiers?
+## 7. Recommended patterns
 
-This split gives you:
+### Published vs draft content
 
-- **Organizational consistency** (`metadata`)
-- **Per-source flexibility** (`additional_metadata`)
-- **Efficient filtering at scale** (metadata-first candidate retrieval)
-- **Governance and isolation** (compliance-aware recall)
-
----
-
-## Metadata Filtering
-
-Metadata filters let you make retrieval deterministic.
-
-Example user request:
-
-> “All information related to Project Strawberry from last month.”
-
-Pass it as `metadata_filters` in a recall request:
+Use a `status` field when your application has both draft and published content.
 
 ```json
 {
-  "tenant_id": "your_tenant_id",
-  "query": "Project Strawberry updates",
   "metadata_filters": {
-    "project": "strawberry",
-    "created_at": {"$gte": "2025-03-01", "$lt": "2025-04-01"}
+    "status": "published"
   }
 }
 ```
 
-The filter is applied _before_ semantic and graph ranking, so only matching sources enter the retrieval pipeline.
+This helps prevent draft content from appearing in user-facing answers.
 
-### Common Filtering Patterns
+### Language-specific recall
 
-- **Scope by ownership**: `owner = "nish@company.com"`
-- **Scope by team/project**: `team = "engineering"`, `project = "phoenix"`
-- **Time bounding**: `created_at`, `source_last_updated_time`
-- **Compliance constraints**: `data_classification = "confidential"`
-- **Source constraints**: `source_type = "gmail" | "slack" | "notion"`
+Use a `language` field when your tenant contains multilingual content.
 
----
+```json
+{
+  "metadata_filters": {
+    "language": "en"
+  }
+}
+```
 
-## Supported Data Types
+### Environment-specific recall
 
-Metadata supports friendly data types:
+If environment-specific content intentionally exists in the same tenant scope, use an `environment` field to narrow recall.
 
-- `string`
-- `integer`
-- `float`
-- `boolean`
-- `array`
-- `object`
+```json
+{
+  "metadata_filters": {
+    "environment": "production"
+  }
+}
+```
 
-For `tenant_metadata_schema` fields, use `filterable: true` for exact filtering and `searchable: true` for dense and sparse search indexing. Use `string` for searchable text fields.
+For stronger separation between production and staging, prefer separate tenants. Use metadata only when the content is intentionally stored under the same tenant.
 
-**Tip:** keep metadata small and structured  -  avoid storing large text blobs in metadata.
+### Document-type filtering
 
----
+Use a `document_type` field when different source types should be retrieved differently.
 
-## Reserved Keywords
-
-The following keywords are reserved and cannot be used as keys in `tenant_metadata_schema`:
-
-- `id`
-- `source_title`, `source_url`, `source_type`, `source_collection`
-- `source_owner`, `source_collaborator`
-- `source_upload_time`, `source_last_updated_time`
-- `chunk_id`, `chunk_uuid`, `chunk_content`
-- `document_metadata`, `base_metadata`, `layout`, `description`
-
----
-
-## Best Practices
-
-- Use **snake_case** for keys and keep naming consistent.
-- Prefer **booleans** for binary flags (e.g., `is_confidential: true`).
-- Use **arrays** instead of comma-separated strings for tags.
-- Include stable identifiers where possible (emails, ticket IDs, URLs).
-- Design metadata so it mirrors how users actually ask questions.
+```json
+{
+  "metadata_filters": {
+    "document_type": "runbook"
+  }
+}
+```
 
 ---
 
-## How Metadata Fits Into Recall
+## 8. Common mistakes
 
-HydraDB recall is multi-stage:
+**Filtering on fields that were not configured for matching.**  
+If a field is not declared and match-enabled, HydraDB ignores that filter. Plan filterable fields before ingestion so your filters actually narrow recall.
 
-1. **Metadata filters** scope the candidate set (deterministic)
-2. **Hybrid retrieval** (keyword / regex / embeddings) expands relevant context
-3. **Graph traversal** adds relational structure
-4. **Personalized ranking** chooses what is most useful for the task
+**Using metadata filters for fuzzy search.**  
+Metadata filters are for structured constraints. Use semantic recall for fuzzy meaning, synonyms, or conceptual matches.
 
-This is how HydraDB avoids the classic RAG failure mode:
+**Trying to use metadata as a tenant boundary.**  
+Metadata narrows results inside a scope. It should not replace `tenant_id` or `sub_tenant_id` for scoping customers, users, or workspaces.
 
-> “Semantically similar, but practically useless.”
+**Adding filterable fields too late.**  
+If your application needs deterministic filtering on a field, plan it early and declare it in the tenant metadata schema before ingestion.
 
-Metadata ensures retrieval is precise, auditable, and production-ready  -  while HydraDB intelligence determines what matters most inside the allowed scope.
+**Confusing metadata fields across endpoints.**  
+Metadata is always passed as plain JSON objects using the field names `metadata` and `additional_metadata`. Check the relevant endpoint reference for which fields are supported.
+
+**Over-filtering.**  
+Too many filters can remove the chunk that would have answered the question. Start with the minimum hard constraints needed, then tune.
+
+---
+
+## Related
+
+- [Recall](/essentials/recall) - using `metadata_filters` during retrieval
+- [Memories](/essentials/memories) - metadata fields on memory items
+- [Multi-Tenant Support](/essentials/multi-tenant) - tenant and sub-tenant scoping
+- [Create Tenant API Reference](/api-reference/endpoint/create-tenant) - defining tenant metadata schema
+- [Full Recall API Reference](/api-reference/endpoint/full-recall) - using metadata filters in recall

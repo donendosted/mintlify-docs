@@ -5,6 +5,8 @@ description: "How HydraDB moves content from ingestion to indexed recall, and wh
 
 HydraDB is context infrastructure for AI applications. From the outside, you call a small set of HTTP APIs. Inside, HydraDB coordinates tenant isolation, async ingestion, indexing, graph construction, and hybrid retrieval so your application can store context once and recall the right pieces later.
 
+---
+
 ## The Big Picture
 
 HydraDB has three logical planes:
@@ -12,54 +14,78 @@ HydraDB has three logical planes:
 | Plane | What It Handles |
 |---|---|
 | Control plane | API authentication, tenant lifecycle, plan limits, and status endpoints |
-| Ingestion plane | File/app knowledge uploads, memory ingestion, parsing, chunking, embedding, and graph construction |
+| Ingestion plane | File/app Knowledge uploads, Memory ingestion, parsing, chunking, embedding, and graph construction |
 | Retrieval plane | Hybrid recall, metadata filtering, graph context, lexical search, and response shaping |
 
 Your client talks only to the API. Storage, indexing, and graph internals stay behind the service boundary.
 
 ```mermaid
-flowchart TB
-  Client[Your App or SDK]
+flowchart LR
+  Client([Your App or SDK])
+  style Client fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 
   subgraph Control[Control Plane]
-    API[HydraDB API]
-    Tenants[Tenant Service]
-    Status[Status APIs]
+    direction LR
+    API([HydraDB API])
+    Tenants([Tenant Service])
+    Status([Status APIs])
+    style API fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Tenants fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Status fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
   subgraph Ingestion[Ingestion Plane - async]
-    Queue[Ingestion Queue]
-    Parser[Parse and Chunk]
-    Embed[Embed and Index]
-    Graph[Graph Builder]
+    direction LR
+    Queue([Ingestion Queue])
+    Parser([Parse and Chunk])
+    Embed([Embed and Index])
+    Graph([Graph Builder])
+    style Queue fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Parser fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Embed fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Graph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
   subgraph Retrieval[Retrieval Plane - sync]
-    Recall[Recall Orchestrator]
-    Vector[(Vector Index)]
-    Lexical[(Lexical Index)]
-    ContextGraph[(Context Graph)]
-    Sources[(Source Store)]
+    direction LR
+    Recall([Recall Orchestrator])
+    MemVec([Memories Vector Store])
+    KnowVec([Knowledge Vector Store])
+    Lexical([Lexical Index])
+    ContextGraph([Context Graph])
+    Sources([Source Store])
+    style Recall fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style MemVec fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style KnowVec fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Lexical fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style ContextGraph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+    style Sources fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
   end
 
-  Client -->|HTTPS + Bearer token| API
+  Client --|HTTPS + Bearer token| API
   API --> Tenants
   API --> Status
-  API -->|upload or memory| Queue
+  API --|upload_knowledge|--> Queue
+  API --|add_memory|--> Queue
   Queue --> Parser
   Parser --> Sources
   Parser --> Embed
-  Embed --> Vector
+  Embed --> MemVec
+  Embed --> KnowVec
   Embed --> Lexical
   Parser --> Graph
   Graph --> ContextGraph
 
-  API -->|recall| Recall
-  Recall --> Vector
+  API --|full_recall|--> Recall
+  API --|recall_preferences|--> Recall
+  Recall --> MemVec
+  Recall --> KnowVec
   Recall --> Lexical
   Recall --> ContextGraph
   Recall --> Sources
 ```
+
+---
 
 ## Ingestion Lifecycle
 
@@ -67,29 +93,47 @@ Ingestion is asynchronous. A successful upload means HydraDB accepted the work a
 
 ```mermaid
 flowchart LR
-  A[Upload knowledge or memory] --> B[queued]
-  B --> C[processing]
-  C --> D[graph_creation]
-  D --> E[completed]
-  C -.failure.-> F[errored]
-  D -.failure.-> F
+  Upload([Upload Knowledge or Memory])
+  Queued([Queued])
+  Processing([Processing])
+  Graph([Graph Creation])
+  Completed([Completed])
+  Errored([Errored])
+
+  Upload --> Queued
+  Queued --> Processing
+  Processing --> Graph
+  Graph --> Completed
+  Processing -.failure.-> Errored
+  Graph -.failure.-> Errored
+
+  style Upload fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Queued fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Processing fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Graph fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2.5px,color:#f8fafc,stroke-linecap:round
+  style Completed fill:#22c55e,stroke:#166534,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style Errored fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 ```
 
 Use `POST /ingestion/verify_processing` with the returned `source_id` to track indexing. Wait for `completed` when you need full recall and graph context.
 
+---
+
 ## From Upload To Recall
 
 1. Create a tenant with `POST /tenants/create`.
-2. Poll `GET /tenants/infra/status?tenant_id=...` until tenant infrastructure is ready.
-3. Upload documents or app knowledge with `POST /ingestion/upload_knowledge`, or user memories with `POST /memories/add_memory`.
+2. Poll `GET /tenants/infra/status?tenant_id=...` until both `vectorstore_status` indices are `true` and `graph_status` is `true`.
+3. Upload documents or app Knowledge with `POST /ingestion/upload_knowledge`, or user Memories with `POST /memories/add_memory`.
 4. Poll `POST /ingestion/verify_processing?file_ids=<source_id>&tenant_id=...`.
-5. Query knowledge with `POST /recall/full_recall`, user memories with `POST /recall/recall_preferences`, or exact text matches with `POST /recall/boolean_recall`.
+5. Query Knowledge with `POST /recall/full_recall`, user Memories with `POST /recall/recall_preferences`, or exact text matches with `POST /recall/boolean_recall`.
+
+---
 
 ## Tenant Isolation
 
 A `tenant_id` is the top-level isolation boundary. Within it, `sub_tenant_id` scopes content to a user, team, workspace, or project.
 
-If `sub_tenant_id` is omitted, HydraDB resolves it to the tenant's default sub-tenant. In the current API implementation, that default is the tenant's internal primary tenant identifier, so omitted sub-tenant values consistently land in the same default scope.
+If `sub_tenant_id` is omitted, HydraDB resolves it to the tenant's default sub-tenant.
 
 Use this model for common product patterns:
 
@@ -99,9 +143,11 @@ Use this model for common product patterns:
 | B2C app | One tenant for your application | One sub-tenant per end user |
 | Internal tools | One tenant per company or environment | One sub-tenant per department or project |
 
+---
+
 ## Retrieval Pipeline
 
-`/recall/full_recall` and `/recall/recall_preferences` use the same request model and differ by collection: knowledge sources vs user memories.
+`/recall/full_recall` and `/recall/recall_preferences` use the same request model and differ by collection: Knowledge sources vs user Memories.
 
 At a high level, recall:
 
@@ -114,6 +160,8 @@ At a high level, recall:
 
 The response is retrieved context, not a final LLM answer. Pass the relevant chunks and graph context into your own agent or model prompt.
 
+---
+
 ## Key Controls
 
 | Field | Where | What It Does |
@@ -121,11 +169,22 @@ The response is retrieved context, not a final LLM answer. Pass the relevant chu
 | `tenant_id` | All core APIs | Selects the isolated workspace |
 | `sub_tenant_id` | Ingestion and recall | Narrows data to a user, team, or workspace |
 | `metadata` | Ingestion | Tenant-level metadata; matching keys are validated and indexed when `tenant_metadata_schema` is configured |
-| `additional_metadata` | Ingestion | Flexible source-level metadata attached to a source |
+| `additional_metadata` | Ingestion | Flexible source-level metadata attached to a source; not matchable at recall time |
 | `metadata_filters` | Recall | Deterministically scopes candidates before ranking |
 | `alpha` | Recall | Blends semantic and lexical scores (`1.0` = semantic-heavy, `0.0` = lexical-heavy) |
 | `graph_context` | Recall | Requests graph paths and chunk relations in the response |
 
+---
+
 ## Operational Mental Model
 
 HydraDB separates write-time work from query-time work. Uploads are accepted quickly, then processed in the background. Recall stays synchronous and returns only indexed content. When results look incomplete, first check processing status, then tenant/sub-tenant scope, then metadata filters.
+
+---
+
+## Related
+
+- [Core Concepts](/core-concepts) - the five primitives: Memories, Knowledge, Recall, Tenants, Metadata
+- [Quickstart](/quickstart) - build your first integration in five minutes
+- [Multi-Tenant Support](/essentials/multi-tenant) - scoping patterns
+- [Context Graphs](/essentials/context-graphs) - how the graph layer works

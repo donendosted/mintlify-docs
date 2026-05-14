@@ -3,12 +3,12 @@ title: "Hybrid recall (overview)"
 description: "Hybrid search over your indexed data. Use full-context recall for documents or recall preferences for user memories."
 ---
 
-Cortex exposes **two hybrid recall endpoints** that share the same request body and response shape. There is no `search_mode` field—you choose the search target by calling the appropriate endpoint.
+Cortex exposes **two hybrid recall endpoints** that share the same request body and response shape. There is no `search_mode` field; you choose the search target by calling the appropriate endpoint.
 
 | Endpoint | Use when |
 |----------|----------|
-| [**Full-context recall (sources)**](/api-reference/endpoint/full-context-recall) — `POST /recall/full_context_recall` | Search over **indexed sources** (documents, knowledge base, uploaded files). |
-| [**Recall preferences (memories)**](/api-reference/endpoint/recall-preferences) — `POST /recall/recall_preferences` | Search over **user memories** (preferences, conversations, inferred traits). |
+| [**Full-context recall (sources)**](/api-reference/endpoint/full-context-recall) - `POST /recall/full_context_recall` | Search over **indexed sources** (documents, knowledge base, uploaded files). |
+| [**Recall preferences (memories)**](/api-reference/endpoint/recall-preferences) - `POST /recall/recall_preferences` | Search over **user memories** (preferences, conversations, inferred traits). |
 
 Both use the same request body (e.g. `query`, `tenant_id`, `sub_tenant_id`, `max_results`, `mode`, `alpha`, `recency_bias`, `graph_context`, `additional_context`, `metadata_filters`) and return `RetrievalResult` (chunks, graph_context).
 

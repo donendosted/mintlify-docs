@@ -23,31 +23,33 @@
           {
             "group": "Get Started",
             "pages": [
-              "index",
-              "concepts",
-              "quickstart"
+              "get-started/introduction",
+              "get-started/core-concepts",
+              "get-started/quickstart"
             ]
           },
           {
             "group": "Essentials",
             "pages": [
               "essentials/architecture",
-              "essentials/recall",
-              "essentials/semantic-search",
               "essentials/memories",
-              "essentials/context-graph",
+              "essentials/knowledge",
+              "essentials/recall",
+              "essentials/webhooks",
               "essentials/multi-tenant",
               "essentials/metadata",
-              "essentials/use-api-results"
+              "essentials/context-graphs",
+              "essentials/api-results",
+              "essentials/semantic-search"
             ]
           },
           {
             "group": "Plugins",
             "pages": [
               "plugins/claude-code",
-              "plugins/open-claw",
               "plugins/mcp",
-              "plugins/cli"
+              "plugins/cli",
+              "plugins/openclaw"
             ]
           }
         ]
@@ -81,6 +83,7 @@
           {
             "group": "API Documentation",
             "pages": [
+              "api-reference/index",
               "api-reference/sdks",
               "api-reference/error-responses"
             ]
@@ -88,42 +91,42 @@
           {
             "group": "Tenants",
             "pages": [
+              "api-reference/endpoint/tenants-overview",
               "api-reference/endpoint/create-tenant",
               "api-reference/endpoint/monitor-tenant",
+              "api-reference/endpoint/infra-status",
               "api-reference/endpoint/list-sub-tenant-ids",
               "api-reference/endpoint/delete-tenant"
             ]
           },
           {
-            "group": "Memories",
+            "group": "Knowledge & Memories",
             "pages": [
-              "api-reference/endpoint/add-memories",
-              "api-reference/endpoint/add-knowledge-memories",
-              "api-reference/endpoint/add-hive-memories"
+              "api-reference/endpoint/ingestion-overview",
+              "api-reference/endpoint/memories-overview",
+              "api-reference/endpoint/upload-knowledge",
+              "api-reference/endpoint/add-memory",
+              "api-reference/endpoint/verify-processing",
+              "api-reference/endpoint/delete-memory",
+              "api-reference/endpoint/delete-knowledge"
             ]
           },
           {
             "group": "Recall",
             "pages": [
+              "api-reference/endpoint/recall-overview",
               "api-reference/endpoint/full-recall",
               "api-reference/endpoint/recall-preferences",
-              "api-reference/endpoint/keyword"
+              "api-reference/endpoint/boolean-recall"
             ]
           },
           {
-            "group": "Ingestion",
+            "group": "Managing Data",
             "pages": [
-              "api-reference/endpoint/verify-processing"
-            ]
-          },
-          {
-            "group": "Manage Memories",
-            "pages": [
-              "api-reference/endpoint/list",
+              "api-reference/endpoint/list-overview",
+              "api-reference/endpoint/list-data",
               "api-reference/endpoint/fetch-content",
-              "api-reference/endpoint/relations",
-              "api-reference/delete-memory",
-              "api-reference/delete-knowledge"
+              "api-reference/endpoint/graph-relations"
             ]
           }
         ]

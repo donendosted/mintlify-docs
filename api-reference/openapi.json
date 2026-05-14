@@ -157,6 +157,7 @@
             "name": "file_id",
             "in": "query",
             "required": false,
+            "deprecated": true,
             "schema": {
               "anyOf": [
                 {
@@ -4497,11 +4498,16 @@
               }
             ],
             "title": "Metadata Filters",
-            "description": "Optional key-value pairs to filter search results by tenant metadata fields. Keys must match fields defined in tenant_metadata_schema during tenant creation. Supports exact match filtering on indexed metadata fields. Example: {'category': 'engineering', 'priority': 'high'}",
+            "description": "Optional object for exact-match metadata scoping. All provided conditions are combined with AND. Top-level keys (except the reserved nested object described below) must match tenant-level metadata field names declared with enable_match in tenant_metadata_schema; each value is compared with plain equality to the stored tenant metadata value for that field. For document-level metadata, supply a nested object under the key \"additional_metadata\" whose keys and values are compared with plain equality to per-source document metadata. Only equality on scalar-compatible values is part of this contract—do not send range operators, regular-expression operators, or Mongo-style operators such as $gte, $lt, $in, or $regex.",
             "examples": [
               {
                 "category": "engineering",
                 "department": "R&D"
+              },
+              {
+                "additional_metadata": {
+                  "source": "account_plan"
+                }
               }
             ]
           }
@@ -5458,22 +5464,24 @@
             ],
             "example": [
               {
-                "key": "department",
-                "type": "string",
-                "searchable": true,
-                "filterable": true
+                "name": "department",
+                "data_type": "VARCHAR",
+                "max_length": 256,
+                "enable_match": true
               },
               {
-                "key": "compliance_framework",
-                "type": "string",
-                "searchable": true,
-                "filterable": false
+                "name": "compliance_framework",
+                "data_type": "VARCHAR",
+                "max_length": 256,
+                "enable_match": true,
+                "enable_dense_embedding": false,
+                "enable_sparse_embedding": false
               },
               {
-                "key": "data_classification",
-                "type": "string",
-                "searchable": false,
-                "filterable": true
+                "name": "data_classification",
+                "data_type": "VARCHAR",
+                "max_length": 128,
+                "enable_match": true
               }
             ]
           }
