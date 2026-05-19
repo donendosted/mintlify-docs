@@ -108,6 +108,10 @@ response = client.tenant.create(tenant_id="my_first_tenant")
 Receiving a `"status": "accepted"` response indicates that the creation process has successfully started, but it does not imply that the tenant is fully provisioned.
 </Info>
 
+<Info>
+Receiving a `"status": "accepted"` response indicates that the creation process has successfully started, but it does not imply that the tenant is fully provisioned.
+</Info>
+
 Tenant creation is **asynchronous**. Poll until provisioning completes before ingesting:
 
 <CodeGroup>
