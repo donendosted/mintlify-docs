@@ -1,0 +1,1042 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HydraDB API v2",
+    "version": "2.0.0",
+    "description": "Version 2 of the HydraDB API. Send `API-Version: 2` with each request."
+  },
+  "servers": [
+    {
+      "url": "https://api.hydradb.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/tenants": {
+      "post": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Create a tenant",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "create",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Create a new tenant and provision its infrastructure.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantCreateRequest"
+              },
+              "example": {
+                "tenant_id": "my_first_tenant",
+                "tenant_metadata_schema": [
+                  {
+                    "name": "department",
+                    "data_type": "string",
+                    "enable_match": true
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/V2Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "List tenants",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "list",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "List all tenant IDs registered for the authenticated organization.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Delete a tenant",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "delete",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Delete a tenant and all associated infrastructure and data. This action is irreversible.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/tenants/status": {
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Get tenant infrastructure status",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "status",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Check the provisioning status of a tenant's infrastructure.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/tenants/sub-tenants": {
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "List sub-tenants",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "sub_tenants",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "List unique sub-tenant IDs that have indexed data.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          }
+        }
+      }
+    },
+    "/tenants/stats": {
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Get tenant stats",
+        "x-fern-sdk-group-name": "tenants",
+        "x-fern-sdk-method-name": "stats",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Retrieve usage statistics such as object count and vector dimension for a tenant.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          }
+        }
+      }
+    },
+    "/source/ingest": {
+      "post": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "Ingest content",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "ingest",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Unified ingestion endpoint for knowledge and memory. Use `type` to choose `knowledge` or `memory`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/V2Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/source/status": {
+      "get": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "Check processing status",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "status",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Check the processing status of ingested documents or memories by ID.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "name": "file_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Single source or file ID to check."
+          },
+          {
+            "name": "file_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "One or more source or file IDs to check."
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQueryOptional"
+          },
+          {
+            "$ref": "#/components/parameters/SubTenantIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          }
+        }
+      }
+    },
+    "/source/fetch": {
+      "get": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "Fetch document content",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "fetch",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Retrieve the content of a previously ingested document or memory.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Source ID of the document or memory to fetch."
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/SubTenantIdQuery"
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "content",
+                "url",
+                "both"
+              ],
+              "default": "content"
+            },
+            "description": "Fetch mode."
+          },
+          {
+            "name": "expiry_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 604800,
+              "default": 3600
+            },
+            "description": "Presigned URL expiry in seconds."
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/source/list": {
+      "post": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "List documents",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "list",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "List knowledge sources or memories with pagination and optional filters.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListContentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "422": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/source": {
+      "delete": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "Delete documents or memories",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "delete",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Unified deletion endpoint for knowledge documents and memories. Use `type` to choose `knowledge` or `memory`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteDocumentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    },
+    "/source/relations": {
+      "get": {
+        "tags": [
+          "Source"
+        ],
+        "summary": "Get graph relations",
+        "x-fern-sdk-group-name": "source",
+        "x-fern-sdk-method-name": "relations",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Retrieve knowledge graph relations for a specific source or across a sub-tenant.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TenantIdQuery"
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Source ID. If omitted, returns relations across the sub-tenant."
+          },
+          {
+            "name": "is_memory",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Whether to fetch relations for memories."
+          },
+          {
+            "$ref": "#/components/parameters/SubTenantIdQuery"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 5000
+            },
+            "description": "Maximum number of relation groups to return."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Pagination cursor from a previous response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          }
+        }
+      }
+    },
+    "/search": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search",
+        "x-fern-sdk-group-name": "search",
+        "x-fern-sdk-method-name": "query",
+        "x-fern-sdk-audience": [
+          "v2"
+        ],
+        "description": "Unified search endpoint for retrieval over documents, memories, or both.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              "example": {
+                "tenant_id": "my_first_tenant",
+                "query": "What are the pricing tiers?",
+                "source": "sources",
+                "search_by": "hybrid",
+                "max_results": 5
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/V2Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/V2Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/V2Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ApiVersionHeader": {
+        "name": "API-Version",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "2"
+          ],
+          "default": "2"
+        },
+        "description": "Use `2` to call the v2 API contract."
+      },
+      "TenantIdQuery": {
+        "name": "tenant_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Tenant ID."
+      },
+      "TenantIdQueryOptional": {
+        "name": "tenant_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Tenant ID."
+      },
+      "SubTenantIdQuery": {
+        "name": "sub_tenant_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional sub-tenant scope."
+      }
+    },
+    "responses": {
+      "V2Success": {
+        "description": "Successful v2 response.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/V2Envelope"
+            },
+            "example": {
+              "success": true,
+              "data": {},
+              "error": null,
+              "meta": {
+                "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
+                "latency_ms": 12.3
+              }
+            }
+          }
+        }
+      },
+      "V2Error": {
+        "description": "Error v2 response.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/V2Envelope"
+            },
+            "example": {
+              "success": false,
+              "data": null,
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Request validation failed"
+              },
+              "meta": {
+                "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
+                "latency_ms": 4.8
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "V2Envelope": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "error",
+          "meta"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "description": "Endpoint-specific response payload.",
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/V2ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/V2Meta"
+          }
+        }
+      },
+      "V2ErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "V2Meta": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": "number"
+          }
+        }
+      },
+      "TenantCreateRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id"
+        ],
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "example": "my_first_tenant"
+          },
+          "tenant_metadata_schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataField"
+            }
+          },
+          "is_embeddings_tenant": {
+            "type": "boolean",
+            "default": false
+          },
+          "embeddings_dimension": {
+            "type": "integer",
+            "example": 1536
+          }
+        }
+      },
+      "MetadataField": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "department"
+          },
+          "data_type": {
+            "type": "string",
+            "example": "string"
+          },
+          "max_length": {
+            "type": "integer",
+            "default": 1024
+          },
+          "enable_analyzer": {
+            "type": "boolean",
+            "default": false
+          },
+          "enable_match": {
+            "type": "boolean",
+            "default": false
+          },
+          "enable_dense_embedding": {
+            "type": "boolean",
+            "default": false
+          },
+          "enable_sparse_embedding": {
+            "type": "boolean",
+            "default": false
+          },
+          "nullable": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "IngestRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "knowledge",
+              "memory"
+            ],
+            "default": "knowledge",
+            "description": "Type of content to ingest."
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "my_first_tenant"
+          },
+          "sub_tenant_id": {
+            "type": "string",
+            "example": "default"
+          },
+          "upsert": {
+            "type": "boolean",
+            "default": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "description": "Files to upload when `type` is `knowledge`."
+          },
+          "file_metadata": {
+            "type": "string",
+            "description": "JSON array of file metadata objects."
+          },
+          "app_knowledge": {
+            "type": "string",
+            "description": "JSON object or array of app-generated knowledge sources."
+          },
+          "memories": {
+            "type": "string",
+            "description": "JSON array of memory items when `type` is `memory`."
+          }
+        }
+      },
+      "ListContentRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id"
+        ],
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "sub_tenant_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "knowledge",
+              "memories"
+            ],
+            "default": "knowledge"
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional list of IDs to fetch."
+          },
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "filters": {
+            "$ref": "#/components/schemas/ContentFilter"
+          },
+          "include_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional list of source fields to include."
+          }
+        }
+      },
+      "ContentFilter": {
+        "type": "object",
+        "description": "Optional filters. All provided filters are ANDed together.",
+        "properties": {
+          "tenant_metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Key-value pairs matched against source tenant metadata."
+          },
+          "document_metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Key-value pairs matched against source document metadata."
+          },
+          "source_fields": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Key-value pairs matched against filterable source fields: title, type, description, url, timestamp."
+          }
+        }
+      },
+      "DeleteDocumentBody": {
+        "type": "object",
+        "required": [
+          "request"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/DeleteContentRequest"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "knowledge",
+              "memory"
+            ],
+            "default": "knowledge",
+            "description": "Type of content to delete."
+          }
+        }
+      },
+      "DeleteContentRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "ids"
+        ],
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "sub_tenant_id": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "HydraDoc1234",
+              "HydraDoc4567"
+            ]
+          }
+        }
+      },
+      "SearchRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "query"
+        ],
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "example": "my_first_tenant"
+          },
+          "sub_tenant_id": {
+            "type": "string",
+            "example": "default"
+          },
+          "query": {
+            "type": "string",
+            "example": "What are the pricing tiers?"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "sources",
+              "memories",
+              "all"
+            ],
+            "default": "sources",
+            "description": "What to search."
+          },
+          "search_by": {
+            "type": "string",
+            "enum": [
+              "hybrid",
+              "text",
+              "vector"
+            ],
+            "default": "hybrid",
+            "description": "Search method."
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "or",
+              "and",
+              "phrase"
+            ],
+            "default": "or",
+            "description": "Text search operator for `search_by: text`."
+          },
+          "max_results": {
+            "type": "integer",
+            "example": 5
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "thinking"
+            ],
+            "default": "fast"
+          },
+          "alpha": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "auto"
+                ]
+              }
+            ],
+            "default": 0.8
+          },
+          "recency_bias": {
+            "type": "number",
+            "default": 0.0
+          },
+          "graph_context": {
+            "type": "boolean",
+            "default": false
+          },
+          "search_forceful_relations": {
+            "type": "boolean",
+            "default": true
+          },
+          "additional_context": {
+            "type": "string"
+          },
+          "metadata_filters": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}
