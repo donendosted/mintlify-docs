@@ -76,6 +76,10 @@ jobs:
                 parts.push(`\n**${warnings.length} warning${warnings.length !== 1 ? 's' : ''}**\n`);
                 parts.push(warnings.map(fmt).join('\n'));
               }
+              if (errors.length === 0 && warnings.length === 0) {
+                const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+                parts.push(`\n_The check exited with a non-zero status but produced no findings. The binary may have crashed — [see workflow logs](${runUrl}) for details._`);
+              }
               body = parts.join('\n');
             }
 
