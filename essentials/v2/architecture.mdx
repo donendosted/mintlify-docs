@@ -65,8 +65,8 @@ flowchart LR
   Client --|HTTPS + Bearer token| API
   API --> Tenants
   API --> Status
-  API --|upload_knowledge|--> Queue
-  API --|add_memory|--> Queue
+  API --|POST /source/ingest (type=knowledge)|--> Queue
+  API --|POST /source/ingest (type=memory)|--> Queue
   Queue --> Parser
   Parser --> Sources
   Parser --> Embed
