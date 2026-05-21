@@ -55,7 +55,9 @@ Do not model every provider-specific field as a first-class field. Put app-speci
 
 ## Ingest app sources
 
-An app source uses the public app-source shape:
+Send app sources in the `app_knowledge` form field as a single JSON object or an array. Each item is one HydraDB source and must include the ingestion envelope fields `id`, `tenant_id`, and `sub_tenant_id`.
+
+The app-specific part of each item uses the public app-source shape:
 
 | Field | Required? | What it does | Details |
 |---|---|---|---|
@@ -65,13 +67,18 @@ An app source uses the public app-source shape:
 | `fields` | Yes | Structured content and app-specific fields for the selected `kind`. | [Kind-specific fields](#kind-specific-fields), [Thread and parent fields](#thread-and-parent-fields) |
 | `metadata` | Optional | Flexible context about where the item lives, such as channel, project, space, workspace, or pipeline. | [Container metadata](#container-metadata) |
 | `relations` | Optional | Explicit source-to-source connections, such as linked tickets, blockers, or CRM-to-support links. | [Relations](#relations) |
-| `attachments` | Optional | Files attached to this app item. | [Attachments and comments](#attachments-and-comments) |
+| `attachments` | Optional | Files attached to this app item. Include `content.text` or `content.markdown` when you already extracted attachment text. | [Attachments and comments](#attachments-and-comments) |
 | `comments` | Optional | Comments or replies attached to this app item. | [Attachments and comments](#attachments-and-comments) |
 
-The example below is a valid app-source object for a Slack message:
+For typed app sources, put the main searchable item text in `fields` (`email.body`, `message.body`, `ticket.description`, `knowledge_base.body`, or `custom.data`). The top-level `content` object is the older generic knowledge payload and is not required for app-native search.
+
+The example below is a valid `app_knowledge` item for a Slack message:
 
 ```json
 {
+  "id": "slack_msg_1234567890_000100",
+  "tenant_id": "acme",
+  "sub_tenant_id": "default",
   "kind": "message",
   "provider": "slack",
   "external_id": "1234567890.000100",
@@ -121,6 +128,8 @@ Use `external_id` for the item itself. For example:
 | `thread_id` | Email, message, custom | The ID shared by all items in the same conversation or activity stream | Helps HydraDB pull nearby messages/items from the same thread when a query needs conversation context |
 | `parent_id` for `message` | Message | The message this one replies to, often the thread root | Helps HydraDB answer reply/thread questions and bring in the parent message |
 | `parent_id` for `ticket`, `knowledge_base`, `custom` | Ticket, page, custom | The true parent item, such as epic -> ticket, page -> subpage, account -> deal | Helps HydraDB answer parent/child and hierarchy questions |
+
+For hierarchy fields, `parent_id` should be the parent's provider `external_id`, not the HydraDB source `id`. The child and parent should use the same `provider` namespace so HydraDB can safely connect them. For example, a Salesforce deal with `parent_id: "account_456"` should have a parent account source with `provider: "salesforce"` and `external_id: "account_456"`.
 
 For Slack-like threads, it is OK for `thread_id` and `parent_id` to be the same when the replied-to parent is the thread root.
 
@@ -373,15 +382,19 @@ Use:
 
 | CRM concept | Recommended mapping |
 |---|---|
-| Account -> deal/contact | `parent_id` |
-| Deal owner | Put in `data.owner` or `metadata.owner` |
+| Account -> deal/contact | `parent_id`, pointing to the parent account's `external_id` in the same `provider` namespace |
+| Deal owner | Put in `data.owner` or `metadata.owner`; this is searchable/preserved text, not a first-class actor unless you model it with an explicit relation or a supported actor field |
 | Pipeline | `metadata.container_type: "pipeline"` and `metadata.container_id` |
 | Deal stage | Put in `data.stage` or `metadata.stage` |
 | Related ticket | `relations[].predicate: "linked_to"` |
 
+For CRM-style hierarchies, ingest both sides as app sources when you want traversal. For example, ingest the account as `provider: "salesforce"`, `external_id: "account_456"`, then ingest the deal or contact with `fields.parent_id: "account_456"`. During app search, HydraDB can use that link to bring the account and its children into context.
+
 ## Attachments and comments
 
 Attachments and comments are indexed separately from the main source text, but remain connected to the source.
+
+Use `attachments[].content` when you already have extracted text for the file. HydraDB indexes that text in attachment-specific vectors. A URL by itself is treated as metadata; HydraDB does not fetch and parse arbitrary attachment URLs from app-source payloads.
 
 ```json
 {
@@ -392,6 +405,9 @@ Attachments and comments are indexed separately from the main source text, but r
       "url": "https://...",
       "content_type": "image/png",
       "size_bytes": 204800,
+      "content": {
+        "text": "Screenshot shows the login form returning HTTP 500 after submit."
+      },
       "properties": { "source": "jira" }
     }
   ],
@@ -406,7 +422,7 @@ Attachments and comments are indexed separately from the main source text, but r
 }
 ```
 
-Search can use comment authors, comment vectors, attachment vectors, and shared-attachment graph edges as extra recall signals.
+Search can use comment authors, comment vectors, extracted attachment text, attachment vectors, and shared-attachment graph edges as extra recall signals.
 
 ## How app sources affect search
 
@@ -429,6 +445,18 @@ This means a query like "show me Slack replies from Alice about AUTH-123" can co
 
 This helps because app search can retrieve the surrounding work context, not just the closest text match. If a ticket, Slack thread, and release note are connected by IDs or relations, HydraDB can bring them together even when they use different wording. The result is fewer missed sources, better answers for workflow questions, and more useful context for agents that need to explain why something happened or what to do next.
 
+### Parent and child search
+
+Parent/child search is based on provider-scoped external IDs. When HydraDB ingests a child source with `parent_id`, it stores that value as a pointer to the parent's `external_id` in the same `provider` namespace.
+
+At recall time, `search_apps: true` lets the app-aware lane find an initial source by text, exact ID, actor, or provider/kind filters. In `thinking` mode, if the query asks for parents, children, ancestors, descendants, epics, subtasks, accounts, deals, or similar hierarchy wording, HydraDB expands around that matched source:
+
+- To find a parent, HydraDB matches the source's `parent_id` to another source's `external_id` with the same `provider`.
+- To find children, HydraDB looks for sources whose `parent_id` equals the matched source's `external_id` with the same `provider`.
+- Expansion is bounded and can include one more level, such as grandparent or grandchild context, when useful.
+
+The expanded sources are used as connected context for the answer. Returned chunks from this path are marked with `_retrieval_source: "app_relation_expansion"` and may include `_app_relation_type` values such as `parent`, `child`, `grandparent`, `grandchild`, or `child_of`.
+
 Use `mode: "thinking"` for best app-source behavior, because relation expansion and reranking have more room to improve context quality.
 
 ```json
@@ -447,7 +475,7 @@ Use `mode: "thinking"` for best app-source behavior, because relation expansion 
 |---|---|
 | Using `linked_ticket_ids` | Use `linked_issue_ids`, or explicit `relations` with `predicate: "linked_to"` |
 | Putting Slack channel ID in `external_id` | Use the message ID as `external_id`; put channel in `metadata.container_id` |
-| Using `parent_id` for every relation | Use `parent_id` only for message reply parent or true hierarchy; use `relations` for peers/blockers/custom links |
+| Using `parent_id` for every relation | Use `parent_id` only for message reply parent or true hierarchy, and point it at the parent's `external_id`; use `relations` for peers/blockers/custom links |
 | Omitting `provider` on relation targets | Include `{ "external_id": "...", "provider": "..." }` |
 | Creating a fake Thread source | Use `thread_id`; HydraDB treats threads as conversation groups |
 
@@ -457,6 +485,9 @@ This example ingests a Jira ticket with a parent epic, linked issues, project me
 
 ```json
 {
+  "id": "jira_AUTH-123",
+  "tenant_id": "acme",
+  "sub_tenant_id": "default",
   "kind": "ticket",
   "provider": "jira",
   "external_id": "AUTH-123",
@@ -491,6 +522,16 @@ This example ingests a Jira ticket with a parent epic, linked issues, project me
       "created_at": "2026-05-20T11:00:00Z"
     }
   ],
+  "attachments": [
+    {
+      "id": "att-log-1",
+      "title": "auth-error.log",
+      "content_type": "text/plain",
+      "content": {
+        "text": "Invalid credentials produced HTTP 500 in auth_service.login."
+      }
+    }
+  ],
   "metadata": {
     "container_type": "project",
     "container_id": "AUTH",
@@ -508,6 +549,7 @@ At ingestion time, HydraDB derives:
 | `blocks` relation | A `blocks` connection to the release item |
 | `container_*` metadata | Metadata only; not a source-to-source relation |
 | comments | Comment nodes, comment vectors, and author links |
+| attachment `content.text` | Attachment-specific vectors connected back to the source |
 
 At search time, `search_apps: true` lets queries like "what is blocking the release?", "children of AUTH-100", or "tickets linked to AUTH-123" use those graph edges and IDs instead of relying only on text similarity.
 
@@ -519,6 +561,9 @@ Use this as the compact contract for app-source ingestion. The `fields.kind` val
 
 | Field | Type / allowed values | Required? | Why send it | Search / ingestion effect |
 |---|---|---|---|---|
+| `id` | String | Required | Stable HydraDB source ID for this ingested item. | Used as the source ID returned by ingestion and for later updates/deletes. |
+| `tenant_id` | String | Required | Tenant that owns the item. | Routes the item into the correct tenant scope. |
+| `sub_tenant_id` | String | Required | Sub-tenant/user/workspace scope. Use `"default"` if you do not partition sources. | Routes the item into the correct sub-tenant scope. |
 | `kind` | `email`, `message`, `ticket`, `knowledge_base`, `custom` | Recommended | Tells HydraDB how to interpret `fields`. Defaults to `custom` if omitted. | Routes search by object type and selects the right parser for structured fields. |
 | `provider` | String, e.g. `slack`, `gmail`, `jira`, `notion`, `salesforce` | Recommended | Names the app namespace the source came from. | Prevents ID collisions and lets queries scope to a provider, e.g. "Slack messages". |
 | `external_id` | String | Recommended | Stable ID for this exact item in the provider. | Enables exact ID lookup and relation resolution across sources. |
@@ -594,7 +639,7 @@ Use this as the compact contract for app-source ingestion. The `fields.kind` val
 | Field | Type / allowed values | Required? | Why send it | Search / ingestion effect |
 |---|---|---|---|---|
 | `kind` | `custom` | Required inside `fields` | Discriminator for custom fields. | Validates and parses the custom shape. |
-| `parent_id` | String | Optional | Parent external ID for custom hierarchies, e.g. account -> deal. | Enables parent/child traversal. |
+| `parent_id` | String | Optional | Parent `external_id` for custom hierarchies in the same `provider` namespace, e.g. account -> deal. | Enables parent/child traversal. |
 | `thread_id` | String | Optional | Shared activity stream or conversation ID. | Enables same-thread/activity-stream expansion. |
 | `data` | Object | Recommended | App-specific structured payload. | Preserves CRM/business fields without requiring a new kind. |
 
@@ -607,6 +652,10 @@ Use this as the compact contract for app-source ingestion. The `fields.kind` val
 | `title` | String | Optional | File name/title. | Improves attachment search and display. |
 | `content_type` | String | Optional | MIME type such as `application/pdf` or `image/png`. | Helps classify attachment content. |
 | `size_bytes` | Integer | Optional | Attachment size. | Useful for display/debugging. |
+| `content.text` | String | Optional | Pre-extracted plain-text attachment body. | Indexed in attachment-specific vectors. |
+| `content.markdown` | String | Optional | Pre-extracted Markdown attachment body. | Indexed like `content.text` when plain text is not provided. |
+| `content.html_base64` | String | Optional | Base64-encoded HTML, kept for structured attachment payloads. | Preserved in the payload; provide `content.text` or `content.markdown` for search. |
+| `content.csv_base64` | String | Optional | Base64-encoded CSV, kept for structured attachment payloads. | Preserved in the payload; provide `content.text` or `content.markdown` for search. |
 | `properties` | Object | Optional | Extra attachment metadata. | Preserves provider-specific attachment context. |
 
 ### Comment fields

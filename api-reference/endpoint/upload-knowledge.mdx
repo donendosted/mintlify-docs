@@ -95,7 +95,6 @@ curl -X POST 'https://api.hydradb.com/ingestion/upload_knowledge' \
       "type": "slack",
       "url": "https://acme.slack.com/archives/C01/p1234567890",
       "timestamp": "2025-10-15T14:30:00Z",
-      "content": { "text": "Today we discussed the Q4 roadmap..." },
       "kind": "message",
       "provider": "slack",
       "external_id": "1234567890.000100",
@@ -111,7 +110,15 @@ curl -X POST 'https://api.hydradb.com/ingestion/upload_knowledge' \
         "container_id": "C01",
         "container_name": "planning",
         "category": "engineering"
-      }
+      },
+      "attachments": [
+        {
+          "id": "att-1",
+          "title": "roadmap-notes.txt",
+          "content_type": "text/plain",
+          "content": { "text": "Attached notes mention owners for the Q4 roadmap." }
+        }
+      ]
     }
   ]'
 ```
@@ -127,7 +134,6 @@ const response = await client.upload.knowledge({
       type: "slack",
       url: "https://acme.slack.com/archives/C01/p1234567890",
       timestamp: "2025-10-15T14:30:00Z",
-      content: { text: "Today we discussed the Q4 roadmap..." },
       kind: "message",
       provider: "slack",
       external_id: "1234567890.000100",
@@ -144,6 +150,14 @@ const response = await client.upload.knowledge({
         container_name: "planning",
         category: "engineering",
       },
+      attachments: [
+        {
+          id: "att-1",
+          title: "roadmap-notes.txt",
+          content_type: "text/plain",
+          content: { text: "Attached notes mention owners for the Q4 roadmap." },
+        },
+      ],
     },
   ]),
 });
@@ -162,7 +176,6 @@ response = client.upload.knowledge(
             "type": "slack",
             "url": "https://acme.slack.com/archives/C01/p1234567890",
             "timestamp": "2025-10-15T14:30:00Z",
-            "content": {"text": "Today we discussed the Q4 roadmap..."},
             "kind": "message",
             "provider": "slack",
             "external_id": "1234567890.000100",
@@ -179,6 +192,14 @@ response = client.upload.knowledge(
                 "container_name": "planning",
                 "category": "engineering",
             },
+            "attachments": [
+                {
+                    "id": "att-1",
+                    "title": "roadmap-notes.txt",
+                    "content_type": "text/plain",
+                    "content": {"text": "Attached notes mention owners for the Q4 roadmap."},
+                }
+            ],
         }
     ]),
 )
@@ -220,22 +241,21 @@ For app-aware retrieval, include the typed app-source fields below. See [App Sou
 |---|---|---|
 | `tenant_id` | string | **Required.** The tenant to ingest into. |
 | `sub_tenant_id` | string | **Required.** Sub-tenant scope. Use `"default"` if not partitioning by user. |
-| `id` | string | Unique identifier for the source. |
+| `id` | string | **Required.** Unique identifier for the source. |
 | `title` | string | Short title or subject. |
 | `type` | string | Source category (e.g., `slack`, `notion`, `gmail`, `webpage`). |
 | `description` | string | Optional long-form description. |
 | `url` | string | Canonical URL or reference link. |
 | `timestamp` | string | ISO-8601 timestamp (creation or last-updated). |
-| `content` | object | Content payload. See [Content formats](#content-formats). |
+| `content` | object | Legacy/generic content payload. For typed app sources, prefer `fields` for item text. See [Content formats](#content-formats). |
 | `metadata` | object | Tenant-level or app-specific metadata. Use this for category, channel, project, space, workspace, or other provider context. |
 | `additional_metadata` | object | Document-level metadata. Stored per-source; not filterable at recall time. |
-| `attachments` | array | Optional related attachments (images, PDFs, etc.). |
 | `relations` | array | Typed app-source relations such as `reply_to`, `child_of`, `linked_to`, or `blocks`. |
 | `kind` | string | App object kind: `email`, `message`, `ticket`, `knowledge_base`, or `custom`. |
 | `provider` | string | Provider namespace such as `slack`, `gmail`, `jira`, `notion`, or `salesforce`. |
 | `external_id` | string | Stable provider ID for this source. Used for exact ID search and relation resolution. |
 | `fields` | object | Kind-specific structured fields. Include `kind` inside this object. |
-| `attachments` | array | Attachments connected to this app source. |
+| `attachments` | array | Attachments connected to this app source. Include `content.text` or `content.markdown` when you already have extracted attachment text. |
 | `comments` | array | Comments connected to this app source. |
 
 <Info>
@@ -243,6 +263,8 @@ If your data comes from an app, prefer the typed app-source fields over flatteni
 </Info>
 
 ### Content formats
+
+For typed app sources, primary searchable text belongs in `fields`, such as `fields.body` for messages/emails or `fields.description` for tickets. The top-level `content` object remains available for legacy or untyped app knowledge payloads.
 
 The `content` object supports multiple content types. Use the field that matches your source - only one needs to be set:
 
@@ -256,6 +278,8 @@ The `content` object supports multiple content types. Use the field that matches
 ```json
 { "content": { "text": "Plain text content." } }
 ```
+
+Attachment objects can also include a `content` object. HydraDB indexes `attachments[].content.text` and, when `text` is omitted, `attachments[].content.markdown`; attachment URLs and titles are metadata and are not fetched or parsed automatically.
 
 ## Response
 
