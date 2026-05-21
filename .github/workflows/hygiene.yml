@@ -62,10 +62,12 @@ jobs:
               `- \`${f.path}:${f.line}:${f.column}\` **${f.rule_id}** — ${f.message}`;
 
             let body;
-            if (passed && findings.length === 0) {
-              body = '### ✅ Mintlify Hygiene\n\nNo issues found.';
-            } else if (exitCode === '') {
+            if (exitCode === '') {
               body = '### ⚠️ Mintlify Hygiene\n\n_Binary download or execution failed — see workflow logs._';
+            } else if (passed && errors.length === 0) {
+              body = warnings.length === 0
+                ? '### ✅ Mintlify Hygiene\n\nNo issues found.'
+                : `### ✅ Mintlify Hygiene\n\n**${warnings.length} warning${warnings.length !== 1 ? 's' : ''}**\n\n${warnings.map(fmt).join('\n')}`;
             } else {
               const parts = ['### ❌ Mintlify Hygiene'];
               if (errors.length > 0) {
