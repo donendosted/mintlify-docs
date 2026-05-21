@@ -120,7 +120,7 @@ Use it for fields that your application will filter on repeatedly, such as:
 - `status`
 - `customer_tier`
 
-For complete `tenant_metadata_schema` examples, supported field types, and advanced configuration options, see [Create Tenant API Reference](/api-reference/endpoint/create-tenant).
+For complete `tenant_metadata_schema` examples, supported field types, and advanced configuration options, see [Create Tenant API Reference](/api-reference/v2/endpoint/tenants-overview).
 
 ### `enable_match`
 
@@ -153,6 +153,23 @@ HydraDB exposes two metadata fields on every source object:
 - **`additional_metadata`**  -  free-form fields for display, bookkeeping, or downstream application use. Do not rely on these for deterministic filtering.
 
 If a field needs to be filterable at recall time, put it in `metadata` and plan it in the tenant metadata schema. Otherwise, prefer `additional_metadata`.
+
+### `tenant_metadata` vs `document_metadata`
+
+In the v2 API, the two metadata buckets on every source are exposed under the names `tenant_metadata` and `document_metadata`:
+
+- **`tenant_metadata`**  -  matches the schema you defined at tenant creation (`tenant_metadata_schema`). Fields are indexed and filterable tenant-wide. Use for stable, reusable attributes that apply across many documents: `department`, `region`, `customer_tier`, `compliance_framework`.
+- **`document_metadata`**  -  free-form per-document JSON. Flexible, but to filter on it you must opt in by nesting under a `document_metadata` key in `metadata_filters`:
+
+  ```json
+  {
+    "metadata_filters": {
+      "document_metadata": { "source": "account_plan" }
+    }
+  }
+  ```
+
+**Rule of thumb:** structured + reusable across documents → `tenant_metadata`; ad-hoc or unique to one document → `document_metadata`.
 
 ### Metadata filtering vs `sub_tenant_id`
 
@@ -195,7 +212,7 @@ This example shows the full pattern:
 }
 ```
 
-The exact tenant creation request may include additional fields depending on your setup. See the [Create Tenant API Reference](/api-reference/endpoint/create-tenant) for the complete schema.
+The exact tenant creation request may include additional fields depending on your setup. See the [Create Tenant API Reference](/api-reference/v2/endpoint/tenants-overview) for the complete schema.
 
 ### 2. Attach metadata when writing content
 
@@ -221,9 +238,11 @@ Use the metadata field names you planned in the tenant metadata schema.
 ### 3. Recall with `metadata_filters`
 
 ```python
-result = client.recall.full_recall(
+result = client.search.query(
     tenant_id="acme_corp",
     query="How does authentication control review work?",
+    source="sources",
+    search_by="hybrid",
     metadata_filters={
         "compliance_framework": "SOC2",
     },
@@ -231,9 +250,11 @@ result = client.recall.full_recall(
 ```
 
 ```typescript
-const result = await client.recall.fullRecall({
+const result = await client.search.query({
   tenant_id: "acme_corp",
   query: "How does authentication control review work?",
+  source: "sources",
+  search_by: "hybrid",
   metadata_filters: {
     compliance_framework: "SOC2",
   },
@@ -324,8 +345,8 @@ Too many filters can remove the chunk that would have answered the question. Sta
 
 ## Related
 
-- [Recall](/essentials/recall) - using `metadata_filters` during retrieval
-- [Memories](/essentials/memories) - metadata fields on memory items
-- [Multi-Tenant Support](/essentials/multi-tenant) - tenant and sub-tenant scoping
-- [Create Tenant API Reference](/api-reference/endpoint/create-tenant) - defining tenant metadata schema
-- [Full Recall API Reference](/api-reference/endpoint/full-recall) - using metadata filters in recall
+- [Recall](/essentials/v2/recall) - using `metadata_filters` during retrieval
+- [Memories](/essentials/v2/memories) - metadata fields on memory items
+- [Multi-Tenant Support](/essentials/v2/multi-tenant) - tenant and sub-tenant scoping
+- [Create Tenant API Reference](/api-reference/v2/endpoint/tenants-overview) - defining tenant metadata schema
+- [Full Recall API Reference](/api-reference/v2/endpoint/search-overview) - using metadata filters in recall

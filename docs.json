@@ -153,16 +153,16 @@
               {
                 "group": "Essentials",
                 "pages": [
-                  "essentials/architecture",
-                  "essentials/memories",
-                  "essentials/knowledge",
-                  "essentials/recall",
-                  "essentials/webhooks",
-                  "essentials/multi-tenant",
-                  "essentials/metadata",
-                  "essentials/context-graphs",
-                  "essentials/api-results",
-                  "essentials/semantic-search"
+                  "essentials/v2/architecture",
+                  "essentials/v2/memories",
+                  "essentials/v2/knowledge",
+                  "essentials/v2/recall",
+                  "essentials/v2/webhooks",
+                  "essentials/v2/multi-tenant",
+                  "essentials/v2/metadata",
+                  "essentials/v2/context-graphs",
+                  "essentials/v2/api-results",
+                  "essentials/v2/semantic-search"
                 ]
               },
               {

@@ -717,7 +717,8 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MetadataField"
-            }
+            },
+            "description": "Optional tenant-level metadata schema. Define fields here when you want to filter or search consistently by metadata later, such as department, region, plan, customer tier, product area, or compliance framework. These fields become part of the tenant's searchable/filterable contract and should be stable."
           },
           "is_embeddings_tenant": {
             "type": "boolean",
@@ -731,38 +732,47 @@
       },
       "MetadataField": {
         "type": "object",
+        "description": "A metadata field definition for tenant-level filtering or search.",
         "properties": {
           "name": {
             "type": "string",
-            "example": "department"
+            "example": "department",
+            "description": "Metadata key to define. Use the same key when ingesting source metadata and when filtering search results."
           },
           "data_type": {
             "type": "string",
-            "example": "string"
+            "example": "string",
+            "description": "Value type for this metadata field. Friendly values include string, integer, float, boolean, array, and object."
           },
           "max_length": {
             "type": "integer",
-            "default": 1024
+            "default": 1024,
+            "description": "Maximum length for string fields."
           },
           "enable_analyzer": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Enable text analysis for this field."
           },
           "enable_match": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Enable exact-match filtering on this field. Use this for metadata filters like department, region, customer_tier, or category."
           },
           "enable_dense_embedding": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Enable semantic search over this field. Only applicable to string/VARCHAR fields."
           },
           "enable_sparse_embedding": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Enable keyword/BM25 search over this field. Only applicable to string/VARCHAR fields."
           },
           "nullable": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "Whether this metadata field may be omitted or null."
           }
         }
       },
@@ -779,7 +789,7 @@
               "memory"
             ],
             "default": "knowledge",
-            "description": "Type of content to ingest."
+            "description": "Type of content to ingest. Use knowledge for shared source material such as PDFs, docs, app pages, tickets, Slack threads, or webpages. Use memory for user-specific context such as preferences, conversation history, notes, or inferred traits."
           },
           "tenant_id": {
             "type": "string",
@@ -799,19 +809,19 @@
               "type": "string",
               "format": "binary"
             },
-            "description": "Files to upload when `type` is `knowledge`."
+            "description": "Files to upload when `type` is `knowledge`. Use this for PDFs, docs, CSVs, markdown files, and other documents HydraDB should parse and index."
           },
           "file_metadata": {
             "type": "string",
-            "description": "JSON array of file metadata objects."
+            "description": "JSON string containing an array of metadata objects, one per uploaded file in the same order as `files`. Use this to set stable `file_id`/source IDs, tenant-level metadata for filtering, document-level metadata for display, or forceful relations. Use tenant metadata for fields you want to filter/search across many sources, like department or region; use document metadata for per-source display details like author, filename, version, or created_at."
           },
           "app_knowledge": {
             "type": "string",
-            "description": "JSON object or array of app-generated knowledge sources."
+            "description": "JSON string containing one app-generated source object or an array of sources. Use this when your app has already extracted text and metadata from systems like Slack, Notion, Gmail, tickets, or webpages."
           },
           "memories": {
             "type": "string",
-            "description": "JSON array of memory items when `type` is `memory`."
+            "description": "JSON string containing an array of memory items when `type` is `memory`. Each memory should include either `text` or `user_assistant_pairs` and is intended for user-specific personalization."
           }
         }
       },
@@ -833,14 +843,15 @@
               "knowledge",
               "memories"
             ],
-            "default": "knowledge"
+            "default": "knowledge",
+            "description": "Choose whether to list shared knowledge sources or user memories."
           },
           "source_ids": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Optional list of IDs to fetch."
+            "description": "Optional list of source IDs to fetch. Source IDs come from `/source/ingest` responses, from your own `file_id` values in `file_metadata`, or from previous `/source/list` calls. Pass this when you want a known subset instead of paginating through all sources."
           },
           "page": {
             "type": "integer",
@@ -860,7 +871,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Optional list of source fields to include."
+            "description": "Optional list of source fields to include in the response. Use this to reduce payload size when you only need fields such as title, type, url, timestamp, tenant_metadata, or document_metadata."
           }
         }
       },
@@ -871,12 +882,12 @@
           "tenant_metadata": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Key-value pairs matched against source tenant metadata."
+            "description": "Key-value pairs matched against source tenant metadata. Use tenant metadata for fields you want to filter/search across many sources, like department, region, customer_tier, or category."
           },
           "document_metadata": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Key-value pairs matched against source document metadata."
+            "description": "Key-value pairs matched against source document metadata. Use document metadata for per-source details you mainly want to display or inspect, like author, filename, version, or created_at."
           },
           "source_fields": {
             "type": "object",
@@ -981,7 +992,9 @@
           },
           "max_results": {
             "type": "integer",
-            "example": 5
+            "minimum": 1,
+            "example": 5,
+            "description": "Maximum number of chunks to return. Server picks a sensible default when omitted; start with 10 and tune from there."
           },
           "mode": {
             "type": "string",
@@ -989,12 +1002,15 @@
               "fast",
               "thinking"
             ],
-            "default": "fast"
+            "default": "fast",
+            "description": "Retrieval pipeline. `fast` runs a single query pass — lowest latency, good for real-time chat and autocomplete. `thinking` expands the query into multiple sub-queries, reranks the combined results, and pulls in author-declared `search_forceful_relations` as `additional_context`. Higher quality, higher latency. Applies to `search_by: \"hybrid\"` and `\"vector\"` only; ignored for `\"text\"`."
           },
           "alpha": {
             "oneOf": [
               {
-                "type": "number"
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
               },
               {
                 "type": "string",
@@ -1003,26 +1019,42 @@
                 ]
               }
             ],
-            "default": 0.8
+            "default": 0.8,
+            "description": "Hybrid weight. `1.0` = pure semantic (dense vectors), `0.0` = pure BM25 (keyword), values in between blend the two. `\"auto\"` lets HydraDB pick per query. Applies to `search_by: \"hybrid\"` only — ignored for `\"text\"` and `\"vector\"`."
           },
           "recency_bias": {
             "type": "number",
-            "default": 0.0
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "default": 0.0,
+            "description": "Boost for newer content. `0.0` applies no recency preference (default). `1.0` strongly prefers recent items. Tune to `0.2–0.4` for mixed content, `0.6–0.8` for changelogs, news, or status updates."
           },
           "graph_context": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "When `true`, includes the entity/relation graph slice for retrieved chunks in the response under `graph_context` (with `query_paths`, `chunk_relations`, and `chunk_id_to_group_ids`). Off by default — turn on when you need to show how things connect, not just what is similar."
           },
           "search_forceful_relations": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "Whether to pull author-declared related sources (set at ingest via the per-item `relations.cortex_source_ids`) into the response's `additional_context` field. **Only takes effect when `mode: \"thinking\"`** — silently ignored in `fast` mode."
           },
           "additional_context": {
-            "type": "string"
+            "type": "string",
+            "description": "Free-form text to bias retrieval. Example: \"User is on the billing page\" or \"User is on the Pro plan\". Keep it short and factual — used as a hint, not a hard filter."
           },
           "metadata_filters": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Deterministic narrowing applied before ranking. **Top-level keys** are matched against `tenant_metadata` — they must be declared in the tenant's `tenant_metadata_schema` with `enable_match: true`, otherwise they are silently ignored. To filter on free-form per-document fields, **nest them under a `document_metadata` key**. Both can be combined.",
+            "example": {
+              "department": "engineering",
+              "region": "us-east",
+              "document_metadata": {
+                "source": "account_plan",
+                "author": "alex"
+              }
+            }
           }
         }
       }

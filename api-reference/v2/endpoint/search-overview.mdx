@@ -68,19 +68,38 @@ For `hybrid` and `vector`, use `mode` to control retrieval quality:
 
 ## Common parameters
 
-| Parameter | Default | Purpose |
-|---|---|---|
-| `tenant_id` | - | Tenant to search |
-| `sub_tenant_id` | default | Optional sub-tenant scope |
-| `query` | - | Search terms or natural-language question |
-| `source` | `sources` | Search `sources`, `memories`, or `all` |
-| `search_by` | `hybrid` | Search using `hybrid`, `text`, or `vector` |
-| `operator` | `or` | Text search operator for `search_by: text` |
-| `mode` | `fast` | Retrieval quality vs latency |
-| `alpha` | `0.8` | Hybrid weight (semantic vs keyword) |
-| `recency_bias` | `0.0` | Prefer newer content |
-| `metadata_filters` | - | Deterministic scoping |
-| `graph_context` | `false` | Include entity relationships |
+| Parameter | Type / values | Default | Purpose |
+|---|---|---|---|
+| `tenant_id` | string |  -  (required) | Tenant to search. |
+| `sub_tenant_id` | string | default sub-tenant | Optional sub-tenant scope. |
+| `query` | string |  -  (required) | Search terms or natural-language question. Cannot be empty. |
+| `source` | `"sources"` \| `"memories"` \| `"all"` | `"sources"` | What collection to search over. `"all"` runs `sources` and `memories` in parallel and merges by `relevancy_score`. |
+| `search_by` | `"hybrid"` \| `"text"` \| `"vector"` | `"hybrid"` | Retrieval method. `hybrid` = dense vectors + BM25, `text` = BM25 only, `vector` = dense only. |
+| `operator` | `"or"` \| `"and"` \| `"phrase"` | `"or"` | BM25 matching when `search_by: "text"`. `or` = any term, `and` = all terms, `phrase` = exact phrase. Ignored for `hybrid` and `vector`. |
+| `mode` | `"fast"` \| `"thinking"` | `"fast"` | Retrieval quality vs latency. `fast` = single query pass. `thinking` = multi-query expansion + reranking + forceful-relation context. Applies to `hybrid` and `vector` only. |
+| `alpha` | float `0.0`–`1.0`, or `"auto"` | `0.8` | Hybrid weight: `1.0` = pure semantic, `0.0` = pure BM25, `"auto"` = let HydraDB pick per query. Applies to `search_by: "hybrid"` only. |
+| `recency_bias` | float `0.0`–`1.0` | `0.0` | Prefer newer content. `0.0` = no recency preference, `1.0` = strong preference for recent items. |
+| `metadata_filters` | object |  -  | Deterministic narrowing before ranking. **Top-level keys** match `tenant_metadata` (must be declared in `tenant_metadata_schema` and `enable_match`). **Nest under `document_metadata`** to filter on free-form per-document fields. See the example below. |
+| `graph_context` | boolean | `false` | When `true`, includes the entity/relation graph slice for retrieved chunks in the response (`graph_context` field). Off by default  -  turn on when you need to show how things connect, not just what is similar. |
+| `search_forceful_relations` | boolean | `true` | Pull author-declared related sources into `additional_context`. **Only applies when `mode: "thinking"`**  -  ignored in `fast` mode. |
+| `additional_context` | string |  -  | Free-form text to bias retrieval (e.g., "user is on the Pro plan"). |
+
+### Filter examples
+
+```json
+{
+  "metadata_filters": {
+    "department": "engineering",
+    "region": "us-east",
+    "document_metadata": {
+      "source": "account_plan",
+      "author": "alex"
+    }
+  }
+}
+```
+
+Top-level keys (`department`, `region`) are matched against tenant-schema fields. The nested `document_metadata` object filters free-form per-document fields.
 
 ## Typical patterns
 
@@ -136,6 +155,6 @@ For `hybrid` and `vector`, use `mode` to control retrieval quality:
 
 ## Related sections
 
-- [Essentials - Recall](/essentials/recall) - conceptual overview, the multi-stage pipeline
-- [Essentials - Context Graphs](/essentials/context-graphs) - how graph context is built and used
+- [Essentials - Recall](/essentials/v2/recall) - conceptual overview, the multi-stage pipeline
+- [Essentials - Context Graphs](/essentials/v2/context-graphs) - how graph context is built and used
 - [API Reference v2 - Sources](/api-reference/v2/endpoint/sources-overview) - ingest content before search

@@ -1,0 +1,442 @@
+---
+title: "Memories"
+description: "What Memories are, how they differ from Knowledge, and how to write them correctly."
+---
+
+## 1. What it is
+
+Memories are user-scoped context HydraDB stores so your application can personalize responses over time.
+
+A memory is a unit of user-specific context HydraDB stores on behalf of an agent - a preference, a past conversation, an inferred trait, or a raw fact. Memories let an agent adapt its responses to a specific user across sessions, and surface again through [Recall](/essentials/v2/recall) when relevant.
+
+Think of memories as persistent user-specific context. That's distinct from **Knowledge**, which is shared, tenant-wide context ingested from documents and apps.
+
+| | Memories | Knowledge |
+|---|---|---|
+| **Content** | User preferences, conversations, inferred traits | Documents, files, app-generated content |
+| **Scope** | Per-user (`sub_tenant_id`) | Shared across all users in a tenant |
+| **Search via** | `POST /search` with `source: "memories"` | `POST /search` with `source: "sources"` |
+| **`vectorstore_status`** | Index `0` (`[0]`) | Index `1` (`[1]`) |
+
+---
+
+## 2. What it does
+
+When you add a memory, HydraDB:
+
+1. Parses the input (text, markdown, or user–assistant pairs).
+2. Optionally runs inference (`infer: true`) to extract preferences and insights.
+3. Processes and indexes it for future retrieval.
+4. Makes it available to [`POST /search`](/api-reference/v2/endpoint/search-overview) when called with `source: "memories"` (or `"all"`).
+
+The `infer` flag controls how much structure HydraDB extracts on your behalf - see [How `infer` works](#5-how-it-works).
+
+---
+
+## 3. When to use it
+
+Use memories when responses need to adapt to a specific user over time:
+
+- Capture stated or implied preferences ("prefers concise answers").
+- Store past conversations the agent should reference later.
+- Record decisions, outcomes, or feedback tied to a user.
+- Build up a behavioral profile that compounds across sessions.
+
+Use [Knowledge ingestion](/api-reference/v2/endpoint/sources-overview) instead when the content is shared across users - product docs, policy PDFs, internal wikis, Slack threads.
+
+| If the content is... | Store it as... |
+|---|---|
+| About a specific user or session | Memory |
+| Shared across all users in your tenant | Knowledge |
+
+---
+
+## 4. Types of memories
+
+A memory item should typically provide either `text` or `user_assistant_pairs`, not both.
+
+<Note>
+**Raw text vs markdown are the same field.** Both put content in `text`. The only difference is the `is_markdown` flag, which tells HydraDB to preserve markdown structure (headings, lists, code blocks) when chunking and embedding. Set `is_markdown: true` for memo-style content with structure; leave it `false` (default) for plain prose.
+</Note>
+
+### Raw text
+
+Plain prose  -  sentences, observations, preferences. HydraDB chunks it as natural language.
+
+```json
+{
+  "text": "Prefers detailed technical explanations and works in PST.",
+  "infer": true
+}
+```
+
+### Markdown
+
+Same `text` field, but with `is_markdown: true` so HydraDB respects the document structure when splitting and embedding. Use for meeting notes, structured memos, or anything where headings and lists carry meaning.
+
+```json
+{
+  "text": "# Meeting Notes\n\n## Key Points\n- Budget approved",
+  "is_markdown": true,
+  "infer": false
+}
+```
+
+### User–assistant pairs
+
+Best for capturing implicit signals from dialogue.
+
+```json
+{
+  "user_assistant_pairs": [
+    { "user": "Remember I like dark mode", "assistant": "Noted." }
+  ],
+  "infer": true
+}
+```
+
+---
+
+## 5. How it works
+
+### `infer`: extract preferences for me, or store what I give you
+
+The `infer` flag is the most important decision when writing a memory. It controls how much work your application has to do *before* sending content to HydraDB.
+
+**`infer: true` - HydraDB extracts the preference for you.**
+
+You hand HydraDB raw signal - interaction logs, dialogue, behavior, observations - and HydraDB infers the underlying preference, trait, or fact.
+
+Concretely: ship the events that imply a preference, and HydraDB derives the preference. For example, dump a stream of UI interaction logs showing that a user switched to dark mode on Day 1, kept it on for a month, and toggled it back to light once before reverting. HydraDB infers `"user prefers dark mode"` and indexes that. Your application never has to write the extraction logic.
+
+This is the right mode for:
+
+- Dialogue (`user_assistant_pairs`) where the preference is implicit
+- Behavior logs and event streams
+- Feedback ("the last summary was too long") where the actionable trait isn't spelled out
+- Anything where the raw input is messy and the useful trait has to be derived
+
+`custom_instructions` only takes effect when `infer: true`. Use it to guide what gets extracted (e.g., `"Focus on UI and notification preferences only"`).
+
+**`infer: false` (default) - HydraDB stores what you give it.**
+
+You've already done the extraction. The text you send *is* the memory, verbatim. HydraDB stores and indexes it as-is. No inference, no derivation.
+
+This is the right mode for:
+
+- Facts you've already captured (`"User's plan tier is Pro"`)
+- Pre-structured notes
+- Anything you want to retrieve exactly as written
+
+The trade-off: `infer: false` is faster and deterministic; `infer: true` is more useful when your input is raw and unstructured.
+
+### Storage and scoping
+
+Memories live in a separate vector store from Knowledge:
+
+- `POST /search` with `source: "memories"` searches the **Memories** store (`vectorstore_status` index `0`).
+- `POST /search` with `source: "sources"` searches the **Knowledge** store (`vectorstore_status` index `1`).
+- `POST /search` with `source: "all"` searches both in parallel and returns a single merged, re-ranked result set.
+
+<Info>
+  <strong>One endpoint, two stores.</strong>
+  <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <code>POST /search</code> call  -  HydraDB runs both stores in parallel and merges the results for you. See <a href="/essentials/v2/recall">Recall</a>.</p>
+</Info>
+
+Within a tenant, memories are scoped by `sub_tenant_id`. For per-user separation (B2C), use the user's ID as the `sub_tenant_id`. For shared memory across a workspace, use a stable workspace-level ID. If you omit `sub_tenant_id`, the memory is written to the tenant's default sub-tenant. See [Multi-tenant support](/essentials/v2/multi-tenant).
+
+Ingestion is asynchronous  -  memories aren't immediately searchable. Poll [`GET /source/status`](/api-reference/v2/endpoint/sources-overview) with the returned `source_id` until `indexing_status` is `completed`.
+
+---
+
+## 6. Key parameters
+
+### Top-level request body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `memories` | array | Yes | One or more memory items. |
+| `tenant_id` | string | Yes | Your tenant identifier. |
+| `sub_tenant_id` | string | No | Sub-tenant scope. If omitted, HydraDB uses the tenant's default sub-tenant. |
+| `upsert` | boolean | No | Default `true`. Replaces existing entries with the same `source_id`. |
+
+### Memory item fields
+
+| Field | Type | Description |
+|---|---|---|
+| `source_id` | string | Optional unique ID; auto-generated if omitted. Acts as the upsert key. |
+| `text` | string | Raw text or markdown. Use this **or** `user_assistant_pairs`. |
+| `user_assistant_pairs` | array of `{ user, assistant }` | Conversation pairs. Use this **or** `text`. |
+| `is_markdown` | boolean | Treat `text` as markdown. Default `false`. |
+| `infer` | boolean | Run inference. Default `false`. See [How it works](#5-how-it-works). |
+| `custom_instructions` | string | Guides inference extraction. Only applies when `infer: true`. |
+| `user_name` | string | The user's name. Used during inference and personalization workflows. Default `"User"`. |
+| `title` | string | Short human-readable label for the memory. Surfaced in `/source/list` results and in search hits as `source.title`. Use it as the display label in UIs and as a concise summary the LLM can quote when citing the memory. If omitted, HydraDB falls back to a truncated snippet of `text`. |
+| `expiry_time` | integer | TTL in seconds. After expiry, the memory is no longer returned by recall. |
+| `metadata` | object | Filterable fields aligned with the tenant metadata schema. Keys defined in `tenant_metadata_schema` are matchable at recall time. |
+| `additional_metadata` | object | Free-form key-value pairs attached to the memory. Not matchable; useful for display and bookkeeping. |
+| `relations` | object | Author-declared links to other memories. **Shape:** `{ "cortex_source_ids": ["<memory_source_id_1>", "<memory_source_id_2>"] }`. All IDs must be memories that already exist (or are being ingested in the same request) under the same `sub_tenant_id`. Pointing at a Knowledge source ID will silently return nothing. Surfaced as `additional_context` only when search is called with `mode: "thinking"`. |
+
+---
+
+## 7 - ForceFul relations
+
+Forceful relations let you explicitly link Memory items to each other at ingestion time. When a query matches a memory that has forceful relations declared, HydraDB pulls the linked memories into `additional_context` alongside the primary results.
+
+This is separate from the entity and relationship graph HydraDB builds automatically during ingestion. Graph extraction is derived from content; forceful relations are declared by you.
+
+Set the `relations` field on any item in the `memories` array:
+
+```json
+{
+  "relations": {
+    "cortex_source_ids": ["memory-id-1", "memory-id-2"]
+  }
+}
+```
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.hydradb.com/source/ingest' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -F "type=memory" \
+  -F "tenant_id=acme_corp" \
+  -F "sub_tenant_id=user_alex" \
+  -F 'memories=[
+    {
+      "text": "User prefers concise answers",
+      "source_id": "pref-concise",
+      "infer": true,
+      "relations": { "cortex_source_ids": ["pref-tone", "pref-format"] }
+    }
+  ]'
+```
+```typescript TypeScript SDK
+await client.source.ingest({
+  type: "memory",
+  tenant_id: "acme_corp",
+  sub_tenant_id: "user_alex",
+  memories: JSON.stringify([
+    {
+      text: "User prefers concise answers",
+      source_id: "pref-concise",
+      infer: true,
+      relations: { cortex_source_ids: ["pref-tone", "pref-format"] },
+    },
+  ]),
+});
+```
+```python Python SDK
+import json
+
+client.source.ingest(
+    type="memory",
+    tenant_id="acme_corp",
+    sub_tenant_id="user_alex",
+    memories=json.dumps([
+        {
+            "text": "User prefers concise answers",
+            "source_id": "pref-concise",
+            "infer": True,
+            "relations": {"cortex_source_ids": ["pref-tone", "pref-format"]},
+        }
+    ]),
+)
+```
+</CodeGroup>
+
+At recall, linked memories are returned in the `additional_context` field. Set `search_forceful_relations: true` (the default) on the request to include them.
+
+<Warning>
+**Memory items only.** Forceful relations work within the same store. Pointing a Memory item at a Knowledge source ID (or vice versa) will silently return nothing at recall time.
+</Warning>
+
+<Warning>
+**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the recall request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
+</Warning>
+
+## 8. Minimal working example
+
+Store a user preference scoped to a specific user.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/source/ingest' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -F "type=memory" \
+  -F "tenant_id=acme_corp" \
+  -F "sub_tenant_id=user_john_123" \
+  -F "upsert=true" \
+  -F 'memories=[
+    {
+      "text": "Prefers short, direct answers with no preamble.",
+      "infer": true,
+      "user_name": "John"
+    }
+  ]'
+```
+
+```typescript TypeScript SDK
+import { HydraDBClient } from "@hydradb/sdk";
+
+const client = new HydraDBClient({
+  token: process.env.HYDRA_DB_API_KEY,
+});
+
+const result = await client.source.ingest({
+  type: "memory",
+  tenant_id: "acme_corp",
+  sub_tenant_id: "user_john_123",
+  upsert: true,
+  memories: JSON.stringify([
+    {
+      text: "Prefers short, direct answers with no preamble.",
+      infer: true,
+      user_name: "John",
+    },
+  ]),
+});
+```
+
+```python Python SDK
+import json
+import os
+from hydra_db import HydraDB
+
+client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
+
+result = client.source.ingest(
+    type="memory",
+    tenant_id="acme_corp",
+    sub_tenant_id="user_john_123",
+    upsert=True,
+    memories=json.dumps([
+        {
+            "text": "Prefers short, direct answers with no preamble.",
+            "infer": True,
+            "user_name": "John",
+        }
+    ]),
+)
+```
+
+</CodeGroup>
+
+You'll get back a `source_id` for each memory and an initial `status` of `queued`:
+
+```json
+{
+  "results": [
+    { "source_id": "mem_abc123", "status": "queued", "infer": true }
+  ],
+  "success_count": 1,
+  "failed_count": 0
+}
+```
+
+Poll [`GET /source/status`](/api-reference/v2/endpoint/sources-overview) with the returned `source_id` until `indexing_status` is `completed`. After that the memory will surface in [`POST /search`](/api-reference/v2/endpoint/search-overview) when called with `source: "memories"` (or `"all"`).
+
+---
+
+## 9. Inference in practice
+
+A realistic example. The user has been toggling dark mode in your app. Instead of extracting the preference yourself, ship the raw log:
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/source/ingest' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -F "type=memory" \
+  -F "tenant_id=acme_corp" \
+  -F "sub_tenant_id=user_john_123" \
+  -F 'memories=[
+    {
+      "text": "User opened the app 14 times in the last week. Switched to dark mode on first session. Toggled back to light once on 2026-04-12 at 3pm, then switched back to dark within 4 minutes. Has not changed theme since.",
+      "infer": true,
+      "user_name": "John",
+      "custom_instructions": "Focus on display and theme preferences."
+    }
+  ]'
+```
+
+```typescript TypeScript SDK
+const result = await client.source.ingest({
+  type: "memory",
+  tenant_id: "acme_corp",
+  sub_tenant_id: "user_john_123",
+  memories: JSON.stringify([
+    {
+      text:
+        "User opened the app 14 times in the last week. " +
+        "Switched to dark mode on first session. " +
+        "Toggled back to light once on 2026-04-12 at 3pm, " +
+        "then switched back to dark within 4 minutes. " +
+        "Has not changed theme since.",
+      infer: true,
+      user_name: "John",
+      custom_instructions: "Focus on display and theme preferences.",
+    },
+  ]),
+});
+```
+
+```python Python SDK
+import json
+
+client.source.ingest(
+    type="memory",
+    tenant_id="acme_corp",
+    sub_tenant_id="user_john_123",
+    memories=json.dumps([
+        {
+            "text": (
+                "User opened the app 14 times in the last week. "
+                "Switched to dark mode on first session. "
+                "Toggled back to light once on 2026-04-12 at 3pm, "
+                "then switched back to dark within 4 minutes. "
+                "Has not changed theme since."
+            ),
+            "infer": True,
+            "user_name": "John",
+            "custom_instructions": "Focus on display and theme preferences.",
+        }
+    ]),
+)
+```
+
+</CodeGroup>
+
+When `POST /search` runs with `source: "memories"` and a query like `"what UI settings does the user prefer?"`, HydraDB returns the *inferred* preference (`"prefers dark mode"`), not the raw log. Your application never had to write the extraction logic.
+
+The same input with `infer: false` would index the raw text verbatim - useful only if you actually want to retrieve the event log itself.
+
+---
+
+## 10. Common mistakes
+
+| Mistake | What goes wrong | Fix |
+|---|---|---|
+| Sending `"memory": "..."` (singular, string) | Validation fails | Use `"memories": [ { "text": "..." } ]`  -  always an array of objects |
+| Omitting `tenant_id` | Request validation error | Required on every call |
+| Omitting `sub_tenant_id` for per-user data | The memory lands in the default sub-tenant and may surface across users | Use the user's ID as `sub_tenant_id` for B2C separation |
+| Setting `custom_instructions` with `infer: false` | Instructions are ignored | Set `infer: true` if you need them to take effect |
+| Doing extraction yourself before sending raw logs | Wastes effort that `infer: true` already handles | Send the raw signal with `infer: true` and let HydraDB derive the preference |
+| Sending pre-extracted facts with `infer: true` | HydraDB may re-derive and lose the original phrasing | Use `infer: false` for already-structured facts |
+| Treating `user_name` as cosmetic | It feeds inference, so the wrong name biases what HydraDB extracts | Pass the actual user's name |
+| Storing shared docs as memories | They won't surface when searching `source: "sources"` | Use [knowledge ingestion](/essentials/v2/knowledge) (`type=knowledge` on `POST /source/ingest`) instead |
+| Expecting immediate searchability | Ingestion is async | Poll [`GET /source/status`](/api-reference/v2/endpoint/sources-overview) until `completed` |
+| Forgetting `infer` for conversational input | Raw dialogue gets stored without preference extraction | Set `infer: true` explicitly for conversations |
+
+---
+
+## Related
+
+- [Knowledge](/essentials/v2/knowledge) - shared, tenant-wide document context
+- [Recall](/essentials/v2/recall) - how memories are retrieved at query time
+- [Multi-tenant support](/essentials/v2/multi-tenant) - scoping memories per user or workspace
+- [Metadata](/essentials/v2/metadata) - designing filterable fields

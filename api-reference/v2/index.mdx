@@ -13,11 +13,23 @@ description: "Complete reference for every HydraDB v2 endpoint, organized by gro
 
 ## Endpoint groups
 
-| Group | What it does | Pages |
+| Group | Purpose | When to reach for it |
 |---|---|---|
-| [Tenants](/api-reference/v2/endpoint/tenants-overview) | Create, monitor, and manage isolated workspaces | 6 endpoints |
-| [Sources](/api-reference/v2/endpoint/sources-overview) | Ingest, list, fetch, delete, and inspect knowledge or memories | 6 endpoints |
-| [Search](/api-reference/v2/endpoint/search-overview) | Retrieve context with hybrid, text, or vector search | 1 endpoint |
+| [Tenants](/api-reference/v2/endpoint/tenants-overview) (6 endpoints) | Create, monitor, and manage isolated workspaces | First step in any integration  -  and any time you need usage stats, provisioning status, or to tear down a workspace |
+| [Sources](/api-reference/v2/endpoint/sources-overview) (6 endpoints) | Ingest, list, fetch, delete, and inspect knowledge or memories | Every time data flows in or out of HydraDB  -  file uploads, app-extracted content, user memories, and lifecycle ops |
+| [Search](/api-reference/v2/endpoint/search-overview) (1 endpoint) | Retrieve context with hybrid, text, or vector search | At query time  -  the only endpoint you call to feed an LLM |
+
+## Core concepts
+
+| Concept | What it means | When you use it |
+|---|---|---|
+| `tenant_id` | Your isolated workspace for data, metadata schema, and search. | Send it on every API call so HydraDB knows which workspace to read or write. |
+| `sub_tenant_id` | Optional partition inside a tenant, often a user, team, account, or customer. | Use it when one tenant contains data for multiple users or customers. |
+| Knowledge | Shared source material such as PDFs, docs, app pages, tickets, Slack threads, or webpages. | Use `type=knowledge` when many users or agents should search the same content. |
+| Memory | User-specific context such as preferences, conversation history, notes, and inferred traits. | Use `type=memory` when the content should personalize answers for a specific user or sub-tenant. |
+| `tenant_metadata_schema` | Tenant-level fields you define up front so metadata can be filtered or searched consistently. | Use it for stable fields like department, customer, region, plan, category, or compliance label. |
+| `file_metadata` | Per-file metadata sent during file ingestion. | Use it to attach source IDs, titles, filterable metadata, document metadata, or forceful relations to each uploaded file. |
+| `source_ids` | IDs returned by ingestion or visible from `/source/list`. | Use them when polling processing status, fetching content, listing a specific subset, deleting sources, or inspecting relations. |
 
 ## End-to-end lifecycle
 
@@ -78,33 +90,21 @@ SDK methods mirror the API: `client.<group>.<method>()` maps to the correspondin
 
 ## Full endpoint inventory
 
-### Tenants
-
-| Endpoint | Method | SDK method | Purpose |
-|---|---|---|---|
-| `/tenants` | `POST` | `tenants.create` | Create a tenant |
-| `/tenants` | `GET` | `tenants.list` | List tenants |
-| `/tenants` | `DELETE` | `tenants.delete` | Delete a tenant |
-| `/tenants/status` | `GET` | `tenants.status` | Check provisioning readiness |
-| `/tenants/sub-tenants` | `GET` | `tenants.sub_tenants` | List active sub-tenants |
-| `/tenants/stats` | `GET` | `tenants.stats` | Get object counts and vector dimensions |
-
-### Sources
-
-| Endpoint | Method | SDK method | Purpose |
-|---|---|---|---|
-| `/source/ingest` | `POST` | `source.ingest` | Ingest knowledge or memories |
-| `/source/status` | `GET` | `source.status` | Check processing status |
-| `/source/fetch` | `GET` | `source.fetch` | Retrieve original source content or presigned URL |
-| `/source/list` | `POST` | `source.list` | Paginated browse of knowledge or memories |
-| `/source` | `DELETE` | `source.delete` | Delete sources or memories |
-| `/source/relations` | `GET` | `source.relations` | Inspect entity relationships for a source |
-
-### Search
-
-| Endpoint | Method | SDK method | Purpose |
-|---|---|---|---|
-| `/search` | `POST` | `search.query` | Unified search over knowledge, memories, or both |
+| Endpoint | Method | SDK method | Purpose | Use when |
+|---|---|---|---|---|
+| `/tenants` | `POST` | `tenants.create` | Create a tenant | You are setting up a new isolated workspace and optional metadata schema. |
+| `/tenants` | `GET` | `tenants.list` | List tenants | You need to discover tenant IDs available to the current API key. |
+| `/tenants` | `DELETE` | `tenants.delete` | Delete a tenant | You need to permanently remove a workspace and its data. |
+| `/tenants/status` | `GET` | `tenants.status` | Check provisioning readiness | You just created a tenant and need to wait before ingesting data. |
+| `/tenants/sub-tenants` | `GET` | `tenants.sub_tenants` | List active sub-tenants | You partition data by user, team, customer, or account and need to inspect those partitions. |
+| `/tenants/stats` | `GET` | `tenants.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a tenant. |
+| `/source/ingest` | `POST` | `source.ingest` | Ingest knowledge or memories | You are uploading files, app-generated sources, or user memories. |
+| `/source/status` | `GET` | `source.status` | Check processing status | You have source IDs from ingestion and need to know when they are searchable. |
+| `/source/fetch` | `GET` | `source.fetch` | Retrieve original source content or presigned URL | You need to display or inspect the original ingested content. |
+| `/source/list` | `POST` | `source.list` | Browse knowledge or memories | You need pagination, filters, field projection, or a specific subset by `source_ids`. |
+| `/source` | `DELETE` | `source.delete` | Delete sources or memories | You need to remove one or more knowledge sources or memories by ID. |
+| `/source/relations` | `GET` | `source.relations` | Inspect entity relationships | You need graph relations for a source or sub-tenant. |
+| `/search` | `POST` | `search.query` | Unified search over knowledge, memories, or both | You need retrieval with `hybrid`, `text`, or `vector` search across `sources`, `memories`, or `all`. |
 
 ## Conventions
 
