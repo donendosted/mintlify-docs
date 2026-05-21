@@ -15,6 +15,7 @@ Use app sources when you already know the item's text and structured fields. Hyd
 
 - [Ingest app sources](#ingest-app-sources): what to send, which fields to use, and how to model IDs.
 - [How app sources affect search](#how-app-sources-affect-search): what HydraDB does with those fields during Recall.
+- [Common scenarios](#common-scenarios): ready-to-adapt payloads for comments, attachments, threads, and CRM/support links.
 - [TLDR field reference](#tldr-field-reference): all allowed app-source fields, when to use them, and how they affect ingestion and search.
 
 ## The mental model
@@ -553,6 +554,212 @@ At ingestion time, HydraDB derives:
 
 At search time, `search_apps: true` lets queries like "what is blocking the release?", "children of AUTH-100", or "tickets linked to AUTH-123" use those graph edges and IDs instead of relying only on text similarity.
 
+## Common scenarios
+
+Use these payload patterns when app data contains comments, attachments, threads, or cross-app links. Each example is one item in the `app_knowledge` array.
+
+### Slack message with an attachment
+
+Model the Slack message as `kind: "message"`, keep channel/workspace details in `metadata`, and put extracted file text in `attachments[].content`.
+
+<Accordion title="Slack message attachment payload">
+  ```json
+  {
+    "id": "slack_C01_1716213600_000100",
+    "tenant_id": "acme",
+    "sub_tenant_id": "default",
+    "kind": "message",
+    "provider": "slack",
+    "external_id": "1716213600.000100",
+    "fields": {
+      "kind": "message",
+      "body": "The auth rollback notes are attached here.",
+      "author": "alice",
+      "thread_id": "1716213600.000100",
+      "created_at": "2026-05-20T10:00:00Z",
+      "url": "https://acme.slack.com/archives/C01/p1716213600000100"
+    },
+    "attachments": [
+      {
+        "id": "F012AUTH",
+        "title": "auth-rollback-notes.md",
+        "url": "https://files.slack.com/files-pri/T01-F012AUTH/auth-rollback-notes.md",
+        "content_type": "text/markdown",
+        "content": {
+          "markdown": "# Auth rollback\nRollback starts by disabling the new token refresh path."
+        },
+        "properties": {
+          "slack_file_id": "F012AUTH"
+        }
+      }
+    ],
+    "metadata": {
+      "container_type": "channel",
+      "container_id": "C01",
+      "container_name": "engineering",
+      "workspace": "acme"
+    }
+  }
+  ```
+</Accordion>
+
+### Linear ticket with comment attachments
+
+Represent the Linear issue as a `ticket`. Comments go in `comments[]`; files mentioned or uploaded in a comment go in top-level `attachments[]`. Add `properties.comment_id` as a stable traceability convention when the file came from a specific comment.
+
+<Accordion title="Linear comment attachment payload">
+  ```json
+  {
+    "id": "linear_AUTH-123",
+    "tenant_id": "acme",
+    "sub_tenant_id": "default",
+    "kind": "ticket",
+    "provider": "linear",
+    "external_id": "AUTH-123",
+    "fields": {
+      "kind": "ticket",
+      "title": "Login redirect loop after token refresh",
+      "description": "Users are redirected between /login and /callback.",
+      "status": "in_progress",
+      "priority": "high",
+      "assignee": "alice",
+      "reporter": "bob",
+      "created_at": "2026-05-20T09:00:00Z",
+      "updated_at": "2026-05-21T11:00:00Z",
+      "url": "https://linear.app/acme/issue/AUTH-123"
+    },
+    "comments": [
+      {
+        "id": "lin-comment-1",
+        "author": "carol",
+        "body": "Attached the browser HAR trace from staging.",
+        "created_at": "2026-05-21T10:30:00Z",
+        "properties": {
+          "linear_comment_id": "lin-comment-1"
+        }
+      }
+    ],
+    "attachments": [
+      {
+        "id": "lin-file-1",
+        "title": "staging-login.har",
+        "content_type": "application/json",
+        "content": {
+          "text": "HAR trace shows repeated 302 redirects after token refresh."
+        },
+        "properties": {
+          "attached_to": "comment",
+          "comment_id": "lin-comment-1"
+        }
+      }
+    ],
+    "metadata": {
+      "container_type": "project",
+      "container_id": "AUTH",
+      "container_name": "Authentication"
+    }
+  }
+  ```
+</Accordion>
+
+### Custom threaded record with comments and attachments
+
+Use `custom` for internal systems or CRM/workflow records outside the built-in email, message, ticket, and knowledge-base shapes. `thread_id` groups activity around the record, comments make discussion searchable, and attachments add independent file recall.
+
+<Accordion title="Custom threaded record payload">
+  ```json
+  {
+    "id": "workflow_escalation_789",
+    "tenant_id": "acme",
+    "sub_tenant_id": "default",
+    "kind": "custom",
+    "provider": "internal_workflow",
+    "external_id": "escalation_789",
+    "fields": {
+      "kind": "custom",
+      "parent_id": "account_456",
+      "thread_id": "escalation_thread_789",
+      "data": {
+        "record_type": "customer_escalation",
+        "title": "Acme renewal escalation",
+        "status": "open",
+        "owner": "dana",
+        "summary": "Customer needs security review before renewal approval."
+      }
+    },
+    "comments": [
+      {
+        "id": "esc-comment-1",
+        "author": "dana",
+        "body": "Security questionnaire is complete; waiting on procurement approval.",
+        "created_at": "2026-05-21T08:45:00Z"
+      }
+    ],
+    "attachments": [
+      {
+        "id": "security-questionnaire",
+        "title": "security-questionnaire.pdf",
+        "content_type": "application/pdf",
+        "content": {
+          "text": "Security questionnaire confirms SSO, audit logs, and data retention requirements."
+        }
+      }
+    ],
+    "metadata": {
+      "container_type": "workflow",
+      "container_id": "renewals",
+      "team": "customer-success"
+    }
+  }
+  ```
+</Accordion>
+
+### CRM deal linked to a support ticket
+
+Use `parent_id` for account -> deal/contact hierarchy and `relations[]` for cross-app context, such as a Salesforce opportunity linked to a Linear or Jira support issue.
+
+<Accordion title="CRM deal linked to support ticket payload">
+  ```json
+  {
+    "id": "salesforce_opp_789",
+    "tenant_id": "acme",
+    "sub_tenant_id": "default",
+    "kind": "custom",
+    "provider": "salesforce",
+    "external_id": "opp_789",
+    "fields": {
+      "kind": "custom",
+      "parent_id": "account_456",
+      "thread_id": "opp_789_activity",
+      "data": {
+        "record_type": "opportunity",
+        "name": "Acme enterprise renewal",
+        "stage": "negotiation",
+        "amount": "50000",
+        "owner": "morgan"
+      }
+    },
+    "relations": [
+      {
+        "predicate": "linked_to",
+        "target": {
+          "external_id": "AUTH-123",
+          "provider": "linear"
+        },
+        "properties": {
+          "reason": "Customer renewal depends on auth fix"
+        }
+      }
+    ],
+    "metadata": {
+      "container_type": "pipeline",
+      "container_id": "enterprise-renewals",
+      "region": "north-america"
+    }
+  }
+  ```
+</Accordion>
+
 ## TLDR field reference
 
 Use this as the compact contract for app-source ingestion. The `fields.kind` value must match the top-level `kind` when you provide typed fields.
@@ -656,7 +863,7 @@ Use this as the compact contract for app-source ingestion. The `fields.kind` val
 | `content.markdown` | String | Optional | Pre-extracted Markdown attachment body. | Indexed like `content.text` when plain text is not provided. |
 | `content.html_base64` | String | Optional | Base64-encoded HTML, kept for structured attachment payloads. | Preserved in the payload; provide `content.text` or `content.markdown` for search. |
 | `content.csv_base64` | String | Optional | Base64-encoded CSV, kept for structured attachment payloads. | Preserved in the payload; provide `content.text` or `content.markdown` for search. |
-| `properties` | Object | Optional | Extra attachment metadata. | Preserves provider-specific attachment context. |
+| `properties` | Object | Optional | Extra attachment metadata. | Carries provider-specific attachment context in the payload; use `title`, `url`, and `content` for searchable attachment context. |
 
 ### Comment fields
 
@@ -666,7 +873,7 @@ Use this as the compact contract for app-source ingestion. The `fields.kind` val
 | `author` | String | Recommended | Comment author. | Enables queries like "comments from Carol". |
 | `body` | String | Recommended | Comment text. | Makes comments searchable. |
 | `created_at` | ISO-8601 datetime | Optional | Comment timestamp. | Helps chronology and recency-aware results. |
-| `properties` | Object | Optional | Extra comment metadata. | Preserves provider-specific comment context. |
+| `properties` | Object | Optional | Extra comment metadata. | Carries provider-specific comment context in the payload; use `author` and `body` for searchable comment context. |
 
 ### Relation fields
 
