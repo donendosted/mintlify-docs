@@ -18,6 +18,115 @@
   "navigation": {
     "versions": [
       {
+        "version": "v2",
+        "tabs": [
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "get-started/introduction",
+                  "get-started/core-concepts",
+                  "get-started/quickstart"
+                ]
+              },
+              {
+                "group": "Essentials",
+                "pages": [
+                  "essentials/v2/architecture",
+                  "essentials/v2/memories",
+                  "essentials/v2/knowledge",
+                  "essentials/v2/recall",
+                  "essentials/v2/webhooks",
+                  "essentials/v2/multi-tenant",
+                  "essentials/v2/metadata",
+                  "essentials/v2/context-graphs",
+                  "essentials/v2/api-results",
+                  "essentials/v2/semantic-search"
+                ]
+              },
+              {
+                "group": "Plugins",
+                "pages": [
+                  "plugins/claude-code",
+                  "plugins/mcp",
+                  "plugins/cli",
+                  "plugins/openclaw"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Cookbooks",
+            "groups": [
+              {
+                "group": "Cookbooks",
+                "pages": [
+                  "cookbooks/index",
+                  "cookbooks/glean-clone",
+                  "cookbooks/ai-chief-of-staff",
+                  "cookbooks/ai-linkedin-recruiter",
+                  "cookbooks/ai-travel-planner",
+                  "cookbooks/cookbook-01-build-cursor-for-docs",
+                  "cookbooks/customer-support-agent",
+                  "cookbooks/cookbook-04-build-notion-ai",
+                  "cookbooks/competitive-intelligence-agent",
+                  "cookbooks/hydradb-cookbook-06",
+                  "cookbooks/internal-search-perplexity",
+                  "cookbooks/ai-onboarding-agent",
+                  "cookbooks/cookbook-10-ai-financial-analyst"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Reference",
+            "openapi": "api-reference/v2/openapi.json",
+            "groups": [
+              {
+                "group": "API Documentation",
+                "pages": [
+                  "api-reference/v2/index",
+                  "api-reference/v2/sdks"
+                ]
+              },
+              {
+                "group": "Tenants",
+                "pages": [
+                  "api-reference/v2/endpoint/tenants-overview",
+                  "POST /tenants",
+                  "GET /tenants",
+                  "DELETE /tenants",
+                  "GET /tenants/status",
+                  "GET /tenants/sub-tenants",
+                  "GET /tenants/stats"
+                ]
+              },
+              {
+                "group": "Sources",
+                "pages": [
+                  "api-reference/v2/endpoint/sources-overview",
+                  "POST /source/ingest",
+                  "GET /source/status",
+                  "GET /source/fetch",
+                  "POST /source/list",
+                  "DELETE /source",
+                  "GET /source/relations"
+                ]
+              },
+              {
+                "group": "Search",
+                "pages": [
+                  "api-reference/v2/endpoint/search-overview",
+                  "POST /search"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "version": "v1",
         "tabs": [
           {
@@ -130,115 +239,6 @@
                   "api-reference/endpoint/list-data",
                   "api-reference/endpoint/fetch-content",
                   "api-reference/endpoint/graph-relations"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "version": "v2",
-        "tabs": [
-          {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Get Started",
-                "pages": [
-                  "get-started/introduction",
-                  "get-started/core-concepts",
-                  "get-started/quickstart"
-                ]
-              },
-              {
-                "group": "Essentials",
-                "pages": [
-                  "essentials/v2/architecture",
-                  "essentials/v2/memories",
-                  "essentials/v2/knowledge",
-                  "essentials/v2/recall",
-                  "essentials/v2/webhooks",
-                  "essentials/v2/multi-tenant",
-                  "essentials/v2/metadata",
-                  "essentials/v2/context-graphs",
-                  "essentials/v2/api-results",
-                  "essentials/v2/semantic-search"
-                ]
-              },
-              {
-                "group": "Plugins",
-                "pages": [
-                  "plugins/claude-code",
-                  "plugins/mcp",
-                  "plugins/cli",
-                  "plugins/openclaw"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "Cookbooks",
-            "groups": [
-              {
-                "group": "Cookbooks",
-                "pages": [
-                  "cookbooks/index",
-                  "cookbooks/glean-clone",
-                  "cookbooks/ai-chief-of-staff",
-                  "cookbooks/ai-linkedin-recruiter",
-                  "cookbooks/ai-travel-planner",
-                  "cookbooks/cookbook-01-build-cursor-for-docs",
-                  "cookbooks/customer-support-agent",
-                  "cookbooks/cookbook-04-build-notion-ai",
-                  "cookbooks/competitive-intelligence-agent",
-                  "cookbooks/hydradb-cookbook-06",
-                  "cookbooks/internal-search-perplexity",
-                  "cookbooks/ai-onboarding-agent",
-                  "cookbooks/cookbook-10-ai-financial-analyst"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Reference",
-            "openapi": "api-reference/v2/openapi.json",
-            "groups": [
-              {
-                "group": "API Documentation",
-                "pages": [
-                  "api-reference/v2/index",
-                  "api-reference/v2/sdks"
-                ]
-              },
-              {
-                "group": "Tenants",
-                "pages": [
-                  "api-reference/v2/endpoint/tenants-overview",
-                  "POST /tenants",
-                  "GET /tenants",
-                  "DELETE /tenants",
-                  "GET /tenants/status",
-                  "GET /tenants/sub-tenants",
-                  "GET /tenants/stats"
-                ]
-              },
-              {
-                "group": "Sources",
-                "pages": [
-                  "api-reference/v2/endpoint/sources-overview",
-                  "POST /source/ingest",
-                  "GET /source/status",
-                  "GET /source/fetch",
-                  "POST /source/list",
-                  "DELETE /source",
-                  "GET /source/relations"
-                ]
-              },
-              {
-                "group": "Search",
-                "pages": [
-                  "api-reference/v2/endpoint/search-overview",
-                  "POST /search"
                 ]
               }
             ]
