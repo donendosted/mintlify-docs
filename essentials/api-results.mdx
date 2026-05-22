@@ -377,7 +377,7 @@ def build_context_string(result) -> str:
                 group_ids = chunk_id_to_group_ids.get(chunk_uuid, [])
                 relevant_relations = [
                     r for r in chunk_relations
-                    if r.get("group_id") in group_ids
+                    if r.group_id in group_ids
                 ]
                 if relevant_relations:
                     lines.append("Graph Relations:")
