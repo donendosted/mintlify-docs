@@ -206,7 +206,8 @@
               {
                 "group": "API Documentation",
                 "pages": [
-                  "api-reference/v2/index"
+                  "api-reference/v2/index",
+                  "api-reference/v2/sdks"
                 ]
               },
               {

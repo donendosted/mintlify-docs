@@ -1,0 +1,564 @@
+---
+title: "SDKs – Node and Python (v2)"
+description: "Official TypeScript/Node.js and Python SDKs for the HydraDB v2 API."
+---
+
+The v2 SDKs wrap every endpoint in [API Reference v2](/api-reference/v2) with typed methods and IDE autocomplete. They automatically set the `API-Version: 2` header on every request — you do not need to send it manually.
+
+## Installation
+
+The v2 SDKs ship as major-version bumps of the same packages used for v1. Pin to `>=2.0.0` to use the v2 method surface.
+
+<CodeGroup>
+```bash TypeScript / Node.js
+npm install @hydradb/sdk@^2
+```
+```bash Python SDK
+pip install "hydradb-sdk>=2,<3"
+```
+</CodeGroup>
+
+## Client setup
+
+<CodeGroup>
+```typescript TypeScript SDK
+import { HydraDBClient } from "@hydradb/sdk";
+
+const client = new HydraDBClient({
+  token: process.env.HYDRA_DB_API_KEY,
+});
+```
+```python Python SDK
+import os
+from hydra_db import HydraDB
+
+client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
+```
+```python Python (Async)
+import os
+from hydra_db import AsyncHydraDB
+
+async_client = AsyncHydraDB(token=os.environ["HYDRA_DB_API_KEY"])
+```
+</CodeGroup>
+
+<Info>
+**Python:** Both synchronous (`HydraDB`) and asynchronous (`AsyncHydraDB`) clients are available. They share an identical surface — choose based on your application's concurrency model.
+</Info>
+
+## Versioning
+
+v2 SDKs automatically include `API-Version: 2` on every outbound request. Server-side routing resolves to v2 routes; the response includes an `X-API-Version: 2` header echoing the resolved version.
+
+You can verify which version your client is using by inspecting the response headers in any SDK call.
+
+## Naming conventions
+
+The REST API uses **snake_case** for all request and response fields. The SDKs adapt this to native idioms:
+
+| | Method naming | Parameter field naming | Example |
+|---|---|---|---|
+| **Raw HTTP / cURL** | — | snake_case | `tenant_id`, `sub_tenant_id` |
+| **TypeScript SDK** | camelCase | snake_case | method: `query()`, params: `tenant_id`, `search_by` |
+| **Python SDK** | snake_case | snake_case | method: `query()`, params: `tenant_id`, `search_by` |
+
+<Info>
+**TypeScript SDK uses snake_case for all parameter field names.** Only method names are camelCase (e.g., `client.source.list({tenant_id: "...", page_size: 50})`). This applies to every request object passed to an SDK method.
+</Info>
+
+The TypeScript SDK transparently maps any camelCase parameters you write to snake_case on the wire. Your IDE's autocomplete and type checking work directly off the API contract — if a field is optional in the API, it's optional in the SDK.
+
+## SDK method structure
+
+v2 SDK methods are grouped under three top-level namespaces — one per `/api-reference/v2` group:
+
+| URL prefix | SDK group | Purpose |
+|---|---|---|
+| `/source/*` and `/source` | `client.source` | Ingest, status, fetch, list, delete, graph relations |
+| `/search` | `client.search` | Unified retrieval over knowledge, memories, or both |
+| `/tenants/*` and `/tenants` | `client.tenants` | Create, list, delete, status, sub-tenants, stats |
+
+Compared to v1, the v2 surface is intentionally smaller — three groups instead of seven, one search endpoint instead of three, one ingestion endpoint instead of two.
+
+## Method reference
+
+### Sources
+
+`client.source.*` covers every flow around content lifecycle — file uploads, app sources, memories, polling, fetching, listing, deletion, and graph inspection.
+
+| Method | Endpoint |
+|---|---|
+| `client.source.ingest()` | `POST /source/ingest` |
+| `client.source.status()` | `GET /source/status` |
+| `client.source.fetch()` | `GET /source/fetch` |
+| `client.source.list()` | `POST /source/list` |
+| `client.source.delete()` | `DELETE /source` |
+| `client.source.relations()` | `GET /source/relations` |
+
+### Search
+
+A single method covers all retrieval. Pick `source` (`"sources"`, `"memories"`, `"all"`) and `search_by` (`"hybrid"`, `"text"`, `"vector"`) to control behavior.
+
+| Method | Endpoint |
+|---|---|
+| `client.search.query()` | `POST /search` |
+
+### Tenants
+
+| Method | Endpoint |
+|---|---|
+| `client.tenants.create()` | `POST /tenants` |
+| `client.tenants.list()` | `GET /tenants` |
+| `client.tenants.delete()` | `DELETE /tenants` |
+| `client.tenants.status()` | `GET /tenants/status` |
+| `client.tenants.sub_tenants()` | `GET /tenants/sub-tenants` |
+| `client.tenants.stats()` | `GET /tenants/stats` |
+
+In TypeScript, snake_case method names use camelCase: `client.tenants.subTenants()`. In Python, all method names use snake_case: `client.tenants.sub_tenants()`.
+
+## Migrating from v1
+
+The v2 SDKs are a deliberate consolidation. A few common v1 → v2 method swaps:
+
+| v1 | v2 |
+|---|---|
+| `client.upload.knowledge(...)` | `client.source.ingest(type="knowledge", ...)` |
+| `client.upload.addMemory(...)` | `client.source.ingest(type="memory", ...)` |
+| `client.upload.verifyProcessing(...)` | `client.source.status(...)` |
+| `client.recall.fullRecall(...)` | `client.search.query(source="sources", ...)` |
+| `client.recall.recallPreferences(...)` | `client.search.query(source="memories", ...)` |
+| `client.recall.booleanRecall(...)` | `client.search.query(search_by="text", ...)` |
+| `client.fetch.listData(...)` | `client.source.list(...)` |
+| `client.fetch.graphRelationsBySourceId(...)` | `client.source.relations(...)` |
+| `client.fetch.content(...)` | `client.source.fetch(...)` |
+| `client.data.delete(...)` | `client.source.delete(type="knowledge", ...)` |
+| `client.upload.deleteMemory(...)` | `client.source.delete(type="memory", ...)` |
+| `client.tenant.create(...)` | `client.tenants.create(...)` |
+| `client.tenant.getTenantIds(...)` | `client.tenants.list(...)` |
+| `client.tenant.deleteTenant(...)` | `client.tenants.delete(...)` |
+| `client.tenant.getInfraStatus(...)` | `client.tenants.status(...)` |
+| `client.tenant.getSubTenantIds(...)` | `client.tenants.sub_tenants(...)` |
+| `client.tenant.monitor(...)` | `client.tenants.stats(...)` |
+
+The v1 SDK methods remain available on the `<2.0.0` releases of `hydradb-sdk` / `@hydradb/sdk` for as long as v1 routes are supported.
+
+## Getting started
+
+### Create a tenant
+
+A tenant is an isolated workspace. Most organizations create one tenant total, with sub-tenants for users or teams. See [Multi-Tenant](/essentials/v2/multi-tenant) for the full model.
+
+<CodeGroup>
+```typescript TypeScript SDK
+const response = await client.tenants.create({
+  tenant_id: "my_first_tenant",
+  tenant_metadata_schema: [
+    { name: "department", data_type: "string", enable_match: true },
+  ],
+});
+```
+```python Python SDK
+response = client.tenants.create(
+    tenant_id="my_first_tenant",
+    tenant_metadata_schema=[
+        {"name": "department", "data_type": "string", "enable_match": True},
+    ],
+)
+```
+```python Python (Async)
+response = await async_client.tenants.create(tenant_id="my_first_tenant")
+```
+</CodeGroup>
+
+Tenant creation is asynchronous. Poll [`tenants.status`](/api-reference/v2/endpoint/tenants-overview) until provisioning completes:
+
+<CodeGroup>
+```typescript TypeScript SDK
+while (true) {
+  const status = await client.tenants.status({
+    tenant_id: "my_first_tenant",
+  });
+  const { graph_status, vectorstore_status } = status.infra;
+  if (graph_status && vectorstore_status.every(Boolean)) break;
+  await new Promise((r) => setTimeout(r, 2000));
+}
+```
+```python Python SDK
+import time
+
+while True:
+    status = client.tenants.status(tenant_id="my_first_tenant")
+    if status.infra.graph_status and all(status.infra.vectorstore_status):
+        break
+    time.sleep(2)
+```
+</CodeGroup>
+
+### Ingest knowledge
+
+Upload documents, app sources, or both in one call:
+
+<CodeGroup>
+```typescript TypeScript SDK
+const result = await client.source.ingest({
+  type: "knowledge",
+  tenant_id: "my_first_tenant",
+  files: [
+    { path: "contract.pdf", filename: "contract.pdf", contentType: "application/pdf" },
+    { path: "policy.pdf", filename: "policy.pdf", contentType: "application/pdf" },
+  ],
+  file_metadata: JSON.stringify([
+    {
+      file_id: "contract_q4",
+      tenant_metadata: { department: "legal" },
+      document_metadata: { author: "Alice" },
+    },
+    {
+      file_id: "policy_2025",
+      tenant_metadata: { department: "legal" },
+      document_metadata: { author: "Bob" },
+    },
+  ]),
+});
+```
+```python Python SDK
+import json
+
+with open("contract.pdf", "rb") as f1, open("policy.pdf", "rb") as f2:
+    result = client.source.ingest(
+        type="knowledge",
+        tenant_id="my_first_tenant",
+        files=[
+            ("contract.pdf", f1, "application/pdf"),
+            ("policy.pdf", f2, "application/pdf"),
+        ],
+        file_metadata=json.dumps([
+            {
+                "file_id": "contract_q4",
+                "tenant_metadata": {"department": "legal"},
+                "document_metadata": {"author": "Alice"},
+            },
+            {
+                "file_id": "policy_2025",
+                "tenant_metadata": {"department": "legal"},
+                "document_metadata": {"author": "Bob"},
+            },
+        ]),
+    )
+```
+</CodeGroup>
+
+For app sources (Slack, Notion, Gmail, webpages), pass `app_knowledge` instead of `files`. You can combine both in a single request.
+
+### Add user memories
+
+Use the same `ingest` method with `type: "memory"`:
+
+<CodeGroup>
+```typescript TypeScript SDK
+const result = await client.source.ingest({
+  type: "memory",
+  tenant_id: "my_first_tenant",
+  sub_tenant_id: "user_alex",
+  memories: JSON.stringify([
+    {
+      text: "User prefers detailed technical explanations and dark mode",
+      infer: true,
+      user_name: "Alex",
+      tenant_metadata: { team: "engineering" },
+      document_metadata: { source: "onboarding" },
+    },
+  ]),
+});
+```
+```python Python SDK
+import json
+
+result = client.source.ingest(
+    type="memory",
+    tenant_id="my_first_tenant",
+    sub_tenant_id="user_alex",
+    memories=json.dumps([
+        {
+            "text": "User prefers detailed technical explanations and dark mode",
+            "infer": True,
+            "user_name": "Alex",
+            "tenant_metadata": {"team": "engineering"},
+            "document_metadata": {"source": "onboarding"},
+        }
+    ]),
+)
+```
+</CodeGroup>
+
+<Info>
+**`infer` defaults to `false`.** Set `infer: true` for conversational content where you want HydraDB to extract implicit preferences. Use `infer: false` for content that should be stored verbatim.
+</Info>
+
+### Verify processing
+
+Poll `source.status` with the `source_id`s from the ingest response:
+
+<CodeGroup>
+```typescript TypeScript SDK
+const status = await client.source.status({
+  tenant_id: "my_first_tenant",
+  file_ids: ["contract_q4", "policy_2025"],
+});
+```
+```python Python SDK
+status = client.source.status(
+    tenant_id="my_first_tenant",
+    file_ids=["contract_q4", "policy_2025"],
+)
+```
+</CodeGroup>
+
+Wait until each `indexing_status` is `completed` (or `graph_creation` if you don't need full graph traversal). See [Sources – Overview](/api-reference/v2/endpoint/sources-overview) for the full status pipeline.
+
+### Search
+
+A single method covers every retrieval pattern — switch `source` and `search_by` to control behavior:
+
+<CodeGroup>
+```typescript TypeScript SDK
+// Knowledge over documents
+const knowledge = await client.search.query({
+  tenant_id: "my_first_tenant",
+  query: "What are the pricing tiers?",
+  source: "sources",
+  search_by: "hybrid",
+  mode: "thinking",
+  graph_context: true,
+});
+
+// Personalized — searches knowledge AND user memories together
+const personalized = await client.search.query({
+  tenant_id: "my_first_tenant",
+  sub_tenant_id: "user_alex",
+  query: "What are the pricing tiers, and how should I explain them to this user?",
+  source: "all",
+  search_by: "hybrid",
+  mode: "thinking",
+});
+
+// Exact-phrase BM25 search
+const exact = await client.search.query({
+  tenant_id: "my_first_tenant",
+  query: "ERROR_429 rate limit",
+  source: "sources",
+  search_by: "text",
+  operator: "phrase",
+});
+```
+```python Python SDK
+# Knowledge over documents
+knowledge = client.search.query(
+    tenant_id="my_first_tenant",
+    query="What are the pricing tiers?",
+    source="sources",
+    search_by="hybrid",
+    mode="thinking",
+    graph_context=True,
+)
+
+# Personalized — searches knowledge AND user memories together
+personalized = client.search.query(
+    tenant_id="my_first_tenant",
+    sub_tenant_id="user_alex",
+    query="What are the pricing tiers, and how should I explain them to this user?",
+    source="all",
+    search_by="hybrid",
+    mode="thinking",
+)
+
+# Exact-phrase BM25 search
+exact = client.search.query(
+    tenant_id="my_first_tenant",
+    query="ERROR_429 rate limit",
+    source="sources",
+    search_by="text",
+    operator="phrase",
+)
+```
+</CodeGroup>
+
+For the full parameter reference, see [Search – Overview](/api-reference/v2/endpoint/search-overview).
+
+### Browse, fetch, and inspect
+
+<CodeGroup>
+```typescript TypeScript SDK
+// List knowledge sources with pagination
+const sources = await client.source.list({
+  tenant_id: "my_first_tenant",
+  kind: "knowledge",
+  page: 1,
+  page_size: 50,
+});
+
+// Inspect graph relationships for a specific source
+const relations = await client.source.relations({
+  tenant_id: "my_first_tenant",
+  source_id: "doc_12345",
+});
+
+// Fetch original file content or get a presigned URL
+const file = await client.source.fetch({
+  tenant_id: "my_first_tenant",
+  source_id: "doc_12345",
+  mode: "url",
+});
+
+// Delete a knowledge source
+await client.source.delete({
+  type: "knowledge",
+  request: {
+    tenant_id: "my_first_tenant",
+    ids: ["doc_12345"],
+  },
+});
+```
+```python Python SDK
+# List knowledge sources with pagination
+sources = client.source.list(
+    tenant_id="my_first_tenant",
+    kind="knowledge",
+    page=1,
+    page_size=50,
+)
+
+# Inspect graph relationships for a specific source
+relations = client.source.relations(
+    tenant_id="my_first_tenant",
+    source_id="doc_12345",
+)
+
+# Fetch original file content or get a presigned URL
+file = client.source.fetch(
+    tenant_id="my_first_tenant",
+    source_id="doc_12345",
+    mode="url",
+)
+
+# Delete a knowledge source
+client.source.delete(
+    type="knowledge",
+    request={
+        "tenant_id": "my_first_tenant",
+        "ids": ["doc_12345"],
+    },
+)
+```
+</CodeGroup>
+
+## Response envelope
+
+All v2 responses are wrapped in a consistent envelope:
+
+```json
+{
+  "success": true,
+  "data": { /* the resource-specific payload */ },
+  "error": null,
+  "meta": {
+    "request_id": "<uuid>",
+    "latency_ms": 12.3
+  }
+}
+```
+
+The SDKs unwrap the envelope automatically and return the inner `data` object. Errors raise a typed exception with the envelope's `error.code` and `error.message` accessible on the exception.
+
+## Type safety
+
+<Check>
+Both SDKs are fully typed:
+
+- **Autocomplete** for all method names and parameters
+- **Type checking** for request and response objects
+- **Inline documentation** for each parameter, sourced from the OpenAPI spec
+- **Compile-time validation** for required vs optional fields
+- **Enum-typed values** for `source`, `search_by`, `operator`, `mode`, and `type`
+</Check>
+
+The SDKs provide exact type parity with the API specification:
+
+- **Request parameters** — every field documented in the API reference is reflected in method signatures
+- **Response objects** — return types match the JSON schema for each endpoint
+- **Error types** — exception structures mirror error response formats
+- **Nested objects** — complex parameters and responses keep their full structure
+
+## Error handling
+
+Both SDKs throw exceptions for non-2xx responses. Error objects expose the v2 envelope's `error` payload:
+
+<CodeGroup>
+```typescript TypeScript SDK
+import { HydraDBError } from "@hydradb/sdk";
+
+try {
+  const result = await client.search.query({
+    tenant_id: "my_first_tenant",
+    query: "...",
+    source: "sources",
+  });
+} catch (error) {
+  if (error instanceof HydraDBError) {
+    const code = error.body?.error?.code;
+
+    if (code === "TENANT_NOT_FOUND") {
+      // Handle missing tenant
+    } else if (error.statusCode === 429) {
+      // Rate limit — retry with backoff
+    } else {
+      throw error;
+    }
+  } else {
+    throw error;
+  }
+}
+```
+```python Python SDK
+from hydra_db import HydraDBError
+
+try:
+    result = client.search.query(
+        tenant_id="my_first_tenant",
+        query="...",
+        source="sources",
+    )
+except HydraDBError as e:
+    code = e.error_code
+    status = e.status_code
+
+    if code == "TENANT_NOT_FOUND":
+        # Handle missing tenant
+        pass
+    elif status == 429:
+        # Rate limit — retry with backoff
+        pass
+    else:
+        raise
+```
+</CodeGroup>
+
+For the full list of error codes and retry patterns, see [Error Responses](/api-reference/error-responses).
+
+## IDE-driven discovery
+
+Whether you're using TypeScript, Python, VS Code, PyCharm, or any modern IDE, the workflow is the same:
+
+1. Type the method name → see all available methods
+2. Open the parentheses → see all required and optional parameters
+3. Press `Cmd+Space` (macOS) or `Ctrl+Space` (Windows/Linux) → get inline documentation
+
+This works because the SDKs are fully typed with comprehensive parameter docs sourced from the OpenAPI spec.
+
+## Related sections
+
+- [API Reference v2](/api-reference/v2) — complete endpoint documentation
+- [Error Responses](/api-reference/error-responses) — HTTP codes, error codes, retry patterns
+- [Quickstart](/quickstart) — build your first integration in five minutes
+- [Recall](/essentials/v2/recall) — conceptual overview of `POST /search`
+- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) — ingestion deep-dives
