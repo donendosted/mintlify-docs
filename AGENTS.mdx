@@ -57,7 +57,6 @@ If you read nothing else, read this section.
 | Search user memories | `/recall/recall_preferences` | POST | [0] |
 | Search documents | `/recall/full_recall` | POST | [1] |
 | Exact phrase match | `/recall/boolean_recall` (`operator: "phrase"`) | POST | [1] |
-| LLM-answered Q&A | `/recall/qna` | POST | [1] |
 | Check tenant is ready | `/tenants/infra/status` | GET | -- |
 | Verify processing finished | `/ingestion/verify_processing` | POST | -- |
 | List ingested sources | `/list/data` (`kind: "knowledge"`) | POST | -- |
@@ -581,27 +580,34 @@ curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
   ]'
 ```
 
-**App sources (Slack, Notion, etc.):**
+**App sources (Slack, Notion, Jira, etc.):**
 
 ```bash
 curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -F "tenant_id=acme_corp" \
+  -F "sub_tenant_id=default" \
   -F 'app_knowledge=[
     {
-      "source_id": "slack_001",
-      "source_name": "Slack: #engineering",
-      "knowledge_items": [
-        {
-          "text": "Deployment completed successfully for v2.3.1",
-          "metadata": {"category": "deployment", "timestamp": "2024-03-10"},
-          "additional_metadata": {
-            "channel": "engineering",
-            "author": "alice@acme.com",
-            "thread_ts": "1710086400"
-          }
-        }
-      ]
+      "id": "slack_msg_1234567890_000100",
+      "tenant_id": "acme_corp",
+      "sub_tenant_id": "default",
+      "kind": "message",
+      "provider": "slack",
+      "external_id": "1234567890.000100",
+      "fields": {
+        "kind": "message",
+        "body": "Deployment completed successfully for v2.3.1",
+        "author": "alice",
+        "thread_id": "1234567890.000100",
+        "created_at": "2026-05-20T10:30:00Z",
+        "url": "https://acme.slack.com/archives/C01/p1234567890000100"
+      },
+      "metadata": {
+        "container_type": "channel",
+        "container_id": "C01",
+        "container_name": "engineering"
+      }
     }
   ]'
 ```
@@ -610,8 +616,9 @@ curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
 
 - `file_metadata` array length **must equal** `files` count
 - `app_knowledge` **must** be a JSON-encoded string when sent via multipart form
-- All `metadata` keys must be declared in the tenant schema with `enable_match: true`
-- `additional_metadata` is stored but **not** filterable at recall
+- Each app item needs `id`, `tenant_id`, `sub_tenant_id`; put searchable content in `fields` with `kind`, `provider`, and `external_id`
+- Put channel/project/space scope in `metadata`; `external_id` is the item ID, not the container
+- At recall, set `search_apps: true` on `full_recall` (`mode: "thinking"` for thread/relation expansion)
 
 **Response:**
 
@@ -625,22 +632,44 @@ curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
 
 #### `POST /ingestion/verify_processing`
 
-```json
-{
-  "tenant_id": "acme_corp",
-  "file_ids": ["doc_001", "doc_002"]
-}
+```
+POST /ingestion/verify_processing?tenant_id=acme_corp&sub_tenant_id=default&file_ids=doc_001&file_ids=doc_002
 ```
 
 **Response:**
 
 ```json
 {
-  "results": [
-    {"file_id": "doc_001", "indexing_status": "completed", "chunks_created": 47},
-    {"file_id": "doc_002", "indexing_status": "processing", "chunks_created": 0}
+  "statuses": [
+    {"file_id": "doc_001", "indexing_status": "completed", "success": true},
+    {"file_id": "doc_002", "indexing_status": "processing", "success": false}
   ]
 }
+```
+
+Poll every few seconds until every `indexing_status` is `"completed"` or `"success"`. Fail fast on `"errored"`.
+
+```python
+import time
+
+TERMINAL_OK = {"completed", "success"}
+TERMINAL_FAIL = {"errored"}
+
+deadline = time.time() + 300
+while time.time() < deadline:
+    r = client.upload.verify_processing(
+        tenant_id="acme_corp",
+        sub_tenant_id="default",
+        file_ids=["doc_001"],
+    )
+    statuses = {s["indexing_status"] for s in r["statuses"]}
+    if statuses & TERMINAL_FAIL:
+        raise RuntimeError(f"Ingestion errored: {r}")
+    if statuses.issubset(TERMINAL_OK):
+        break
+    time.sleep(5)
+else:
+    raise TimeoutError("Processing did not complete in 5 min")
 ```
 
 **Status values:**
@@ -651,7 +680,7 @@ curl -X POST https://api.hydradb.com/ingestion/upload_knowledge \
 - `completed` / `success` -- ready for recall
 - `errored` -- failed (fail-fast in agent loops!)
 
-Typical indexing time: 30–90 s per document.
+Typical indexing time: under 60 s for most documents; larger items may take up to 5 minutes.
 
 ### 5.3 Memories
 
@@ -792,18 +821,6 @@ Exact phrase or boolean keyword search.
 `boolean_recall` does **not** accept `alpha`, `mode`, or `graph_context`. Sending them returns 400.
 </Warning>
 
-#### `POST /recall/qna`
-
-LLM-answered question over knowledge. Returns a synthesized answer plus the citations used.
-
-```json
-{
-  "tenant_id": "acme_corp",
-  "sub_tenant_id": "team_eng",
-  "query": "Summarize Q4 deployment policy in 3 bullets",
-  "max_results": 8
-}
-```
 
 ### 5.5 Knowledge Management
 
@@ -935,11 +952,19 @@ await client.upload.knowledge({
   sub_tenant_id: "team_eng",
   app_knowledge: JSON.stringify([
     {
-      source_id: "slack_001",
-      source_name: "Slack: #engineering",
-      knowledge_items: [
-        { text: "Deployment completed", metadata: { category: "deployment" } },
-      ],
+      id: "slack_msg_1234567890_000100",
+      tenant_id: "acme_corp",
+      sub_tenant_id: "team_eng",
+      kind: "message",
+      provider: "slack",
+      external_id: "1234567890.000100",
+      fields: {
+        kind: "message",
+        body: "Deployment completed",
+        author: "alice",
+        thread_id: "1234567890.000100",
+      },
+      metadata: { container_type: "channel", container_id: "C01", container_name: "engineering" },
     },
   ]),
   upsert: true,
@@ -1067,11 +1092,23 @@ client.upload.knowledge(
     sub_tenant_id="team_eng",
     app_knowledge=json.dumps([
         {
-            "source_id": "slack_001",
-            "source_name": "Slack: #engineering",
-            "knowledge_items": [
-                {"text": "Deployment completed", "metadata": {"category": "deployment"}}
-            ],
+            "id": "slack_msg_1234567890_000100",
+            "tenant_id": "acme_corp",
+            "sub_tenant_id": "team_eng",
+            "kind": "message",
+            "provider": "slack",
+            "external_id": "1234567890.000100",
+            "fields": {
+                "kind": "message",
+                "body": "Deployment completed",
+                "author": "alice",
+                "thread_id": "1234567890.000100",
+            },
+            "metadata": {
+                "container_type": "channel",
+                "container_id": "C01",
+                "container_name": "engineering",
+            },
         }
     ]),
     upsert=True,
@@ -1688,7 +1725,7 @@ TERMINAL_FAIL = {"errored"}
 deadline = time.time() + 300
 while time.time() < deadline:
     r = client.upload.verify_processing(tenant_id="demo_tenant", file_ids=["doc_001"])
-    statuses = {item["indexing_status"] for item in r["results"]}
+    statuses = {item["indexing_status"] for item in r["statuses"]}
     if statuses & TERMINAL_FAIL:
         raise RuntimeError(f"Ingestion errored: {r}")
     if statuses.issubset(TERMINAL_OK):
