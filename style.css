@@ -1,8 +1,4 @@
 
-*, *::before, *::after {
-    box-sizing: border-box;
-  }
-
 #content-side-layout div.code-group {
     display: none;
 }
@@ -34,15 +30,4 @@
 
 #content-area {
     width: calc(100% - 20rem) !important;
-}
-    
-#navbar {
-    position: fixed
-}
-
-
-@media (min-width: 1024px) {
-    #header.relative {
-        margin-top: 7rem;
-    }
 }
