@@ -648,7 +648,9 @@
         ],
         "properties": {
           "success": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the request was successful. `true` for 2xx responses, `false` for errors."
           },
           "data": {
             "description": "Endpoint-specific response payload.",
@@ -674,10 +676,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Error message if failed"
           },
           "meta": {
-            "$ref": "#/components/schemas/V2Meta"
+            "$ref": "#/components/schemas/V2Meta",
+            "description": "System-provided attributes (e.g., app_name, local file size) not intended for search filtering."
           }
         }
       },
@@ -685,10 +689,12 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string"
+            "type": "string",
+            "description": "Machine-readable error code (e.g., `TENANT_NOT_FOUND`, `VALIDATION_ERROR`)."
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable error message explaining what went wrong."
           }
         }
       },
@@ -696,10 +702,12 @@
         "type": "object",
         "properties": {
           "request_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for this request. Include in support tickets to help locate logs."
           },
           "latency_ms": {
-            "type": "number"
+            "type": "number",
+            "description": "Server-side processing latency in milliseconds."
           }
         }
       },
@@ -711,7 +719,8 @@
         "properties": {
           "tenant_id": {
             "type": "string",
-            "example": "my_first_tenant"
+            "example": "my_first_tenant",
+            "description": "Unique tenant identifier"
           },
           "tenant_metadata_schema": {
             "type": "array",
@@ -722,11 +731,14 @@
           },
           "is_embeddings_tenant": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "True to create embeddings tenant",
+            "example": true
           },
           "embeddings_dimension": {
             "type": "integer",
-            "example": 1536
+            "example": 1536,
+            "description": "Embedding dimensions for embeddings tenant. Not required for non-embeddings (is_embeddings_tenant=False) tenants"
           }
         }
       },
@@ -793,15 +805,19 @@
           },
           "tenant_id": {
             "type": "string",
-            "example": "my_first_tenant"
+            "example": "my_first_tenant",
+            "description": "Unique identifier for the tenant/organization"
           },
           "sub_tenant_id": {
             "type": "string",
-            "example": "default"
+            "example": "default",
+            "description": "Optional sub-tenant identifier used to organize data within a tenant. If omitted, the default sub-tenant created during tenant setup will be used."
           },
           "upsert": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "If true, update existing sources with the same id.",
+            "example": true
           },
           "files": {
             "type": "array",
@@ -832,10 +848,14 @@
         ],
         "properties": {
           "tenant_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Tenant ID",
+            "example": "tenant_1234"
           },
           "sub_tenant_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Sub-tenant ID",
+            "example": "sub_tenant_4567"
           },
           "kind": {
             "type": "string",
@@ -855,16 +875,21 @@
           },
           "page": {
             "type": "integer",
-            "default": 1
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed). Defaults to 1.",
+            "example": 1
           },
           "page_size": {
             "type": "integer",
             "minimum": 1,
             "maximum": 100,
-            "default": 50
+            "default": 50,
+            "description": "Number of items per page (1-100). Defaults to 50.",
+            "example": 1
           },
           "filters": {
-            "$ref": "#/components/schemas/ContentFilter"
+            "$ref": "#/components/schemas/ContentFilter",
+            "description": "Optional filters. Provide key-value pairs to match against tenant_metadata, document_metadata, and/or source-level fields (title, type, description, url, timestamp)."
           },
           "include_fields": {
             "type": "array",
@@ -903,7 +928,8 @@
         ],
         "properties": {
           "request": {
-            "$ref": "#/components/schemas/DeleteContentRequest"
+            "$ref": "#/components/schemas/DeleteContentRequest",
+            "description": "Delete payload containing `tenant_id`, `sub_tenant_id` (optional), and `ids`. See DeleteContentRequest."
           },
           "type": {
             "type": "string",
@@ -924,10 +950,14 @@
         ],
         "properties": {
           "tenant_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the tenant/organization",
+            "example": "tenant_1234"
           },
           "sub_tenant_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional sub-tenant identifier used to organize data within a tenant. If omitted, the default sub-tenant created during tenant setup will be used.",
+            "example": "sub_tenant_4567"
           },
           "ids": {
             "type": "array",
@@ -937,7 +967,8 @@
             "example": [
               "HydraDoc1234",
               "HydraDoc4567"
-            ]
+            ],
+            "description": "One or more source IDs to delete. At least one is required."
           }
         }
       },
@@ -950,15 +981,18 @@
         "properties": {
           "tenant_id": {
             "type": "string",
-            "example": "my_first_tenant"
+            "example": "my_first_tenant",
+            "description": "Unique identifier for the tenant/organization"
           },
           "sub_tenant_id": {
             "type": "string",
-            "example": "default"
+            "example": "default",
+            "description": "Optional sub-tenant identifier used to organize data within a tenant. If omitted, the default sub-tenant created during tenant setup will be used."
           },
           "query": {
             "type": "string",
-            "example": "What are the pricing tiers?"
+            "example": "What are the pricing tiers?",
+            "description": "Search terms to find in your content"
           },
           "source": {
             "type": "string",
@@ -1003,7 +1037,7 @@
               "thinking"
             ],
             "default": "fast",
-            "description": "Retrieval pipeline. `fast` runs a single query pass — lowest latency, good for real-time chat and autocomplete. `thinking` expands the query into multiple sub-queries, reranks the combined results, and pulls in author-declared `search_forceful_relations` as `additional_context`. Higher quality, higher latency. Applies to `search_by: \"hybrid\"` and `\"vector\"` only; ignored for `\"text\"`."
+            "description": "Retrieval pipeline. `fast` runs a single query pass \u2014 lowest latency, good for real-time chat and autocomplete. `thinking` expands the query into multiple sub-queries, reranks the combined results, and pulls in author-declared `search_forceful_relations` as `additional_context`. Higher quality, higher latency. Applies to `search_by: \"hybrid\"` and `\"vector\"` only; ignored for `\"text\"`."
           },
           "alpha": {
             "oneOf": [
@@ -1020,33 +1054,33 @@
               }
             ],
             "default": 0.8,
-            "description": "Hybrid weight. `1.0` = pure semantic (dense vectors), `0.0` = pure BM25 (keyword), values in between blend the two. `\"auto\"` lets HydraDB pick per query. Applies to `search_by: \"hybrid\"` only — ignored for `\"text\"` and `\"vector\"`."
+            "description": "Hybrid weight. `1.0` = pure semantic (dense vectors), `0.0` = pure BM25 (keyword), values in between blend the two. `\"auto\"` lets HydraDB pick per query. Applies to `search_by: \"hybrid\"` only \u2014 ignored for `\"text\"` and `\"vector\"`."
           },
           "recency_bias": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
             "default": 0.0,
-            "description": "Boost for newer content. `0.0` applies no recency preference (default). `1.0` strongly prefers recent items. Tune to `0.2–0.4` for mixed content, `0.6–0.8` for changelogs, news, or status updates."
+            "description": "Boost for newer content. `0.0` applies no recency preference (default). `1.0` strongly prefers recent items. Tune to `0.2\u20130.4` for mixed content, `0.6\u20130.8` for changelogs, news, or status updates."
           },
           "graph_context": {
             "type": "boolean",
             "default": false,
-            "description": "When `true`, includes the entity/relation graph slice for retrieved chunks in the response under `graph_context` (with `query_paths`, `chunk_relations`, and `chunk_id_to_group_ids`). Off by default — turn on when you need to show how things connect, not just what is similar."
+            "description": "When `true`, includes the entity/relation graph slice for retrieved chunks in the response under `graph_context` (with `query_paths`, `chunk_relations`, and `chunk_id_to_group_ids`). Off by default \u2014 turn on when you need to show how things connect, not just what is similar."
           },
           "search_forceful_relations": {
             "type": "boolean",
             "default": true,
-            "description": "Whether to pull author-declared related sources (set at ingest via the per-item `relations.cortex_source_ids`) into the response's `additional_context` field. **Only takes effect when `mode: \"thinking\"`** — silently ignored in `fast` mode."
+            "description": "Whether to pull author-declared related sources (set at ingest via the per-item `relations.cortex_source_ids`) into the response's `additional_context` field. **Only takes effect when `mode: \"thinking\"`** \u2014 silently ignored in `fast` mode."
           },
           "additional_context": {
             "type": "string",
-            "description": "Free-form text to bias retrieval. Example: \"User is on the billing page\" or \"User is on the Pro plan\". Keep it short and factual — used as a hint, not a hard filter."
+            "description": "Free-form text to bias retrieval. Example: \"User is on the billing page\" or \"User is on the Pro plan\". Keep it short and factual \u2014 used as a hint, not a hard filter."
           },
           "metadata_filters": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Deterministic narrowing applied before ranking. **Top-level keys** are matched against `tenant_metadata` — they must be declared in the tenant's `tenant_metadata_schema` with `enable_match: true`, otherwise they are silently ignored. To filter on free-form per-document fields, **nest them under a `document_metadata` key**. Both can be combined.",
+            "description": "Deterministic narrowing applied before ranking. **Top-level keys** are matched against `tenant_metadata` \u2014 they must be declared in the tenant's `tenant_metadata_schema` with `enable_match: true`, otherwise they are silently ignored. To filter on free-form per-document fields, **nest them under a `document_metadata` key**. Both can be combined.",
             "example": {
               "department": "engineering",
               "region": "us-east",

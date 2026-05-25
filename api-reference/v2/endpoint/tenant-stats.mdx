@@ -40,9 +40,11 @@ stats = client.tenants.stats(tenant_id="my_first_tenant")
 
 ## Query parameters
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `tenant_id` | string | Yes | – | Identifier of the tenant to report on. |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Identifier of the tenant to report on. |
 
 ## Response
 
@@ -70,10 +72,10 @@ stats = client.tenants.stats(tenant_id="my_first_tenant")
 
 ### `CollectionStats` fields
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `row_count` | integer | – | Number of indexed chunks in the collection. **Chunks, not sources** — one document typically becomes many chunks. |
-| `dimensions` | integer | – | Embedding dimensionality of the collection. |
+| Field | Type | Description |
+|---|---|---|
+| `row_count` | integer | Number of indexed chunks in the collection. **Chunks, not sources** — one document typically becomes many chunks. |
+| `dimensions` | integer | Embedding dimensionality of the collection. |
 
 ## Behavior notes
 

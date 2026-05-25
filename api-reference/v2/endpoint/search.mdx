@@ -120,22 +120,24 @@ result = client.search.query(
 
 ## Request body
 
-| Name | Type / values | Required | Default | Description |
-|---|---|---|---|---|
-| `tenant_id` | string | Yes | – | Owning tenant. |
-| `sub_tenant_id` | string \| null | No | default sub-tenant | Sub-tenant scope. Required for per-user memory searches. |
-| `query` | string | Yes | – | Search terms or natural-language question. Cannot be empty. |
-| `source` | `"sources" \| "memories" \| "all"` | No | `"sources"` | What collection to search. `"all"` runs `sources` and `memories` in parallel and merges by `relevancy_score`. |
-| `search_by` | `"hybrid" \| "text" \| "vector"` | No | `"hybrid"` | Retrieval method. See [Search methods](#search-methods). |
-| `operator` | `"or" \| "and" \| "phrase"` | No | `"or"` | BM25 operator for `search_by: "text"`. Ignored for `hybrid` and `vector`. |
-| `mode` | `"fast" \| "thinking"` | No | `"fast"` | Retrieval pipeline. Applies to `hybrid` and `vector` only; ignored for `text`. |
-| `max_results` | integer \| null | No | server default | Maximum chunks to return. Start with 10. |
-| `alpha` | float `0.0`–`1.0` \| `"auto"` | No | `0.8` | Hybrid weight (`1.0` = pure semantic, `0.0` = pure BM25). Applies to `search_by: "hybrid"` only. |
-| `recency_bias` | float `0.0`–`1.0` | No | `0.0` | Boost newer content. |
-| `graph_context` | boolean | No | `false` | When `true`, includes the entity/relation graph slice in the response under `graph_context`. |
-| `search_forceful_relations` | boolean | No | `true` | Pull author-declared related sources into `additional_context`. **Only takes effect when `mode: "thinking"`** — silently ignored in `fast` mode. |
-| `additional_context` | string \| null | No | `null` | Free-form hint to guide retrieval (e.g., "user is on the billing page"). |
-| `metadata_filters` | object \| null | No | `null` | Deterministic narrowing before ranking. See [Filters](#filters). |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type / values | Description |
+|---|---|---|
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Owning tenant. |
+| `sub_tenant_id` | string \| null | Sub-tenant scope. Required for per-user memory searches. (default=default sub-tenant) |
+| `query`<sup style={{ color: "red" }}>*</sup> | string | Search terms or natural-language question. Cannot be empty. |
+| `source` | `"sources" \| "memories" \| "all"` | What collection to search. `"all"` runs `sources` and `memories` in parallel and merges by `relevancy_score`. (default=`"sources"`) |
+| `search_by` | `"hybrid" \| "text" \| "vector"` | Retrieval method. See [Search methods](#search-methods). (default=`"hybrid"`) |
+| `operator` | `"or" \| "and" \| "phrase"` | BM25 operator for `search_by: "text"`. Ignored for `hybrid` and `vector`. (default=`"or"`) |
+| `mode` | `"fast" \| "thinking"` | Retrieval pipeline. Applies to `hybrid` and `vector` only; ignored for `text`. (default=`"fast"`) |
+| `max_results` | integer \| null | Maximum chunks to return. Start with 10. (default=server default) |
+| `alpha` | float `0.0`–`1.0` \| `"auto"` | Hybrid weight (`1.0` = pure semantic, `0.0` = pure BM25). Applies to `search_by: "hybrid"` only. (default=`0.8`) |
+| `recency_bias` | float `0.0`–`1.0` | Boost newer content. (default=`0.0`) |
+| `graph_context` | boolean | When `true`, includes the entity/relation graph slice in the response under `graph_context`. (default=`false`) |
+| `search_forceful_relations` | boolean | Pull author-declared related sources into `additional_context`. **Only takes effect when `mode: "thinking"`** — silently ignored in `fast` mode. (default=`true`) |
+| `additional_context` | string \| null | Free-form hint to guide retrieval (e.g., "user is on the billing page"). (default=`null`) |
+| `metadata_filters` | object \| null | Deterministic narrowing before ranking. See [Filters](#filters). (default=`null`) |
 
 ### Source selection
 

@@ -54,13 +54,15 @@ file = client.source.fetch(
 
 ## Query parameters
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `source_id` | string | Yes | – | ID of the source to fetch. |
-| `tenant_id` | string | Yes | – | Owning tenant. |
-| `sub_tenant_id` | string \| null | No | `null` | Sub-tenant scope. If omitted, the default sub-tenant is used. |
-| `mode` | `"content" \| "url" \| "both"` | No | `"content"` | What to return. See [Fetch modes](#fetch-modes). |
-| `expiry_seconds` | integer | No | `3600` | TTL of the presigned URL (when `mode` includes `url`). Range `60 ≤ x ≤ 604800` (7 days). |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `source_id`<sup style={{ color: "red" }}>*</sup> | string | ID of the source to fetch. |
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Owning tenant. |
+| `sub_tenant_id` | string \| null | Sub-tenant scope. If omitted, the default sub-tenant is used. (default=`null`) |
+| `mode` | `"content" \| "url" \| "both"` | What to return. See [Fetch modes](#fetch-modes). (default=`"content"`) |
+| `expiry_seconds` | integer | TTL of the presigned URL (when `mode` includes `url`). Range `60 ≤ x ≤ 604800` (7 days). (default=`3600`) |
 
 ## Fetch modes
 

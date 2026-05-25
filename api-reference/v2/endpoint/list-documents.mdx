@@ -69,16 +69,18 @@ sources = client.source.list(
 
 ## Request body
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `tenant_id` | string | Yes | – | Owning tenant. |
-| `sub_tenant_id` | string \| null | No | `null` | Sub-tenant scope. If omitted, the default sub-tenant is used. |
-| `kind` | `"knowledge" \| "memories"` | No | `"knowledge"` | Bucket to list. |
-| `source_ids` | string[] \| null | No | `null` | When provided and non-empty, only items with these IDs are returned (pagination + filters still apply). |
-| `page` | integer | No | `1` | Page number (1-indexed). |
-| `page_size` | integer | No | server default | Items per page. Clamped to a server-side maximum. |
-| `filters` | object | No | `null` | Structured filters. See [Filters](#filters). |
-| `include_fields` | string[] \| null | No | `null` (all fields) | Field projection. Only the listed fields plus `id`, `tenant_id`, `sub_tenant_id` are populated. Only applies to `kind=knowledge`. |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Owning tenant. |
+| `sub_tenant_id` | string \| null | Sub-tenant scope. If omitted, the default sub-tenant is used. (default=`null`) |
+| `kind` | `"knowledge" \| "memories"` | Bucket to list. (default=`"knowledge"`) |
+| `source_ids` | string[] \| null | When provided and non-empty, only items with these IDs are returned (pagination + filters still apply). (default=`null`) |
+| `page` | integer | Page number (1-indexed). (default=`1`) |
+| `page_size` | integer | Items per page. Clamped to a server-side maximum. (default=server default) |
+| `filters` | object | Structured filters. See [Filters](#filters). (default=`null`) |
+| `include_fields` | string[] \| null | Field projection. Only the listed fields plus `id`, `tenant_id`, `sub_tenant_id` are populated. Only applies to `kind=knowledge`. (default=`null` — all fields) |
 
 ### Filters
 

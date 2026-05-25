@@ -36,9 +36,11 @@ response = client.tenants.sub_tenants(tenant_id="my_first_tenant")
 
 ## Query parameters
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `tenant_id` | string | Yes | – | Identifier of the tenant whose sub-tenants you want to list. |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Identifier of the tenant whose sub-tenants you want to list. |
 
 ## Response
 

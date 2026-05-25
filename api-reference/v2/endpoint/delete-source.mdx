@@ -60,14 +60,14 @@ client.source.delete(
 
 ## Request body
 
-The body wraps two fields together:
+The body wraps two fields together. Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `request.tenant_id` | string | Yes | – | Owning tenant. |
-| `request.sub_tenant_id` | string \| null | No | `null` | Sub-tenant scope. |
-| `request.ids` | string[] | Yes | – | One or more source IDs to delete. At least one is required. |
-| `type` | `"knowledge" \| "memory"` | No | `"knowledge"` | Bucket selector. |
+| Name | Type | Description |
+|---|---|---|
+| `request.tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Owning tenant. |
+| `request.sub_tenant_id` | string \| null | Sub-tenant scope. (default=`null`) |
+| `request.ids`<sup style={{ color: "red" }}>*</sup> | string[] | One or more source IDs to delete. At least one is required. |
+| `type` | `"knowledge" \| "memory"` | Bucket selector. (default=`"knowledge"`) |
 
 ## Response
 

@@ -87,12 +87,14 @@ response = client.tenants.create(
 
 ## Request body
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `tenant_id` | string | Yes | – | Unique identifier for the tenant. Must be at least one character. |
-| `tenant_metadata_schema` | array | No | `null` | Defines tenant-level metadata fields. See [Metadata schema](#metadata-schema) below. |
-| `is_embeddings_tenant` | boolean | No | `false` | Set to `true` to create a pure embeddings tenant (raw vector storage rather than parsed sources). Most applications leave this `false`. |
-| `embeddings_dimension` | integer | No | `1536` | Dimensionality of the dense vector store. Only applies when `is_embeddings_tenant: true`. |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Unique identifier for the tenant. Must be at least one character. |
+| `tenant_metadata_schema` | array | Defines tenant-level metadata fields. See [Metadata schema](#metadata-schema) below. (default=`null`) |
+| `is_embeddings_tenant` | boolean | Set to `true` to create a pure embeddings tenant (raw vector storage rather than parsed sources). Most applications leave this `false`. (default=`false`) |
+| `embeddings_dimension` | integer | Dimensionality of the dense vector store. Only applies when `is_embeddings_tenant: true`. (default=`1536`) |
 
 ## Response
 
@@ -114,16 +116,16 @@ response = client.tenants.create(
 
 `tenant_metadata_schema` defines fields that all documents in the tenant inherit. Each entry has the following shape:
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `name` | string | – | Field name. Required. Must start with a letter or underscore and contain only letters, numbers, and underscores (no spaces or special characters). Reserved system names are rejected. |
-| `data_type` | enum | `VARCHAR` | Field data type. Accepts friendly names (`string`, `integer`, `float`, `boolean`, `array`, `object`) or raw Milvus types (`VARCHAR`, `INT32`, etc.). See [Valid data types](#valid-data-types). |
-| `max_length` | integer | `1024` | Max length for `VARCHAR` fields. Increase for long text. |
-| `enable_analyzer` | boolean | `false` | Enable a text analyzer for full-text search capabilities on this field. |
-| `enable_match` | boolean | `false` | Enable exact-match filtering on this field via `metadata_filters`. |
-| `enable_dense_embedding` | boolean | `false` | Index a dense embedding for semantic similarity search. Only applicable to `VARCHAR` fields. |
-| `enable_sparse_embedding` | boolean | `false` | Index a sparse embedding (BM25) for keyword search. Only applicable to `VARCHAR` fields. |
-| `nullable` | boolean | `true` | Whether the field can be null at ingestion time. |
+| Field | Type | Description |
+|---|---|---|
+| `name`<sup style={{ color: "red" }}>*</sup> | string | Field name. Must start with a letter or underscore and contain only letters, numbers, and underscores (no spaces or special characters). Reserved system names are rejected. |
+| `data_type` | enum | Field data type. Accepts friendly names (`string`, `integer`, `float`, `boolean`, `array`, `object`) or raw Milvus types (`VARCHAR`, `INT32`, etc.). See [Valid data types](#valid-data-types). (default=`VARCHAR`) |
+| `max_length` | integer | Max length for `VARCHAR` fields. Increase for long text. (default=`1024`) |
+| `enable_analyzer` | boolean | Enable a text analyzer for full-text search capabilities on this field. (default=`false`) |
+| `enable_match` | boolean | Enable exact-match filtering on this field via `metadata_filters`. (default=`false`) |
+| `enable_dense_embedding` | boolean | Index a dense embedding for semantic similarity search. Only applicable to `VARCHAR` fields. (default=`false`) |
+| `enable_sparse_embedding` | boolean | Index a sparse embedding (BM25) for keyword search. Only applicable to `VARCHAR` fields. (default=`false`) |
+| `nullable` | boolean | Whether the field can be null at ingestion time. (default=`true`) |
 
 ### Valid data types
 

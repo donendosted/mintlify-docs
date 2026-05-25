@@ -164,62 +164,64 @@ client.source.ingest(
 
 ## Form fields
 
-| Name | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `type` | `"knowledge" \| "memory"` | No | `"knowledge"` | Bucket selector. |
-| `tenant_id` | string | Yes | – | Target tenant. |
-| `sub_tenant_id` | string | No | `""` (default sub-tenant) | Logical partition inside the tenant. |
-| `upsert` | boolean | No | `true` | Replace existing sources with the same ID. Set to `false` to error on conflict. |
-| `files` | file[] | Conditional | `[]` | Binary uploads, **knowledge only**. Omit when ingesting memories. |
-| `file_metadata` | string (JSON array) | No | – | One entry per file in `files`, same order. See [`file_metadata` item shape](#file_metadata-item-shape). |
-| `app_knowledge` | string (JSON object or array) | No | – | Pre-extracted source objects (Slack, Notion, web pages, etc.), **knowledge only**. See [`app_knowledge` item shape](#app_knowledge-item-shape). |
-| `memories` | string (JSON array) | Conditional | – | Memory items, **memory only**. Required when `type=memory`. See [`memories` item shape](#memories-item-shape). |
+Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
+
+| Name | Type | Description |
+|---|---|---|
+| `type` | `"knowledge" \| "memory"` | Bucket selector. (default=`"knowledge"`) |
+| `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Target tenant. |
+| `sub_tenant_id` | string | Logical partition inside the tenant. (default=`""` — default sub-tenant) |
+| `upsert` | boolean | Replace existing sources with the same ID. Set to `false` to error on conflict. (default=`true`) |
+| `files` | file[] | Binary uploads, **knowledge only**. Required when `type=knowledge` and you have files to upload. Omit when ingesting memories. (default=`[]`) |
+| `file_metadata` | string (JSON array) | One entry per file in `files`, same order. See [`file_metadata` item shape](#file_metadata-item-shape). |
+| `app_knowledge` | string (JSON object or array) | Pre-extracted source objects (Slack, Notion, web pages, etc.), **knowledge only**. See [`app_knowledge` item shape](#app_knowledge-item-shape). |
+| `memories` | string (JSON array) | Memory items, **memory only**. Required when `type=memory`. See [`memories` item shape](#memories-item-shape). |
 
 ### `file_metadata` item shape
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `file_id` | string | – | Optional source ID. If set, becomes the `source_id` for this file (use your app's document ID for parity). |
-| `tenant_metadata` | object | `{}` | Tenant-schema fields for filtering and search. Keys must be declared in `tenant_metadata_schema`. |
-| `document_metadata` | object | `{}` | Free-form per-document fields for display or bookkeeping. To filter on these at search time, nest under `metadata_filters.document_metadata`. |
-| `title` | string | filename | Override the source title shown in search results. |
-| `type` | string | inferred | Override the source type shown in search results. |
-| `url` | string | – | Override the canonical URL. |
-| `timestamp` | string | upload time | ISO-8601 timestamp override. |
-| `relations` | object | – | Declare forceful relations to other sources. Shape: `{ "cortex_source_ids": ["...", "..."] }`. Surfaced via `additional_context` in `mode: "thinking"` search. |
+| Field | Type | Description |
+|---|---|---|
+| `file_id` | string | Optional source ID. If set, becomes the `source_id` for this file (use your app's document ID for parity). |
+| `tenant_metadata` | object | Tenant-schema fields for filtering and search. Keys must be declared in `tenant_metadata_schema`. (default=`{}`) |
+| `document_metadata` | object | Free-form per-document fields for display or bookkeeping. To filter on these at search time, nest under `metadata_filters.document_metadata`. (default=`{}`) |
+| `title` | string | Override the source title shown in search results. (default=filename) |
+| `type` | string | Override the source type shown in search results. (default=inferred) |
+| `url` | string | Override the canonical URL. |
+| `timestamp` | string | ISO-8601 timestamp override. (default=upload time) |
+| `relations` | object | Declare forceful relations to other sources. Shape: `{ "cortex_source_ids": ["...", "..."] }`. Surfaced via `additional_context` in `mode: "thinking"` search. |
 
 ### `app_knowledge` item shape
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `id` | string | auto-generated | Source ID. Treated as the upsert key. |
-| `title` | string | – | Short title or subject shown in search results. |
-| `type` | string | – | Source category (`slack`, `notion`, `gmail`, `webpage`, etc.). Used for filtering and display. |
-| `description` | string | – | Optional long-form description. |
-| `url` | string | – | Canonical URL or reference link. |
-| `timestamp` | string | – | ISO-8601 timestamp (creation or last-updated). |
-| `content` | object | – | Content payload. Use `{ "text": "..." }` for plain text. |
-| `tenant_metadata` | object | `{}` | Tenant-schema fields. |
-| `document_metadata` | object | `{}` | Free-form per-document fields. |
-| `attachments` | array | `[]` | Optional related attachments. |
-| `relations` | object | – | Forceful relations, same shape as on `file_metadata`. |
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Source ID. Treated as the upsert key. (default=auto-generated) |
+| `title` | string | Short title or subject shown in search results. |
+| `type` | string | Source category (`slack`, `notion`, `gmail`, `webpage`, etc.). Used for filtering and display. |
+| `description` | string | Optional long-form description. |
+| `url` | string | Canonical URL or reference link. |
+| `timestamp` | string | ISO-8601 timestamp (creation or last-updated). |
+| `content` | object | Content payload. Use `{ "text": "..." }` for plain text. |
+| `tenant_metadata` | object | Tenant-schema fields. (default=`{}`) |
+| `document_metadata` | object | Free-form per-document fields. (default=`{}`) |
+| `attachments` | array | Optional related attachments. (default=`[]`) |
+| `relations` | object | Forceful relations, same shape as on `file_metadata`. |
 
 ### `memories` item shape
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `source_id` | string | auto-generated | Optional unique ID. Acts as the upsert key. |
-| `title` | string | truncated `text` | Short label for display in `/source/list` and search hits as `source.title`. |
-| `text` | string | – | Raw text or markdown content. Use this **or** `user_assistant_pairs`. |
-| `user_assistant_pairs` | array | – | Conversation pairs `{ user, assistant }`. Use this **or** `text`. |
-| `is_markdown` | boolean | `false` | Treat `text` as markdown for chunking. |
-| `infer` | boolean | `false` | When `true`, HydraDB extracts the underlying preference from raw signal. |
-| `custom_instructions` | string | – | Guides extraction when `infer: true`. Ignored when `infer: false`. |
-| `user_name` | string | `"User"` | The user's name. Feeds inference. |
-| `expiry_time` | integer | – | TTL in seconds. Memory stops surfacing after expiry. |
-| `tenant_metadata` | object | `{}` | Tenant-schema fields. |
-| `document_metadata` | object | `{}` | Free-form per-document fields. |
-| `relations` | object | – | Forceful relations within the Memories store. Shape: `{ "cortex_source_ids": ["...", "..."] }`. |
+| Field | Type | Description |
+|---|---|---|
+| `source_id` | string | Optional unique ID. Acts as the upsert key. (default=auto-generated) |
+| `title` | string | Short label for display in `/source/list` and search hits as `source.title`. (default=truncated `text`) |
+| `text` | string | Raw text or markdown content. Use this **or** `user_assistant_pairs`. |
+| `user_assistant_pairs` | array | Conversation pairs `{ user, assistant }`. Use this **or** `text`. |
+| `is_markdown` | boolean | Treat `text` as markdown for chunking. (default=`false`) |
+| `infer` | boolean | When `true`, HydraDB extracts the underlying preference from raw signal. (default=`false`) |
+| `custom_instructions` | string | Guides extraction when `infer: true`. Ignored when `infer: false`. |
+| `user_name` | string | The user's name. Feeds inference. (default=`"User"`) |
+| `expiry_time` | integer | TTL in seconds. Memory stops surfacing after expiry. |
+| `tenant_metadata` | object | Tenant-schema fields. (default=`{}`) |
+| `document_metadata` | object | Free-form per-document fields. (default=`{}`) |
+| `relations` | object | Forceful relations within the Memories store. Shape: `{ "cortex_source_ids": ["...", "..."] }`. |
 
 ## Response
 
