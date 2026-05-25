@@ -3,21 +3,19 @@ title: "Architecture"
 description: "How HydraDB moves content from ingestion to indexed recall, and where tenants, metadata, graph context, and retrieval fit together."
 ---
 
-HydraDB is context infrastructure for AI applications. From the outside, you call a small set of HTTP APIs. Inside, HydraDB coordinates tenant isolation, async ingestion, indexing, graph construction, and hybrid retrieval so your application can store context once and recall the right pieces later.
+HydraDB is context infrastructure for AI applications. From the outside, you call a small set of HTTP APIs. Inside, HydraDB orchestrates tenant isolation, asynchronous ingestion, indexing, graph construction, and hybrid retrieval — so your application can store context once and recall the right pieces later. This page walks through what happens behind the scenes, and points at the endpoints and concepts you'll touch along the way.
 
 ---
 
-## The Big Picture
+## The big picture
 
-HydraDB has three logical planes:
+HydraDB organizes its work into three logical planes. You interact only with the API; everything else stays behind the service boundary.
 
-| Plane | What It Handles |
-|---|---|
-| Control plane | API authentication, tenant lifecycle, plan limits, and status endpoints |
-| Ingestion plane | File/app Knowledge uploads, Memory ingestion, parsing, chunking, embedding, and graph construction |
-| Retrieval plane | Hybrid recall, metadata filtering, graph context, lexical search, and response shaping |
-
-Your client talks only to the API. Storage, indexing, and graph internals stay behind the service boundary.
+| Plane | What it handles | Endpoints |
+|---|---|---|
+| **Control** | API authentication, tenant lifecycle, provisioning, and status | [`/tenants`](/api-reference/v2/endpoint/tenants-overview) family |
+| **Ingestion** | File and app-source uploads, memory writes, parsing, chunking, embedding, and graph construction | [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content), [`GET /source/status`](/api-reference/v2/endpoint/source-status) |
+| **Retrieval** | Hybrid recall, metadata filtering, graph context, lexical search, and response shaping | [`POST /search`](/api-reference/v2/endpoint/search), [`GET /source/relations`](/api-reference/v2/endpoint/source-relations) |
 
 ```mermaid
 flowchart LR
@@ -84,11 +82,16 @@ flowchart LR
   Recall --> Sources
 ```
 
+Two details to notice in the diagram:
+
+- **Two vector stores, one ingest endpoint.** [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) routes to the [Knowledge](/essentials/v2/knowledge) store when `type=knowledge` and to the [Memories](/essentials/v2/memories) store when `type=memory`. Same endpoint, different bucket.
+- **One recall endpoint, every retrieval method.** [`POST /search`](/api-reference/v2/endpoint/search) is the only retrieval entry point. The `source` and `search_by` parameters decide what gets searched and how — see [Recall](/essentials/v2/recall) for the full picture.
+
 ---
 
-## Ingestion Lifecycle
+## Ingestion lifecycle
 
-Ingestion is asynchronous. A successful upload means HydraDB accepted the work and queued it for processing; it does not mean the content is immediately fully indexed.
+Ingestion is asynchronous. A successful upload means HydraDB accepted the work and queued it; it does not mean the content is immediately searchable. Each source moves through a status pipeline before it becomes fully recallable:
 
 ```mermaid
 flowchart LR
@@ -114,76 +117,95 @@ flowchart LR
   style Errored fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#f8fafc,stroke-linecap:round
 ```
 
-Use `GET /source/status` with the returned `source_id` to track indexing. Wait for `completed` when you need full recall and graph context (`graph_creation` is already searchable for chunk content).
+Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) with the returned `source_id` to follow each item through the pipeline. Two practical notes:
+
+- **`graph_creation` is already searchable.** Chunks become retrievable as soon as embedding finishes; you only need to wait for `completed` when you specifically need full graph context (`graph_context: true` on search).
+- **Failures surface with detail.** An `errored` status comes back with an `error_code` and `message` so you can distinguish parse failures from validation problems from infrastructure issues.
+
+The full status table and polling pattern lives at [Source Status](/api-reference/v2/endpoint/source-status).
 
 ---
 
-## From Upload To Recall
+## From upload to recall
 
-1. Create a tenant with `POST /tenants`.
-2. Poll `GET /tenants/status?tenant_id=...` until both `vectorstore_status` indices are `true` and `graph_status` is `true`.
-3. Upload content with `POST /source/ingest`  -  `type=knowledge` for documents or app sources, `type=memory` for per-user memories.
-4. Poll `GET /source/status?file_ids=<source_id>&tenant_id=...`.
-5. Query with `POST /search`. Use `source: "sources"` for Knowledge, `source: "memories"` for Memories, or `source: "all"` for both. Use `search_by: "hybrid"` (default), `"text"` (BM25 with `operator: "or" | "and" | "phrase"`), or `"vector"`.
+Here's the canonical end-to-end flow. Each step links to the endpoint that owns it:
+
+1. **Create a tenant** with [`POST /tenants`](/api-reference/v2/endpoint/create-tenant) — your isolated workspace, optionally with a [metadata schema](/essentials/v2/metadata) declared up front.
+2. **Wait for provisioning** by polling [`GET /tenants/status`](/api-reference/v2/endpoint/tenant-status) until both `vectorstore_status` entries and `graph_status` are `true`.
+3. **Ingest content** with [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) — pick `type=knowledge` for shared documents or `type=memory` for per-user context. See [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) for the content models.
+4. **Watch indexing finish** by polling [`GET /source/status`](/api-reference/v2/endpoint/source-status) until each `source_id` reaches `completed` (or `graph_creation` if you don't need graph traversal).
+5. **Query** with [`POST /search`](/api-reference/v2/endpoint/search). Pick `source: "sources"` for Knowledge, `source: "memories"` for Memories, or `source: "all"` for both. Pair with `search_by: "hybrid"` (default), `"text"` (BM25, with `operator`), or `"vector"`. The mechanics live in [Recall](/essentials/v2/recall).
+
+That's the whole loop. Most of what changes between integrations is *what* you put in the metadata, *what* you query with, and *which* `source` and `search_by` combination fits the task.
 
 ---
 
-## Tenant Isolation
+## Tenant isolation
 
-A `tenant_id` is the top-level isolation boundary. Within it, `sub_tenant_id` scopes content to a user, team, workspace, or project.
+A `tenant_id` is the top-level isolation boundary — no tenant can read another tenant's data. Within a tenant, `sub_tenant_id` carves out logical partitions: users, teams, workspaces, or projects. Omitting `sub_tenant_id` on any call resolves to the tenant's default sub-tenant, which is auto-created with the tenant itself.
 
-If `sub_tenant_id` is omitted, HydraDB resolves it to the tenant's default sub-tenant.
+The right mapping depends on your product shape:
 
-Use this model for common product patterns:
-
-| Product Shape | Tenant Pattern | Sub-Tenant Pattern |
+| Product shape | Tenant pattern | Sub-tenant pattern |
 |---|---|---|
-| B2B SaaS | One tenant per customer organization | One sub-tenant per team, workspace, or user |
-| B2C app | One tenant for your application | One sub-tenant per end user |
-| Internal tools | One tenant per company or environment | One sub-tenant per department or project |
+| **B2B SaaS** | One tenant per customer organization | One sub-tenant per team, workspace, or end user |
+| **B2C app** | One tenant for your application | One sub-tenant per end user |
+| **Internal tools** | One tenant per company or environment | One sub-tenant per department or project |
+
+The deeper trade-offs — when to spin up a new tenant vs. a new sub-tenant, how scoping interacts with [metadata filters](/essentials/v2/metadata), and how this affects [Memories](/essentials/v2/memories) — are covered in [Multi-Tenant Support](/essentials/v2/multi-tenant).
 
 ---
 
-## Retrieval Pipeline
+## Retrieval pipeline
 
-`POST /search` is the single retrieval endpoint. The `source` parameter (`"sources"`, `"memories"`, or `"all"`) picks the collection; the `search_by` parameter (`"hybrid"`, `"text"`, or `"vector"`) picks the method.
+[`POST /search`](/api-reference/v2/endpoint/search) is the single retrieval endpoint. Two parameters describe the request: `source` picks the collection, `search_by` picks the method. From there, every call goes through the same pipeline:
 
-At a high level, recall:
+1. **Authenticate and scope.** Validate `tenant_id`, resolve the tenant, and apply the requested `sub_tenant_id`.
+2. **Filter before ranking.** Apply `metadata_filters` to narrow the candidate set (see [Metadata](/essentials/v2/metadata)).
+3. **Retrieve.** Run hybrid retrieval over the semantic vector store and the lexical (BM25) index, or one of them in isolation if `search_by` says so.
+4. **Blend.** Use `alpha` to weight semantic vs. lexical contributions (`1.0` = pure semantic, `0.0` = pure BM25).
+5. **Enrich.** When `graph_context: true`, traverse the [context graph](/essentials/v2/context-graphs) and attach related paths. When `mode: "thinking"`, expand the query, rerank, and pull in author-declared forceful relations.
+6. **Shape the response.** Return ranked `chunks`, deduplicated `sources`, optional `graph_context`, and any `additional_context`.
 
-1. Validates `tenant_id`, resolves the tenant, and applies the requested `sub_tenant_id`.
-2. Applies `metadata_filters` before ranking.
-3. Runs hybrid retrieval over semantic and lexical signals.
-4. Uses `alpha` to blend semantic vs lexical ranking.
-5. Optionally includes graph context when `graph_context: true`.
-6. Returns ranked `chunks`, deduplicated `sources`, `graph_context`, and any `additional_context`.
-
-The response is retrieved context, not a final LLM answer. Pass the relevant chunks and graph context into your own agent or model prompt.
+The response is *retrieved context*, not a final LLM answer. You pass the chunks (and any graph context) into your own agent or model prompt — see [How to Use API Results](/essentials/v2/api-results) for the helper that formats it.
 
 ---
 
-## Key Controls
+## Key controls
 
-| Field | Where | What It Does |
+A short cheat sheet for the parameters you'll touch most often, and where each one lives:
+
+| Field | Used in | What it does |
 |---|---|---|
-| `tenant_id` | All core APIs | Selects the isolated workspace |
-| `sub_tenant_id` | Ingestion and recall | Narrows data to a user, team, or workspace |
-| `metadata` | Ingestion | Tenant-level metadata; matching keys are validated and indexed when `tenant_metadata_schema` is configured |
-| `additional_metadata` | Ingestion | Flexible source-level metadata attached to a source; not matchable at recall time |
-| `metadata_filters` | Recall | Deterministically scopes candidates before ranking |
-| `alpha` | Recall | Blends semantic and lexical scores (`1.0` = semantic-heavy, `0.0` = lexical-heavy) |
-| `graph_context` | Recall | Requests graph paths and chunk relations in the response |
+| `tenant_id` | Every call | Selects the isolated workspace. Required on every request. |
+| `sub_tenant_id` | Ingest + recall | Narrows data to a user, team, or workspace inside the tenant. |
+| `tenant_metadata` | [Ingest](/api-reference/v2/endpoint/ingest-content) | Schema-aligned metadata indexed at ingest. Must match the [tenant metadata schema](/essentials/v2/metadata) declared at tenant creation. |
+| `document_metadata` | [Ingest](/api-reference/v2/endpoint/ingest-content) | Free-form per-document metadata. Stored alongside the source; filterable at search via `metadata_filters.document_metadata`. |
+| `metadata_filters` | [Search](/api-reference/v2/endpoint/search) | Deterministic narrowing before ranking. Top-level keys match `tenant_metadata`; nested `document_metadata` filters free-form fields. |
+| `alpha` | [Search](/api-reference/v2/endpoint/search) | Blends semantic vs. lexical scores in `search_by: "hybrid"`. |
+| `graph_context` | [Search](/api-reference/v2/endpoint/search) | When `true`, attaches the relevant slice of the [context graph](/essentials/v2/context-graphs) to the response. |
+| `mode` | [Search](/api-reference/v2/endpoint/search) | `"fast"` for low-latency single-pass retrieval; `"thinking"` for multi-query expansion and reranking. |
 
 ---
 
-## Operational Mental Model
+## Operational mental model
 
-HydraDB separates write-time work from query-time work. Uploads are accepted quickly, then processed in the background. Recall stays synchronous and returns only indexed content. When results look incomplete, first check processing status, then tenant/sub-tenant scope, then metadata filters.
+HydraDB separates **write-time** work from **query-time** work. Uploads return quickly and run in the background; recall stays synchronous and reads only indexed content. When results look incomplete, walk the chain in order:
+
+1. **Status first.** Did every `source_id` reach `completed` (or at least `graph_creation`)? Check [Source Status](/api-reference/v2/endpoint/source-status).
+2. **Scope second.** Is the `tenant_id` correct? Did you write under one `sub_tenant_id` and read under another? See [Multi-Tenant](/essentials/v2/multi-tenant).
+3. **Filters third.** Are your `metadata_filters` keys actually declared in `tenant_metadata_schema` with `enable_match: true`? Undeclared keys are silently ignored. See [Metadata](/essentials/v2/metadata).
+
+This order catches almost every "I uploaded but search returns nothing" debugging session.
 
 ---
 
 ## Related
 
-- [Core Concepts](/core-concepts) - the five primitives: Memories, Knowledge, Recall, Tenants, Metadata
-- [Quickstart](/quickstart) - build your first integration in five minutes
-- [Multi-Tenant Support](/essentials/v2/multi-tenant) - scoping patterns
-- [Context Graphs](/essentials/v2/context-graphs) - how the graph layer works
+- [Core Concepts](/core-concepts) — the five primitives: Memories, Knowledge, Recall, Tenants, Metadata
+- [Quickstart](/quickstart) — build your first integration in five minutes
+- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) — the two content models
+- [Recall](/essentials/v2/recall) — deep dive on `POST /search`
+- [Multi-Tenant Support](/essentials/v2/multi-tenant) — scoping patterns and pitfalls
+- [Context Graphs](/essentials/v2/context-graphs) — how the graph layer enriches retrieval
+- [Metadata](/essentials/v2/metadata) — designing filterable fields

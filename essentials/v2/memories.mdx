@@ -5,55 +5,59 @@ description: "What Memories are, how they differ from Knowledge, and how to writ
 
 ## 1. What it is
 
-Memories are user-scoped context HydraDB stores so your application can personalize responses over time.
+Memories are the user-scoped context HydraDB stores so your application can **personalize responses over time**. A single memory is a unit of user-specific context — a preference, a past conversation, an inferred trait, or a raw fact — that an agent should be able to bring back to the next session and the one after that.
 
-A memory is a unit of user-specific context HydraDB stores on behalf of an agent - a preference, a past conversation, an inferred trait, or a raw fact. Memories let an agent adapt its responses to a specific user across sessions, and surface again through [Recall](/essentials/v2/recall) when relevant.
-
-Think of memories as persistent user-specific context. That's distinct from **Knowledge**, which is shared, tenant-wide context ingested from documents and apps.
+Memories are the per-user counterpart to [Knowledge](/essentials/v2/knowledge). Knowledge holds the tenant-wide context everyone in your workspace can see; memories hold the slice that's specific to one user, workspace, or session. Both surface through [Recall](/essentials/v2/recall) when relevant.
 
 | | Memories | Knowledge |
 |---|---|---|
 | **Content** | User preferences, conversations, inferred traits | Documents, files, app-generated content |
-| **Scope** | Per-user (`sub_tenant_id`) | Shared across all users in a tenant |
-| **Search via** | `POST /search` with `source: "memories"` | `POST /search` with `source: "sources"` |
+| **Scope** | Per-user — partitioned by `sub_tenant_id` | Shared across all users in a tenant |
+| **Search via** | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "memories"` | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "sources"` |
 | **`vectorstore_status`** | Index `0` (`[0]`) | Index `1` (`[1]`) |
+
+<Info>
+  **One endpoint, two stores.** Memories and [Knowledge](/essentials/v2/knowledge) live in separate stores, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"` — results are merged and re-ranked together. That's the canonical recipe for personalized RAG. See [Recall](/essentials/v2/recall).
+</Info>
 
 ---
 
 ## 2. What it does
 
-When you add a memory, HydraDB:
+When you call [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) with `type=memory`, HydraDB:
 
-1. Parses the input (text, markdown, or user–assistant pairs).
-2. Optionally runs inference (`infer: true`) to extract preferences and insights.
-3. Processes and indexes it for future retrieval.
-4. Makes it available to [`POST /search`](/api-reference/v2/endpoint/search-overview) when called with `source: "memories"` (or `"all"`).
+1. **Parses** the input — raw text, markdown, or user–assistant pairs.
+2. **Optionally runs inference** (`infer: true`) to extract the underlying preference or trait from raw signal.
+3. **Processes and indexes** the result for future retrieval.
+4. **Makes it searchable** via [`POST /search`](/api-reference/v2/endpoint/search) when called with `source: "memories"` (or `"all"`).
 
-The `infer` flag controls how much structure HydraDB extracts on your behalf - see [How `infer` works](#5-how-it-works).
+The [`infer`](#5-how-it-works) flag is the most consequential choice — it controls how much extraction work HydraDB does on your behalf. The pipeline runs **asynchronously**, so memories aren't searchable instantly; poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) until each one reaches at least `graph_creation`.
 
 ---
 
 ## 3. When to use it
 
-Use memories when responses need to adapt to a specific user over time:
+Reach for memories when responses need to adapt to a specific user over time:
 
-- Capture stated or implied preferences ("prefers concise answers").
-- Store past conversations the agent should reference later.
-- Record decisions, outcomes, or feedback tied to a user.
-- Build up a behavioral profile that compounds across sessions.
+- **Capture stated or implied preferences** — "prefers concise answers", "works in PST".
+- **Store past conversations** the agent should reference in future sessions.
+- **Record decisions, outcomes, or feedback** tied to a specific user.
+- **Build a behavioral profile** that compounds across sessions.
 
-Use [Knowledge ingestion](/api-reference/v2/endpoint/sources-overview) instead when the content is shared across users - product docs, policy PDFs, internal wikis, Slack threads.
+Reach for [Knowledge ingestion](/essentials/v2/knowledge) instead when the content is shared across users — product docs, policy PDFs, internal wikis, Slack threads, anything that should be reusable.
 
-| If the content is... | Store it as... |
+| If the content is… | Store it as… |
 |---|---|
 | About a specific user or session | Memory |
-| Shared across all users in your tenant | Knowledge |
+| Shared across all users in your tenant | [Knowledge](/essentials/v2/knowledge) |
+
+When in doubt, ask "should every user see this?" — yes → Knowledge; no → Memory.
 
 ---
 
 ## 4. Types of memories
 
-A memory item should typically provide either `text` or `user_assistant_pairs`, not both.
+A memory item should typically provide either `text` or `user_assistant_pairs`, **not both**. Pick whichever shape matches the content you have on hand.
 
 <Note>
 **Raw text vs markdown are the same field.** Both put content in `text`. The only difference is the `is_markdown` flag, which tells HydraDB to preserve markdown structure (headings, lists, code blocks) when chunking and embedding. Set `is_markdown: true` for memo-style content with structure; leave it `false` (default) for plain prose.
@@ -61,7 +65,7 @@ A memory item should typically provide either `text` or `user_assistant_pairs`, 
 
 ### Raw text
 
-Plain prose  -  sentences, observations, preferences. HydraDB chunks it as natural language.
+Plain prose — sentences, observations, preferences. HydraDB chunks it as natural language.
 
 ```json
 {
@@ -99,53 +103,53 @@ Best for capturing implicit signals from dialogue.
 
 ## 5. How it works
 
-### `infer`: extract preferences for me, or store what I give you
+### `infer` — extract preferences for me, or store what I give you
 
-The `infer` flag is the most important decision when writing a memory. It controls how much work your application has to do *before* sending content to HydraDB.
+The `infer` flag is the single most consequential choice when writing a memory. It decides how much extraction work your application has to do **before** sending content to HydraDB.
 
-**`infer: true` - HydraDB extracts the preference for you.**
+**`infer: true` — HydraDB extracts the preference for you.**
 
-You hand HydraDB raw signal - interaction logs, dialogue, behavior, observations - and HydraDB infers the underlying preference, trait, or fact.
+You hand HydraDB raw signal — interaction logs, dialogue, behavior, observations — and HydraDB derives the underlying preference, trait, or fact.
 
-Concretely: ship the events that imply a preference, and HydraDB derives the preference. For example, dump a stream of UI interaction logs showing that a user switched to dark mode on Day 1, kept it on for a month, and toggled it back to light once before reverting. HydraDB infers `"user prefers dark mode"` and indexes that. Your application never has to write the extraction logic.
+Concretely: dump the events that imply a preference, and HydraDB derives the preference. For example, ship a stream of UI interaction logs showing that a user switched to dark mode on Day 1, kept it on for a month, and toggled it back to light once before reverting. HydraDB infers `"user prefers dark mode"` and indexes that. Your application never has to write the extraction logic.
 
-This is the right mode for:
+Use `infer: true` for:
 
-- Dialogue (`user_assistant_pairs`) where the preference is implicit
-- Behavior logs and event streams
-- Feedback ("the last summary was too long") where the actionable trait isn't spelled out
-- Anything where the raw input is messy and the useful trait has to be derived
+- **Dialogue** (`user_assistant_pairs`) where the preference is implicit.
+- **Behavior logs** and event streams.
+- **Feedback** ("the last summary was too long") where the actionable trait isn't spelled out.
+- Anything where the raw input is messy and the useful trait has to be derived.
 
-`custom_instructions` only takes effect when `infer: true`. Use it to guide what gets extracted (e.g., `"Focus on UI and notification preferences only"`).
+`custom_instructions` only takes effect when `infer: true` — use it to guide extraction (e.g., `"Focus on UI and notification preferences only"`).
 
-**`infer: false` (default) - HydraDB stores what you give it.**
+**`infer: false` (default) — HydraDB stores what you give it.**
 
 You've already done the extraction. The text you send *is* the memory, verbatim. HydraDB stores and indexes it as-is. No inference, no derivation.
 
-This is the right mode for:
+Use `infer: false` for:
 
-- Facts you've already captured (`"User's plan tier is Pro"`)
-- Pre-structured notes
-- Anything you want to retrieve exactly as written
+- **Facts you've already captured** (`"User's plan tier is Pro"`).
+- **Pre-structured notes**.
+- Anything you want to retrieve exactly as written.
 
-The trade-off: `infer: false` is faster and deterministic; `infer: true` is more useful when your input is raw and unstructured.
+**Trade-off in one line:** `infer: false` is faster and deterministic; `infer: true` is more useful when your input is raw and unstructured.
 
 ### Storage and scoping
 
-Memories live in a separate vector store from Knowledge:
+Memories live in their own vector store, distinct from [Knowledge](/essentials/v2/knowledge). The [`POST /search`](/api-reference/v2/endpoint/search) endpoint reaches them via the `source` parameter:
 
-- `POST /search` with `source: "memories"` searches the **Memories** store (`vectorstore_status` index `0`).
-- `POST /search` with `source: "sources"` searches the **Knowledge** store (`vectorstore_status` index `1`).
-- `POST /search` with `source: "all"` searches both in parallel and returns a single merged, re-ranked result set.
+- `source: "memories"` searches the Memories store (`vectorstore_status` index `0`).
+- `source: "sources"` searches the [Knowledge](/essentials/v2/knowledge) store (`vectorstore_status` index `1`).
+- `source: "all"` runs both in parallel and returns a single merged, re-ranked result set.
 
 <Info>
   <strong>One endpoint, two stores.</strong>
-  <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <code>POST /search</code> call  -  HydraDB runs both stores in parallel and merges the results for you. See <a href="/essentials/v2/recall">Recall</a>.</p>
+  <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <a href="/api-reference/v2/endpoint/search"><code>POST /search</code></a> call — HydraDB runs both stores in parallel and merges results for you. See <a href="/essentials/v2/recall">Recall</a>.</p>
 </Info>
 
-Within a tenant, memories are scoped by `sub_tenant_id`. For per-user separation (B2C), use the user's ID as the `sub_tenant_id`. For shared memory across a workspace, use a stable workspace-level ID. If you omit `sub_tenant_id`, the memory is written to the tenant's default sub-tenant. See [Multi-tenant support](/essentials/v2/multi-tenant).
+Within a tenant, memories are scoped by `sub_tenant_id`. For per-user separation (B2C), use the user's ID as the `sub_tenant_id`. For shared memory across a workspace, use a stable workspace-level ID. Omitting `sub_tenant_id` writes the memory to the tenant's default sub-tenant — see [Multi-Tenant](/essentials/v2/multi-tenant) for scoping patterns and the pitfalls of mixing scopes on read vs. write.
 
-Ingestion is asynchronous  -  memories aren't immediately searchable. Poll [`GET /source/status`](/api-reference/v2/endpoint/sources-overview) with the returned `source_id` until `indexing_status` is `completed`.
+Ingestion is asynchronous — memories aren't immediately searchable. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) with the returned `source_id` until `indexing_status` is `completed` (or `graph_creation` if you don't need full graph traversal).
 
 ---
 
@@ -181,9 +185,9 @@ Ingestion is asynchronous  -  memories aren't immediately searchable. Poll [`GET
 
 ## 7 - ForceFul relations
 
-Forceful relations let you explicitly link Memory items to each other at ingestion time. When a query matches a memory that has forceful relations declared, HydraDB pulls the linked memories into `additional_context` alongside the primary results.
+Forceful relations let you **declare** links between memories at ingestion time. When a query matches a memory that has forceful relations attached, HydraDB pulls the linked memories into the `additional_context` field of the search response alongside the primary results.
 
-This is separate from the entity and relationship graph HydraDB builds automatically during ingestion. Graph extraction is derived from content; forceful relations are declared by you.
+This is distinct from the entity and relationship [context graph](/essentials/v2/context-graphs) HydraDB builds automatically. Graph extraction is *derived* from content; forceful relations are *declared* by you — useful when two memories belong together (a user's tone preference and their format preference, say) but the text doesn't make that connection obvious.
 
 Set the `relations` field on any item in the `memories` array:
 
@@ -246,7 +250,7 @@ client.source.ingest(
 ```
 </CodeGroup>
 
-At recall, linked memories are returned in the `additional_context` field. Set `search_forceful_relations: true` (the default) on the request to include them.
+At recall time, linked memories come back in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true` — you only need to set it if you want to disable forceful-relation expansion.
 
 <Warning>
 **Memory items only.** Forceful relations work within the same store. Pointing a Memory item at a Knowledge source ID (or vice versa) will silently return nothing at recall time.

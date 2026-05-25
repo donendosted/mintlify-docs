@@ -5,64 +5,69 @@ description: "What Knowledge is, how it differs from Memories, and how to ingest
 
 ## 1. What it is
 
-Knowledge is shared, tenant-wide context that all users and agents in a tenant can recall - product documents, internal wikis, policy PDFs, Slack threads, Notion pages, CSVs, emails, and any other source content.
+Knowledge is the shared, tenant-wide context that every user and agent in a tenant can recall — product documents, internal wikis, policy PDFs, Slack threads, Notion pages, CSVs, emails, and anything else that ought to be reusable across the workspace.
 
-Knowledge is the counterpart to [Memories](/essentials/v2/memories). Both are retrievable through the same `POST /search` endpoint, but they live in separate stores and you pick which to search via the `source` parameter:
+Knowledge is the counterpart to [Memories](/essentials/v2/memories), which holds per-user context. Both are retrievable through the same [`POST /search`](/api-reference/v2/endpoint/search) endpoint, but they live in separate stores; you pick which one to search via the `source` parameter (see [Recall](/essentials/v2/recall)).
 
 | | Knowledge | Memories |
 |---|---|---|
 | **Content** | Documents, files, app-generated content | User preferences, conversations, inferred traits |
 | **Scope** | Shared across all users in a tenant | Per-user, scoped by `sub_tenant_id` |
-| **Mutability** | Versioned  -  replaced or deleted explicitly | Dynamic  -  evolves with every interaction |
-| **Search via** | `POST /search` with `source: "sources"` | `POST /search` with `source: "memories"` |
+| **Mutability** | Versioned — replaced or deleted explicitly | Dynamic — evolves with every interaction |
+| **Search via** | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "sources"` | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "memories"` |
 | **`vectorstore_status`** | Index `1` | Index `0` |
 
 <Info>
-  **One endpoint, two stores.** Knowledge and memories are stored separately, but `POST /search` can hit both in one call via `source: "all"`  -  results are merged and re-ranked together. Use `source: "sources"` for shared-doc RAG, `source: "memories"` for per-user context, `source: "all"` for personalized answers grounded in both. See [Recall](/essentials/v2/recall).
+  **One endpoint, two stores.** Knowledge and memories are stored separately, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"` — results are merged and re-ranked together. Pick `source: "sources"` for shared-doc RAG, `source: "memories"` for per-user context, or `source: "all"` for personalized answers grounded in both. See [Recall](/essentials/v2/recall) for the full picture.
 </Info>
 
 ---
 
 ## 2. What it does
 
-When you upload Knowledge, HydraDB:
+When you call [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) with `type=knowledge`, HydraDB walks each source through a pipeline:
 
-1. Parses the source (PDF, DOCX, Markdown, CSV, plain text, or app-source JSON).
-2. Chunks the content into semantically coherent segments.
-3. Runs entity and relationship extraction - building graph nodes and edges.
-4. Embeds chunks into the dense and sparse vector stores.
-5. Makes the content searchable through [`POST /search`](/api-reference/v2/endpoint/search-overview).
+1. **Parses** the input — PDF, DOCX, Markdown, CSV, plain text, or app-source JSON.
+2. **Chunks** the content into semantically coherent segments.
+3. **Extracts entities and relationships**, building graph nodes and edges (see [Context Graphs](/essentials/v2/context-graphs)).
+4. **Embeds** every chunk into the dense and sparse vector stores.
+5. **Indexes** the result so it becomes searchable via [`POST /search`](/api-reference/v2/endpoint/search).
 
-This pipeline runs **asynchronously**. Content is not searchable until `indexing_status` is `completed`. Poll [`GET /source/status`](/api-reference/v2/endpoint/sources-overview) with the returned `source_id`.
+The pipeline runs **asynchronously**. The ingest call returns `202 Accepted` with `source_id`s; the content isn't recallable until `indexing_status` reaches at least `graph_creation`. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) to track progress — see the full status table at [Source Status](/api-reference/v2/endpoint/source-status).
 
 ---
 
 ## 3. When to use it
 
-Use Knowledge ingestion when the content is:
+Reach for Knowledge ingestion when the content is:
 
-- Shared across all users in your tenant (product docs, policy PDFs, runbooks, wikis)
-- Static or infrequently updated (versioned by replacing the source)
-- Document-structured rather than conversational (files, threads, pages)
+- **Shared across all users** in your tenant — product docs, policy PDFs, runbooks, wikis, internal tooling.
+- **Static or infrequently updated** — versioned by replacing the source rather than appending.
+- **Document-structured** rather than conversational — files, threads, pages, articles.
 
-Use [Memories](/essentials/v2/memories) instead for:
+Reach for [Memories](/essentials/v2/memories) instead when the content is:
 
-- User preferences and behavioral signals
-- Per-user conversation history
-- Content that should personalize a single user's experience
+- User preferences or behavioral signals tied to one person.
+- Per-user conversation history that should shape future answers for that user.
+- Anything that should personalize a single user's experience.
 
-| If the content is... | Store it as... |
+| If the content is… | Store it as… |
 |---|---|
 | Shared across all users | Knowledge |
-| Specific to one user or session | Memory |
+| Specific to one user or session | [Memory](/essentials/v2/memories) |
+
+When in doubt, ask "would a different user benefit from seeing this?" — if yes, Knowledge; if no, Memory.
 
 ---
 
 ## 4. Two ingestion paths
 
-The `POST /source/ingest` endpoint (`type=knowledge`) accepts two content formats in one request. Send either or both.
+[`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) with `type=knowledge` accepts two content formats in the same request — you can send either, or both at once. Pick the path that matches what you have on hand:
 
-### Path A - Files
+- **Path A** when you have **binary files** HydraDB should parse for you.
+- **Path B** when you have **pre-extracted text** from an app or connector and want to skip parsing.
+
+### Path A — Files
 
 Binary files HydraDB should parse and chunk: PDF, DOCX, Markdown, CSV, TXT.
 
@@ -113,9 +118,9 @@ with open("/path/to/policy.pdf", "rb") as f1, open("/path/to/runbook.pdf", "rb")
 ```
 </CodeGroup>
 
-### Path B - App sources
+### Path B — App sources
 
-Pre-parsed text from connected apps. You supply the text, metadata, and an optional URL.
+Pre-parsed text from connected apps. You supply the text, [metadata](/essentials/v2/metadata), and an optional URL. Use this when your application already extracts content (Slack messages, Notion pages, Gmail threads, webpages) and you want HydraDB to skip the parsing step.
 
 <CodeGroup>
 ```bash cURL
@@ -209,7 +214,7 @@ All v2 endpoints return this envelope shape. Access the payload via `response.da
 
 ## 5. Verifying processing
 
-Poll `GET /source/status` with the `source_id`s you got back from ingestion.
+Ingestion is async, so you need to confirm each source actually finished before it'll show up in [search](/essentials/v2/recall). Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) with the `source_id`s you got back from ingestion:
 
 <CodeGroup>
 ```bash cURL
@@ -249,13 +254,17 @@ status = client.source.status(
 }
 ```
 
-Status values: `queued` → `processing` → `graph_creation` → `completed` (or `errored`).
+Status values move forward through `queued` → `processing` → `graph_creation` → `completed` (or land in `errored` on failure). Poll every few seconds; most documents complete in 1–5 minutes. The full table — including the `success` alias that occasionally appears for `completed` — is on [Source Status](/api-reference/v2/endpoint/source-status).
 
-Poll every few seconds. Most documents complete in 1–5 minutes. Items in `graph_creation` are already retrievable via `/search`; wait for `completed` only when you specifically need full graph traversal.
+<Info>
+**`graph_creation` is already searchable.** Items in this state are retrievable via [`POST /search`](/api-reference/v2/endpoint/search). Wait for `completed` only when you specifically need full graph traversal (`graph_context: true`).
+</Info>
 
 ---
 
 ## 6. Key parameters
+
+The full schema lives on [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content). Below are the fields you'll touch most often, grouped by where they live in the request.
 
 ### File metadata (`file_metadata` array items)
 
@@ -292,9 +301,9 @@ Poll every few seconds. Most documents complete in 1–5 minutes. Items in `grap
 ---
 ## 7 - ForceFul relations
 
-Forceful relations let you explicitly link Knowledge sources to each other at ingestion time. When a query matches a source that has forceful relations declared, HydraDB pulls the linked sources into `additional_context` alongside the primary results.
+Forceful relations let you **declare** links between Knowledge sources at ingestion time. When a query matches a source that has forceful relations attached, HydraDB pulls the linked sources into the `additional_context` field of the search response alongside the primary chunks.
 
-This is separate from the entity and relationship graph HydraDB builds automatically during ingestion. Graph extraction is derived from content; forceful relations are declared by you.
+This is separate from the entity and relationship [context graph](/essentials/v2/context-graphs) HydraDB builds automatically. Graph extraction is *derived* from content; forceful relations are *declared* by you — useful when you know two documents belong together (a contract and its addendum, a runbook and its troubleshooting guide) but the text doesn't make the connection explicit.
 
 Set the `relations` field on any item in `file_metadata` or `app_knowledge`:
 
@@ -354,7 +363,7 @@ client.source.ingest(
 ```
 </CodeGroup>
 
-At recall, linked sources are returned in the `additional_context` field. Set `search_forceful_relations: true` (the default) on the request to include them.
+At recall time, linked sources are returned in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true` — you only need to set it explicitly if you want to disable forceful-relation expansion.
 
 <Warning>
 **Knowledge sources only.** Forceful relations work within the same store. Pointing a Knowledge source at a Memory source ID (or vice versa) will silently return nothing at recall time.
@@ -366,7 +375,7 @@ At recall, linked sources are returned in the `additional_context` field. Set `s
 
 ## 8. Metadata on knowledge
 
-Attach `tenant_metadata` at ingestion to enable deterministic filtering at recall time:
+[Metadata](/essentials/v2/metadata) is how you bridge structured filters and semantic search. Attach `tenant_metadata` at ingestion to enable deterministic narrowing at recall time:
 
 ```json
 {
@@ -383,9 +392,9 @@ Then at recall time:
 }
 ```
 
-`tenant_metadata` keys must be defined in the tenant metadata schema with `enable_match: true` to be filterable. `document_metadata` is stored alongside the source for display and bookkeeping; to filter on it, nest the keys under `document_metadata` in `metadata_filters` (e.g. `{"metadata_filters": {"document_metadata": {"author": "Alice"}}}`).
+`tenant_metadata` keys must be defined in the tenant metadata schema with `enable_match: true` to be filterable — undeclared keys are silently ignored at search time. `document_metadata` is stored alongside the source for display and bookkeeping; to filter on it, nest the keys under `document_metadata` in `metadata_filters` (e.g. `{"metadata_filters": {"document_metadata": {"author": "Alice"}}}`).
 
-See [Essentials → Metadata](/essentials/v2/metadata) for schema design and filtering patterns.
+See [Metadata](/essentials/v2/metadata) for schema design, filter examples, and the `tenant_metadata` vs `document_metadata` decision rule. See [Create Tenant](/api-reference/v2/endpoint/create-tenant) for the schema field configuration (`enable_match`, `enable_dense_embedding`, `enable_sparse_embedding`).
 
 ---
 
@@ -393,18 +402,20 @@ See [Essentials → Metadata](/essentials/v2/metadata) for schema design and fil
 
 | Mistake | What goes wrong | Fix |
 |---|---|---|
-| Searching Knowledge with `source: "memories"` | Nothing returned  -  wrong store | Use `source: "sources"` (or `"all"`) on `POST /search`. |
-| Using `document_metadata` for filterable fields | Filters are silently ignored unless nested correctly | Put filterable keys in `tenant_metadata` and declare them in the tenant schema, or filter under `metadata_filters: {"document_metadata": {...}}`. |
-| Not polling `/source/status` before searching | Chunks aren't indexed yet  -  empty search results | Wait for `indexing_status: completed` (or `graph_creation` for partial availability). |
+| Searching Knowledge with `source: "memories"` | Nothing returned — wrong store | Use `source: "sources"` (or `"all"`) on [`POST /search`](/api-reference/v2/endpoint/search). |
+| Using `document_metadata` for filterable fields | Filters are silently ignored unless nested correctly | Put filterable keys in `tenant_metadata` and declare them in the [tenant schema](/api-reference/v2/endpoint/create-tenant), or filter under `metadata_filters: {"document_metadata": {...}}` — see [Metadata](/essentials/v2/metadata). |
+| Not polling [`/source/status`](/api-reference/v2/endpoint/source-status) before searching | Chunks aren't indexed yet — empty search results | Wait for `indexing_status: completed` (or `graph_creation` for partial availability). |
 | Sending `file_metadata` as a JSON object instead of a JSON string | `multipart/form-data` validation fails | Stringify `file_metadata` before sending in the `-F` field. |
 | Omitting `tenant_id` | `422` validation error | Required on every call. |
+| Pointing forceful relations at memory IDs from a knowledge source | Silently returns nothing at recall | Forceful relations work **within the same store** — knowledge→knowledge, memory→memory. |
 
 ---
 
 ## Related
 
-- [Memories](/essentials/v2/memories) - user-scoped dynamic context
-- [Recall](/essentials/v2/recall)  -  how `POST /search` retrieves Knowledge
-- [Metadata](/essentials/v2/metadata) - designing filterable schemas
-- [Upload Knowledge API Reference](/api-reference/v2/endpoint/sources-overview)
-- [Verify Processing API Reference](/api-reference/v2/endpoint/sources-overview)
+- [Memories](/essentials/v2/memories) — the per-user counterpart to Knowledge
+- [Recall](/essentials/v2/recall) — how [`POST /search`](/api-reference/v2/endpoint/search) retrieves Knowledge
+- [Metadata](/essentials/v2/metadata) — designing filterable schemas
+- [Context Graphs](/essentials/v2/context-graphs) — how the graph layer enriches retrieval
+- [Ingest Content — API Reference](/api-reference/v2/endpoint/ingest-content)
+- [Source Status — API Reference](/api-reference/v2/endpoint/source-status)
