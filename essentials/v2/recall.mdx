@@ -3,15 +3,15 @@ title: "Recall"
 description: "How HydraDB retrieves the right context for each query — Knowledge, Memories, and the context graph, all behind a single /search endpoint."
 ---
 
-Recall turns stored context into the *right* context for a specific query. In v2 the entire retrieval surface collapses into a single endpoint — [`POST /search`](/api-reference/v2/endpoint/search) — that searches [Knowledge](/essentials/v2/knowledge), [Memories](/essentials/v2/memories), or both, with hybrid, text, or vector matching. This page walks through how it works, which knobs matter, and the patterns you'll reach for in production.
+Recall turns stored context into the *right* context for a specific query. In v2 the entire retrieval surface collapses into a single endpoint  -  [`POST /search`](/api-reference/v2/endpoint/search)  -  that searches [Knowledge](/essentials/v2/knowledge), [Memories](/essentials/v2/memories), or both, with hybrid, text, or vector matching. This page walks through how it works, which knobs matter, and the patterns you'll reach for in production.
 
-For the full request and response schema, see [Search — API Reference](/api-reference/v2/endpoint/search-overview).
+For the full request and response schema, see [Search  -  API Reference](/api-reference/v2/endpoint/search-overview).
 
 ---
 
 ## 1. What is recall
 
-Recall returns the chunks most likely to *help your agent succeed* on a query — not just the chunks most textually similar to it. Pure vector search gives you similarity; recall gives you usefulness. Three signals work together to make that happen: semantic similarity, lexical (BM25) matching, and graph traversal across [context graphs](/essentials/v2/context-graphs) HydraDB builds automatically during ingestion.
+Recall returns the chunks most likely to *help your agent succeed* on a query  -  not just the chunks most textually similar to it. Pure vector search gives you similarity; recall gives you usefulness. Three signals work together to make that happen: semantic similarity, lexical (BM25) matching, and graph traversal across [context graphs](/essentials/v2/context-graphs) HydraDB builds automatically during ingestion.
 
 HydraDB stores two kinds of context in separate stores, and you pick which one (or both) to search via the `source` parameter:
 
@@ -20,7 +20,7 @@ HydraDB stores two kinds of context in separate stores, and you pick which one (
 | [**Knowledge**](/essentials/v2/knowledge) | Ingested documents, files, and app sources | `source: "sources"` |
 | [**Memories**](/essentials/v2/memories) | User preferences, conversation history, per-user inferred content | `source: "memories"` |
 
-A single [`POST /search`](/api-reference/v2/endpoint/search) call can hit either store — or both at once via `source: "all"`. When you choose `"all"`, HydraDB runs the two in parallel and returns one merged, re-ranked result set. Set `graph_context: true` and search also pulls in the relevant slice of the context graph alongside the chunks.
+A single [`POST /search`](/api-reference/v2/endpoint/search) call can hit either store  -  or both at once via `source: "all"`. When you choose `"all"`, HydraDB runs the two in parallel and returns one merged, re-ranked result set. Set `graph_context: true` and search also pulls in the relevant slice of the context graph alongside the chunks.
 
 ---
 
@@ -33,7 +33,7 @@ Recall is the right tool when you need:
 - **Context-aware retrieval** across multiple sources.
 - **Deterministic filtering** combined with semantic search.
 
-Reach for something else when you need the full document rather than ranked chunks — that's what [`GET /source/fetch`](/api-reference/v2/endpoint/fetch-content) is for. If you just want to browse what's been ingested, use [`POST /source/list`](/api-reference/v2/endpoint/list-documents) instead.
+Reach for something else when you need the full document rather than ranked chunks  -  that's what [`GET /source/fetch`](/api-reference/v2/endpoint/fetch-content) is for. If you just want to browse what's been ingested, use [`POST /source/list`](/api-reference/v2/endpoint/list-documents) instead.
 
 ---
 
@@ -41,7 +41,7 @@ Reach for something else when you need the full document rather than ranked chun
 
 Every call to [`POST /search`](/api-reference/v2/endpoint/search) has two independent dimensions. Think of them as "what to search" and "how to match."
 
-### `source` — what to search
+### `source`  -  what to search
 
 | Value | Searches | Reach for it when |
 |---|---|---|
@@ -49,7 +49,7 @@ Every call to [`POST /search`](/api-reference/v2/endpoint/search) has two indepe
 | `"memories"` | [Memories](/essentials/v2/memories) | Personalization, recalling user preferences |
 | `"all"` | Both, merged and re-ranked | Personalized answers grounded in both shared docs and the user's own memories |
 
-### `search_by` — how to match
+### `search_by`  -  how to match
 
 | Value | Pipeline | Reach for it when |
 |---|---|---|
@@ -72,9 +72,9 @@ For `search_by: "hybrid"` and `"vector"`, you also pick a retrieval `mode` that 
 
 `thinking` expands the query into sub-queries, runs retrieval for each, reranks the combined candidates, and pulls in author-declared related sources (see [`relations` on ingest](/api-reference/v2/endpoint/ingest-content)) into the `additional_context` field. `fast` skips all of that and runs a single pass.
 
-`search_by: "text"` has no `mode` parameter — it always runs deterministic BM25 matching.
+`search_by: "text"` has no `mode` parameter  -  it always runs deterministic BM25 matching.
 
-**Rule of thumb:** if a human will read the result, use `thinking`. If a machine will filter or rerank it downstream — or low latency is the priority — use `fast`.
+**Rule of thumb:** if a human will read the result, use `thinking`. If a machine will filter or rerank it downstream  -  or low latency is the priority  -  use `fast`.
 
 ---
 
@@ -84,7 +84,7 @@ Every parameter on the [`POST /search`](/api-reference/v2/endpoint/search) reque
 
 | Parameter | Type / values | Purpose |
 |---|---|---|
-| `tenant_id` <sup style={{ color: "red" }}>*</sup> | string | Tenant identifier — the top-level scope. |
+| `tenant_id` <sup style={{ color: "red" }}>*</sup> | string | Tenant identifier  -  the top-level scope. |
 | `query` <sup style={{ color: "red" }}>*</sup> | string | Search terms or natural-language question. Cannot be empty. |
 | `sub_tenant_id` | string \| null | Scopes recall to a user, workspace, or partition. Defaults to the tenant's default sub-tenant. See [Multi-Tenant](/essentials/v2/multi-tenant). |
 | `source` | `"sources"` \| `"memories"` \| `"all"` | Which store(s) to search. (default=`"sources"`) |
@@ -102,8 +102,8 @@ Every parameter on the [`POST /search`](/api-reference/v2/endpoint/search) reque
 <Warning>
   <strong>Two defaults that surprise developers</strong>
   <ul>
-    <li><code>graph_context</code> defaults to <code>false</code> — set it to <code>true</code> to receive graph data in the response.</li>
-    <li><code>recency_bias</code> defaults to <code>0</code> — no recency boost is applied unless you set it.</li>
+    <li><code>graph_context</code> defaults to <code>false</code>  -  set it to <code>true</code> to receive graph data in the response.</li>
+    <li><code>recency_bias</code> defaults to <code>0</code>  -  no recency boost is applied unless you set it.</li>
   </ul>
 </Warning>
 
@@ -116,10 +116,10 @@ Every parameter on the [`POST /search`](/api-reference/v2/endpoint/search) reque
 
 Most of the time the defaults are right. When they aren't, here's where to start:
 
-- **`alpha`** — Start at `0.8`. Lower toward `0.3–0.5` when the query contains literal tokens (error codes, SKUs, product names). Raise toward `0.9` for conceptual questions. Use `"auto"` when query shape varies across calls.
-- **`recency_bias`** — Leave at `0` for static reference material. Set `0.2–0.4` for mixed content, `0.6–0.8` for changelogs, news, or status updates.
-- **`max_results`** — Start at `10`. Drop to `5` for tight context windows; raise to `20` if you rerank downstream.
-- **`additional_context`** — Use it when the query alone is ambiguous. Keep it short and factual.
+- **`alpha`**  -  Start at `0.8`. Lower toward `0.3–0.5` when the query contains literal tokens (error codes, SKUs, product names). Raise toward `0.9` for conceptual questions. Use `"auto"` when query shape varies across calls.
+- **`recency_bias`**  -  Leave at `0` for static reference material. Set `0.2–0.4` for mixed content, `0.6–0.8` for changelogs, news, or status updates.
+- **`max_results`**  -  Start at `10`. Drop to `5` for tight context windows; raise to `20` if you rerank downstream.
+- **`additional_context`**  -  Use it when the query alone is ambiguous. Keep it short and factual.
 
 ---
 
@@ -154,7 +154,7 @@ client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 
 </CodeGroup>
 
-### One call — Knowledge and Memories together
+### One call  -  Knowledge and Memories together
 
 <CodeGroup>
 
@@ -205,7 +205,7 @@ result = client.search.query(
 
 ### Merge into the LLM prompt
 
-The response is a single `RetrievalResult` containing `chunks[]`, `sources[]`, and — when applicable — `graph_context` and `additional_context`. Chunks from Knowledge and Memories are already interleaved and ranked by relevance, so no manual merging is required. Pass the result through the helper in [How to Use API Results](/essentials/v2/api-results) to turn it into a context string for your prompt:
+The response is a single `RetrievalResult` containing `chunks[]`, `sources[]`, and  -  when applicable  -  `graph_context` and `additional_context`. Chunks from Knowledge and Memories are already interleaved and ranked by relevance, so no manual merging is required. Pass the result through the helper in [How to Use API Results](/essentials/v2/api-results) to turn it into a context string for your prompt:
 
 ```typescript
 const context = buildContextString(result);
@@ -225,11 +225,11 @@ const completion = await openai.chat.completions.create({
 });
 ```
 
-If you need to keep the two streams separate — for instance to format user preferences differently from documents in the prompt — call [`/search`](/api-reference/v2/endpoint/search) twice in parallel with `source: "sources"` and `source: "memories"`, then merge client-side.
+If you need to keep the two streams separate  -  for instance to format user preferences differently from documents in the prompt  -  call [`/search`](/api-reference/v2/endpoint/search) twice in parallel with `source: "sources"` and `source: "memories"`, then merge client-side.
 
 ### Production checklist
 
-- **Default to `source: "all"`** for personalized answers — one call instead of two.
+- **Default to `source: "all"`** for personalized answers  -  one call instead of two.
 - **Set per-call timeouts.** Generous for `thinking` (3–5s), tight for `fast` (≤500ms).
 - **Pass `additional_context`** with known session state (page, feature, role). It sharpens retrieval without extra calls.
 
@@ -239,12 +239,12 @@ If you need to keep the two streams separate — for instance to format user pre
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Empty `query_paths` / `chunk_relations` | `graph_context` not set, or no relations exist for the result set | Set `graph_context: true`. Empty arrays are normal when there's nothing to return — see [Context Graphs](/essentials/v2/context-graphs). |
-| Recent uploads don't appear in results | Indexing not finished | Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) — chunks are invisible until processing reaches at least `graph_creation`. |
+| Empty `query_paths` / `chunk_relations` | `graph_context` not set, or no relations exist for the result set | Set `graph_context: true`. Empty arrays are normal when there's nothing to return  -  see [Context Graphs](/essentials/v2/context-graphs). |
+| Recent uploads don't appear in results | Indexing not finished | Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status)  -  chunks are invisible until processing reaches at least `graph_creation`. |
 | `metadata_filters` doesn't narrow results | Filter key is undeclared, not match-enabled, or nested wrong | Declare filterable keys in [`tenant_metadata_schema`](/essentials/v2/metadata) with `enable_match: true` before ingestion. For free-form per-document fields, nest under `document_metadata`. |
 | Memories missing from a `source: "sources"` search | Wrong store selected | Use `source: "memories"` or `source: "all"`. |
 | Recency doesn't seem to matter | `recency_bias` defaults to `0` | Set it explicitly between `0.1` and `1.0`. |
-| `operator: "phrase"` ignored | `search_by` not set to `"text"` | `operator` only applies to BM25 text search — switch `search_by` to `"text"`. |
+| `operator: "phrase"` ignored | `search_by` not set to `"text"` | `operator` only applies to BM25 text search  -  switch `search_by` to `"text"`. |
 | `search_forceful_relations` ignored | Request uses `mode: "fast"` | Forceful-relation context is fetched only in `mode: "thinking"`. |
 
 ---
@@ -253,7 +253,7 @@ If you need to keep the two streams separate — for instance to format user pre
 
 **Hybrid + text in two parallel calls.** When a query mixes a literal token (error code, SKU, function name) with natural-language intent, run `search_by: "hybrid"` and `search_by: "text"` in parallel, dedupe by chunk ID, and treat text hits as a "must include" floor.
 
-**Recall-then-rerank.** Ask for more chunks than you actually need (`max_results: 20`) and apply your own reranker — recency windows, compliance filters, business rules — before picking the final top-k for the prompt.
+**Recall-then-rerank.** Ask for more chunks than you actually need (`max_results: 20`) and apply your own reranker  -  recency windows, compliance filters, business rules  -  before picking the final top-k for the prompt.
 
 **Cache the prompt context.** If the same query repeats inside a session, cache the `RetrievalResult` keyed by `(tenant_id, sub_tenant_id, query, source, search_by)`. Recall is fast, but skipping it entirely is faster.
 
@@ -261,9 +261,9 @@ If you need to keep the two streams separate — for instance to format user pre
 
 ## Related
 
-- [Knowledge](/essentials/v2/knowledge) — shared document context
-- [Memories](/essentials/v2/memories) — user-scoped dynamic context
-- [Metadata](/essentials/v2/metadata) — designing filterable fields
-- [Context Graphs](/essentials/v2/context-graphs) — how graph traversal enriches recall
-- [How to Use API Results](/essentials/v2/api-results) — turning `RetrievalResult` into an LLM prompt
-- [Search — API Reference](/api-reference/v2/endpoint/search) — full parameter and response schema
+- [Knowledge](/essentials/v2/knowledge)  -  shared document context
+- [Memories](/essentials/v2/memories)  -  user-scoped dynamic context
+- [Metadata](/essentials/v2/metadata)  -  designing filterable fields
+- [Context Graphs](/essentials/v2/context-graphs)  -  how graph traversal enriches recall
+- [How to Use API Results](/essentials/v2/api-results)  -  turning `RetrievalResult` into an LLM prompt
+- [Search  -  API Reference](/api-reference/v2/endpoint/search)  -  full parameter and response schema

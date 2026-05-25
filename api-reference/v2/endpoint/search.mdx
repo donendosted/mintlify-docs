@@ -11,7 +11,7 @@ The single retrieval endpoint for everything. Use it any time you need to feed a
 Two independent dimensions control behavior:
 
 - **`source`** picks **what** to search: `"sources"` (knowledge), `"memories"` (user-scoped), or `"all"` (both, merged and re-ranked together).
-- **`search_by`** picks **how** to match: `"hybrid"` (semantic + BM25, the default), `"text"` (BM25 only — pair with `operator`), or `"vector"` (pure dense vectors).
+- **`search_by`** picks **how** to match: `"hybrid"` (semantic + BM25, the default), `"text"` (BM25 only  -  pair with `operator`), or `"vector"` (pure dense vectors).
 
 Use `mode: "thinking"` for higher-quality multi-query retrieval; `"fast"` for low-latency single-pass. Turn on `graph_context: true` to surface entity/relation paths alongside chunks. Tune `alpha`, `recency_bias`, and `metadata_filters` to shape ranking and narrow the candidate set.
 
@@ -62,7 +62,7 @@ result = client.search.query(
 ```
 </CodeGroup>
 
-### Personalized Q&A — Knowledge + Memories in one call
+### Personalized Q&A  -  Knowledge + Memories in one call
 
 <CodeGroup>
 ```bash cURL
@@ -135,7 +135,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 | `alpha` | float `0.0`–`1.0` \| `"auto"` | Hybrid weight (`1.0` = pure semantic, `0.0` = pure BM25). Applies to `search_by: "hybrid"` only. (default=`0.8`) |
 | `recency_bias` | float `0.0`–`1.0` | Boost newer content. (default=`0.0`) |
 | `graph_context` | boolean | When `true`, includes the entity/relation graph slice in the response under `graph_context`. (default=`false`) |
-| `search_forceful_relations` | boolean | Pull author-declared related sources into `additional_context`. **Only takes effect when `mode: "thinking"`** — silently ignored in `fast` mode. (default=`true`) |
+| `search_forceful_relations` | boolean | Pull author-declared related sources into `additional_context`. **Only takes effect when `mode: "thinking"`**  -  silently ignored in `fast` mode. (default=`true`) |
 | `additional_context` | string \| null | Free-form hint to guide retrieval (e.g., "user is on the billing page"). (default=`null`) |
 | `metadata_filters` | object \| null | Deterministic narrowing before ranking. See [Filters](#filters). (default=`null`) |
 
@@ -221,7 +221,7 @@ For `search_by: "hybrid"` and `"vector"`:
 | Field | Description |
 |---|---|
 | `chunks[]` | Array of ranked chunks. Preserve server order in your prompt. |
-| `chunks[].chunk_uuid` | Stable chunk identifier (string) — use to dedupe across calls. |
+| `chunks[].chunk_uuid` | Stable chunk identifier (string)  -  use to dedupe across calls. |
 | `chunks[].source_id` | The source this chunk belongs to (string). |
 | `chunks[].source_title` | Display title of the source (string). |
 | `chunks[].chunk_content` | The actual text snippet (string). |
@@ -248,11 +248,11 @@ For formatting `RetrievalResult` into an LLM prompt, see [How to Use API Results
 </Info>
 
 <Info>
-**`recency_bias` is off by default.** Defaults to `0.0` — no recency boost is applied unless you set it.
+**`recency_bias` is off by default.** Defaults to `0.0`  -  no recency boost is applied unless you set it.
 </Info>
 
 <Warning>
-**`search_forceful_relations` requires `mode: "thinking"`.** In `fast` mode the flag is silently ignored. The server does not error or warn — your `additional_context` will simply be empty.
+**`search_forceful_relations` requires `mode: "thinking"`.** In `fast` mode the flag is silently ignored. The server does not error or warn  -  your `additional_context` will simply be empty.
 </Warning>
 
 <Warning>
@@ -270,9 +270,9 @@ For formatting `RetrievalResult` into an LLM prompt, see [How to Use API Results
 
 ## Related endpoints
 
-- **Setup first:** [Ingest Content](/api-reference/v2/endpoint/ingest-content) — content must be indexed
-- **Confirm indexing:** [Source Status](/api-reference/v2/endpoint/source-status) — wait for `completed` (or `graph_creation`)
-- **Graph follow-up:** [Source Relations](/api-reference/v2/endpoint/source-relations) — inspect relationships in detail
+- **Setup first:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)  -  content must be indexed
+- **Confirm indexing:** [Source Status](/api-reference/v2/endpoint/source-status)  -  wait for `completed` (or `graph_creation`)
+- **Graph follow-up:** [Source Relations](/api-reference/v2/endpoint/source-relations)  -  inspect relationships in detail
 - **Concepts:** [Essentials → Recall](/essentials/v2/recall) · [Essentials → Semantic Search](/essentials/v2/semantic-search) · [Essentials → Context Graphs](/essentials/v2/context-graphs)
 - **Response handling:** [Essentials → How to Use API Results](/essentials/v2/api-results)
 
@@ -280,4 +280,4 @@ For formatting `RetrievalResult` into an LLM prompt, see [How to Use API Results
 
 Common codes: `400 INVALID_PARAMETERS` (empty `query`), `404 TENANT_NOT_FOUND`, `422 VALIDATION_ERROR`, `500 INTERNAL_ERROR`. See [Error Responses](/api-reference/error-responses) for the full list.
 
-Read more: [Search — Overview](/api-reference/v2/endpoint/search-overview)
+Read more: [Search  -  Overview](/api-reference/v2/endpoint/search-overview)

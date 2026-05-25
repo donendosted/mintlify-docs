@@ -8,10 +8,10 @@ openapi: "GET /source/relations"
 
 Inspect the entity-and-relationship graph HydraDB built during ingestion. Common uses:
 
-- **Graph visualizations** — render a knowledge graph for a specific document or for the whole sub-tenant.
-- **Debug graph context** — see why a `mode: "thinking"` search returned a specific entity in `additional_context`.
-- **Downstream reasoning** — extract a relationship slice (e.g., "all `DEPENDS_ON` edges out of service X") and feed it to a planner or an LLM.
-- **Audit** — confirm that key entities were extracted from your ingested content.
+- **Graph visualizations**  -  render a knowledge graph for a specific document or for the whole sub-tenant.
+- **Debug graph context**  -  see why a `mode: "thinking"` search returned a specific entity in `additional_context`.
+- **Downstream reasoning**  -  extract a relationship slice (e.g., "all `DEPENDS_ON` edges out of service X") and feed it to a planner or an LLM.
+- **Audit**  -  confirm that key entities were extracted from your ingested content.
 
 Pass `source_id` to scope to a single ingested item, or omit it to return all relations in the sub-tenant. Set `is_memory=true` to inspect a memory's relations instead of a knowledge source's. Cursor-based pagination handles large result sets.
 
@@ -92,11 +92,11 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 | Field | Description |
 |---|---|
-| `relations[]` | Array — each entry is a `ScoredPathResponse` containing `triplets`, `relevancy_score`, and `group_id`. |
-| `relations[].triplets` | Array — source → relation → target hops. |
+| `relations[]` | Array  -  each entry is a `ScoredPathResponse` containing `triplets`, `relevancy_score`, and `group_id`. |
+| `relations[].triplets` | Array  -  source → relation → target hops. |
 | `relations[].triplets[].source` / `.target` | Entity object: `{ name, type, namespace, entity_id, identifier }`. |
 | `relations[].triplets[].relation` | Relation object: `{ canonical_predicate, raw_predicate, context, confidence, temporal_details, ... }`. |
-| `is_truncated` | Boolean — `true` when more results exist beyond `limit`. |
+| `is_truncated` | Boolean  -  `true` when more results exist beyond `limit`. |
 | `next_cursor` | Opaque pagination cursor (number, or `null`). Pass to the next call's `cursor`. `null` when there are no more results. |
 
 ## Pagination pattern
@@ -121,7 +121,7 @@ while True:
 ## Behavior notes
 
 <Info>
-**Cursor opacity.** `next_cursor` is opaque (currently a numeric score). Don't construct it client-side or assume meaning — pass back exactly what the server returned.
+**Cursor opacity.** `next_cursor` is opaque (currently a numeric score). Don't construct it client-side or assume meaning  -  pass back exactly what the server returned.
 </Info>
 
 <Info>
@@ -138,7 +138,7 @@ while True:
 
 ## Related endpoints
 
-- **Indexing status:** [Source Status](/api-reference/v2/endpoint/source-status) — confirm the graph is complete
+- **Indexing status:** [Source Status](/api-reference/v2/endpoint/source-status)  -  confirm the graph is complete
 - **Search with graph context:** [Search](/api-reference/v2/endpoint/search) with `graph_context: true`
 - **Concepts:** [Essentials → Context Graphs](/essentials/v2/context-graphs)
 

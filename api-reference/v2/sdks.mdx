@@ -3,7 +3,7 @@ title: "SDKs – Node and Python (v2)"
 description: "Official TypeScript/Node.js and Python SDKs for the HydraDB v2 API."
 ---
 
-The v2 SDKs wrap every endpoint in [API Reference v2](/api-reference/v2) with typed methods and IDE autocomplete. They automatically set the `API-Version: 2` header on every request — you do not need to send it manually.
+The v2 SDKs wrap every endpoint in [API Reference v2](/api-reference/v2) with typed methods and IDE autocomplete. They automatically set the `API-Version: 2` header on every request  -  you do not need to send it manually.
 
 ## Installation
 
@@ -43,7 +43,7 @@ async_client = AsyncHydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 </CodeGroup>
 
 <Info>
-**Python:** Both synchronous (`HydraDB`) and asynchronous (`AsyncHydraDB`) clients are available. They share an identical surface — choose based on your application's concurrency model.
+**Python:** Both synchronous (`HydraDB`) and asynchronous (`AsyncHydraDB`) clients are available. They share an identical surface  -  choose based on your application's concurrency model.
 </Info>
 
 ## Versioning
@@ -58,7 +58,7 @@ The REST API uses **snake_case** for all request and response fields. The SDKs a
 
 | | Method naming | Parameter field naming | Example |
 |---|---|---|---|
-| **Raw HTTP / cURL** | — | snake_case | `tenant_id`, `sub_tenant_id` |
+| **Raw HTTP / cURL** |  -  | snake_case | `tenant_id`, `sub_tenant_id` |
 | **TypeScript SDK** | camelCase | snake_case | method: `query()`, params: `tenant_id`, `search_by` |
 | **Python SDK** | snake_case | snake_case | method: `query()`, params: `tenant_id`, `search_by` |
 
@@ -66,11 +66,11 @@ The REST API uses **snake_case** for all request and response fields. The SDKs a
 **TypeScript SDK uses snake_case for all parameter field names.** Only method names are camelCase (e.g., `client.source.list({tenant_id: "...", page_size: 50})`). This applies to every request object passed to an SDK method.
 </Info>
 
-The TypeScript SDK transparently maps any camelCase parameters you write to snake_case on the wire. Your IDE's autocomplete and type checking work directly off the API contract — if a field is optional in the API, it's optional in the SDK.
+The TypeScript SDK transparently maps any camelCase parameters you write to snake_case on the wire. Your IDE's autocomplete and type checking work directly off the API contract  -  if a field is optional in the API, it's optional in the SDK.
 
 ## SDK method structure
 
-v2 SDK methods are grouped under three top-level namespaces — one per `/api-reference/v2` group:
+v2 SDK methods are grouped under three top-level namespaces  -  one per `/api-reference/v2` group:
 
 | URL prefix | SDK group | Purpose |
 |---|---|---|
@@ -78,13 +78,13 @@ v2 SDK methods are grouped under three top-level namespaces — one per `/api-re
 | `/search` | `client.search` | Unified retrieval over knowledge, memories, or both |
 | `/tenants/*` and `/tenants` | `client.tenants` | Create, list, delete, status, sub-tenants, stats |
 
-Compared to v1, the v2 surface is intentionally smaller — three groups instead of seven, one search endpoint instead of three, one ingestion endpoint instead of two.
+Compared to v1, the v2 surface is intentionally smaller  -  three groups instead of seven, one search endpoint instead of three, one ingestion endpoint instead of two.
 
 ## Method reference
 
 ### Sources
 
-`client.source.*` covers every flow around content lifecycle — file uploads, app sources, memories, polling, fetching, listing, deletion, and graph inspection.
+`client.source.*` covers every flow around content lifecycle  -  file uploads, app sources, memories, polling, fetching, listing, deletion, and graph inspection.
 
 | Method | Endpoint |
 |---|---|
@@ -318,7 +318,7 @@ Wait until each `indexing_status` is `completed` (or `graph_creation` if you don
 
 ### Search
 
-A single method covers every retrieval pattern — switch `source` and `search_by` to control behavior:
+A single method covers every retrieval pattern  -  switch `source` and `search_by` to control behavior:
 
 <CodeGroup>
 ```typescript TypeScript SDK
@@ -484,10 +484,10 @@ Both SDKs are fully typed:
 
 The SDKs provide exact type parity with the API specification:
 
-- **Request parameters** — every field documented in the API reference is reflected in method signatures
-- **Response objects** — return types match the JSON schema for each endpoint
-- **Error types** — exception structures mirror error response formats
-- **Nested objects** — complex parameters and responses keep their full structure
+- **Request parameters**  -  every field documented in the API reference is reflected in method signatures
+- **Response objects**  -  return types match the JSON schema for each endpoint
+- **Error types**  -  exception structures mirror error response formats
+- **Nested objects**  -  complex parameters and responses keep their full structure
 
 ## Error handling
 
@@ -557,8 +557,8 @@ This works because the SDKs are fully typed with comprehensive parameter docs so
 
 ## Related sections
 
-- [API Reference v2](/api-reference/v2) — complete endpoint documentation
-- [Error Responses](/api-reference/error-responses) — HTTP codes, error codes, retry patterns
-- [Quickstart](/quickstart) — build your first integration in five minutes
-- [Recall](/essentials/v2/recall) — conceptual overview of `POST /search`
-- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) — ingestion deep-dives
+- [API Reference v2](/api-reference/v2)  -  complete endpoint documentation
+- [Error Responses](/api-reference/error-responses)  -  HTTP codes, error codes, retry patterns
+- [Quickstart](/quickstart)  -  build your first integration in five minutes
+- [Recall](/essentials/v2/recall)  -  conceptual overview of `POST /search`
+- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories)  -  ingestion deep-dives

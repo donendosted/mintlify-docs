@@ -8,9 +8,9 @@ openapi: "GET /tenants/stats"
 
 Inspect storage growth, object counts, and vector dimensions for a tenant. Common use cases:
 
-- **Billing dashboards** — track row counts across the Knowledge and Memories collections.
-- **Capacity planning** — see how many vectors are in use and at what dimension.
-- **Post-ingest sanity check** — confirm that ingestion actually wrote rows to the expected collection.
+- **Billing dashboards**  -  track row counts across the Knowledge and Memories collections.
+- **Capacity planning**  -  see how many vectors are in use and at what dimension.
+- **Post-ingest sanity check**  -  confirm that ingestion actually wrote rows to the expected collection.
 
 The response splits stats into two collections: `normal_collection` (Knowledge) and `memory_collection` (Memories), each with its own row count and embedding dimensionality.
 
@@ -74,7 +74,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 | Field | Type | Description |
 |---|---|---|
-| `row_count` | integer | Number of indexed chunks in the collection. **Chunks, not sources** — one document typically becomes many chunks. |
+| `row_count` | integer | Number of indexed chunks in the collection. **Chunks, not sources**  -  one document typically becomes many chunks. |
 | `dimensions` | integer | Embedding dimensionality of the collection. |
 
 ## Behavior notes

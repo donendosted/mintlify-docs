@@ -6,18 +6,18 @@ openapi: "DELETE /source"
 
 ## When to use it
 
-Remove indexed content — for data-retention policies, deleting a specific user's memories on request, pruning stale documents, or cleaning up after a botched ingest. Pick the bucket with `type`:
+Remove indexed content  -  for data-retention policies, deleting a specific user's memories on request, pruning stale documents, or cleaning up after a botched ingest. Pick the bucket with `type`:
 
-- `type=knowledge` *(default)* — delete knowledge sources.
-- `type=memory` — delete memories.
+- `type=knowledge` *(default)*  -  delete knowledge sources.
+- `type=memory`  -  delete memories.
 
 Pass one or more IDs in `request.ids`. The body wraps two fields together: `request` (the actual delete payload) and `type` (the bucket).
 
 ## Endpoint
 
 - **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Deleting an already-deleted ID is a no-op for that ID — the rest of the batch still proceeds. `success` reflects whether *any* ID was removed.
-- **Async:** Background workers may continue removing vector entries briefly after the response — but the source is immediately excluded from search.
+- **Idempotency:** Deleting an already-deleted ID is a no-op for that ID  -  the rest of the batch still proceeds. `success` reflects whether *any* ID was removed.
+- **Async:** Background workers may continue removing vector entries briefly after the response  -  but the source is immediately excluded from search.
 
 ## Example
 
@@ -122,17 +122,17 @@ The body wraps two fields together. Parameters marked with <sup style={{ color: 
 </Info>
 
 <Info>
-**Mixed deletes need two calls.** To delete both knowledge and memory items, send two requests — one with `type=knowledge`, one with `type=memory`. A single call cannot mix the two buckets.
+**Mixed deletes need two calls.** To delete both knowledge and memory items, send two requests  -  one with `type=knowledge`, one with `type=memory`. A single call cannot mix the two buckets.
 </Info>
 
 ## Related endpoints
 
 - **Find IDs:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Search](/api-reference/v2/endpoint/search)
 - **Re-add content:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)
-- **Bigger hammer:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant) — removes the entire workspace
+- **Bigger hammer:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)  -  removes the entire workspace
 
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 SOURCE_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/error-responses) for the full list.
 
-Read more: [Sources — Overview](/api-reference/v2/endpoint/sources-overview)
+Read more: [Sources  -  Overview](/api-reference/v2/endpoint/sources-overview)

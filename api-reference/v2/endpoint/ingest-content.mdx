@@ -8,21 +8,21 @@ openapi: "POST /source/ingest"
 
 The single ingestion endpoint for everything that flows into HydraDB. Pick `type` to choose the bucket, then pass the matching content fields:
 
-- **`type=knowledge`** — shared content. Use `files` for binary uploads HydraDB should parse (PDF, DOCX, CSV, MD, TXT), or `app_knowledge` for pre-extracted JSON content (Slack threads, Notion pages, web pages). Both can be sent in a single request.
-- **`type=memory`** — per-user content. Scope with `sub_tenant_id`. Use `infer: true` to let HydraDB extract preferences from raw signal automatically; `infer: false` stores the text verbatim.
+- **`type=knowledge`**  -  shared content. Use `files` for binary uploads HydraDB should parse (PDF, DOCX, CSV, MD, TXT), or `app_knowledge` for pre-extracted JSON content (Slack threads, Notion pages, web pages). Both can be sent in a single request.
+- **`type=memory`**  -  per-user content. Scope with `sub_tenant_id`. Use `infer: true` to let HydraDB extract preferences from raw signal automatically; `infer: false` stores the text verbatim.
 
 Sends `multipart/form-data`. Nested JSON fields (`file_metadata`, `app_knowledge`, `memories`) must be sent as **JSON-stringified** form values.
 
 ## Endpoint
 
 - **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Controlled by `upsert` — `true` (default) replaces an existing source with the same ID; `false` errors on conflict.
-- **Async:** Yes — returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `completed`.
+- **Idempotency:** Controlled by `upsert`  -  `true` (default) replaces an existing source with the same ID; `false` errors on conflict.
+- **Async:** Yes  -  returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `completed`.
 - **Content-Type:** `multipart/form-data` (not JSON).
 
 ## Examples
 
-### Knowledge — files
+### Knowledge  -  files
 
 <CodeGroup>
 ```bash cURL
@@ -71,7 +71,7 @@ with open("/path/to/policy.pdf", "rb") as f1, open("/path/to/runbook.pdf", "rb")
 ```
 </CodeGroup>
 
-### Knowledge — pre-extracted app sources
+### Knowledge  -  pre-extracted app sources
 
 <CodeGroup>
 ```bash cURL
@@ -124,7 +124,7 @@ client.source.ingest(
 ```
 </CodeGroup>
 
-### Memory — per-user
+### Memory  -  per-user
 
 <CodeGroup>
 ```bash cURL
@@ -170,7 +170,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 |---|---|---|
 | `type` | `"knowledge" \| "memory"` | Bucket selector. (default=`"knowledge"`) |
 | `tenant_id`<sup style={{ color: "red" }}>*</sup> | string | Target tenant. |
-| `sub_tenant_id` | string | Logical partition inside the tenant. (default=`""` — default sub-tenant) |
+| `sub_tenant_id` | string | Logical partition inside the tenant. (default=`""`  -  default sub-tenant) |
 | `upsert` | boolean | Replace existing sources with the same ID. Set to `false` to error on conflict. (default=`true`) |
 | `files` | file[] | Binary uploads, **knowledge only**. Required when `type=knowledge` and you have files to upload. Omit when ingesting memories. (default=`[]`) |
 | `file_metadata` | string (JSON array) | One entry per file in `files`, same order. See [`file_metadata` item shape](#file_metadata-item-shape). |
@@ -240,7 +240,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 | Field | Description |
 |---|---|
-| `success` | Overall ingest acceptance — `true` if at least one item was queued. |
+| `success` | Overall ingest acceptance  -  `true` if at least one item was queued. |
 | `results[]` | One entry per queued item with its `source_id` and initial `status` of `queued`. |
 | `results[].source_id` | Use this for status polling, fetch, list, delete, and graph relations. |
 | `results[].error` | Non-null only if HydraDB rejected the item before queueing (e.g., schema validation). |
@@ -266,8 +266,8 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 ## Related endpoints
 
-- **Next:** [Source Status](/api-reference/v2/endpoint/source-status) — poll until `completed`
-- **Then:** [Search](/api-reference/v2/endpoint/search) — retrieve indexed content
+- **Next:** [Source Status](/api-reference/v2/endpoint/source-status)  -  poll until `completed`
+- **Then:** [Search](/api-reference/v2/endpoint/search)  -  retrieve indexed content
 - **Inspect:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Fetch Content](/api-reference/v2/endpoint/fetch-content)
 - **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
 
@@ -275,4 +275,4 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 Common codes: `400 INVALID_PARAMETERS`, `404 TENANT_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/error-responses) for the full list.
 
-Read more: [Essentials → Knowledge](/essentials/v2/knowledge) · [Essentials → Memories](/essentials/v2/memories) · [Sources — Overview](/api-reference/v2/endpoint/sources-overview)
+Read more: [Essentials → Knowledge](/essentials/v2/knowledge) · [Essentials → Memories](/essentials/v2/memories) · [Sources  -  Overview](/api-reference/v2/endpoint/sources-overview)

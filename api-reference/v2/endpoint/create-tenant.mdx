@@ -131,7 +131,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 `BOOL`, `INT8`, `INT16`, `INT32`, `INT64`, `FLOAT`, `DOUBLE`, `VARCHAR`, `JSON`, `ARRAY`, `FLOAT_VECTOR`, `SPARSE_FLOAT_VECTOR`.
 
-You can also pass the friendly names `"string"`, `"integer"`, `"float"`, `"boolean"`, `"array"`, `"object"` — they are coerced server-side.
+You can also pass the friendly names `"string"`, `"integer"`, `"float"`, `"boolean"`, `"array"`, `"object"`  -  they are coerced server-side.
 
 For text fields that should be semantically searchable, use `VARCHAR` with `enable_dense_embedding: true`. For keyword (BM25) searchability, add `enable_sparse_embedding: true`. For fields filterable via `metadata_filters`, use `enable_match: true`. These flags are independent and can be combined.
 
@@ -171,7 +171,7 @@ Schema field names are **immutable** after tenant creation. You can add per-docu
 
 ### Schema examples
 
-Each example below shows only the schema entries — wrap them in a full `POST /tenants` request like the [Example](#example) above.
+Each example below shows only the schema entries  -  wrap them in a full `POST /tenants` request like the [Example](#example) above.
 
 #### Single exact-match filter field
 
@@ -230,11 +230,11 @@ Applications commonly define several stable fields they expect to filter on via 
 }
 ```
 
-When multiple keys are passed in `metadata_filters`, they combine as structured exact-match constraints — a chunk must satisfy every key to remain a candidate.
+When multiple keys are passed in `metadata_filters`, they combine as structured exact-match constraints  -  a chunk must satisfy every key to remain a candidate.
 
 #### Long `VARCHAR` field
 
-`VARCHAR` defaults to a `max_length` of 1024 characters. For longer structured string values — compound identifiers, full label strings, or composite tags — set `max_length` explicitly.
+`VARCHAR` defaults to a `max_length` of 1024 characters. For longer structured string values  -  compound identifiers, full label strings, or composite tags  -  set `max_length` explicitly.
 
 ```json
 {
@@ -247,7 +247,7 @@ When multiple keys are passed in `metadata_filters`, they combine as structured 
 
 #### `enable_match` vs no flag
 
-Only fields declared with `enable_match: true` are usable in `metadata_filters` for deterministic filtering. A field without `enable_match: true` is stored in the schema but cannot be filtered on — `metadata_filters` keys for those fields are silently ignored.
+Only fields declared with `enable_match: true` are usable in `metadata_filters` for deterministic filtering. A field without `enable_match: true` is stored in the schema but cannot be filtered on  -  `metadata_filters` keys for those fields are silently ignored.
 
 ```json
 {
@@ -271,7 +271,7 @@ Only fields declared with `enable_match: true` are usable in `metadata_filters` 
 
 #### Searchable text fields (`enable_dense_embedding` + `enable_sparse_embedding`)
 
-Use `enable_dense_embedding` to make a `VARCHAR` field semantically searchable (dense vector) and `enable_sparse_embedding` to make it keyword-searchable (BM25). Pick these when the field itself is a body of text that should be retrieved alongside the document — for example, a `product_description` that should be matched during search.
+Use `enable_dense_embedding` to make a `VARCHAR` field semantically searchable (dense vector) and `enable_sparse_embedding` to make it keyword-searchable (BM25). Pick these when the field itself is a body of text that should be retrieved alongside the document  -  for example, a `product_description` that should be matched during search.
 
 ```json
 {
@@ -300,7 +300,7 @@ Equivalently with the shorthand:
 
 #### Embedding-only tenant
 
-For raw vector use cases — bring-your-own-embeddings — flip `is_embeddings_tenant` and set `embeddings_dimension`. No metadata schema is needed.
+For raw vector use cases  -  bring-your-own-embeddings  -  flip `is_embeddings_tenant` and set `embeddings_dimension`. No metadata schema is needed.
 
 ```json
 {
@@ -326,9 +326,9 @@ For raw vector use cases — bring-your-own-embeddings — flip `is_embeddings_t
 
 ## Related endpoints
 
-- **Next:** [Tenant Status](/api-reference/v2/endpoint/tenant-status) — poll until provisioning completes
-- **Next:** [Ingest Content](/api-reference/v2/endpoint/ingest-content) — start ingesting data once status is ready
-- **Related:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant) — teardown
+- **Next:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)  -  poll until provisioning completes
+- **Next:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)  -  start ingesting data once status is ready
+- **Related:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)  -  teardown
 
 ## Errors
 

@@ -3,7 +3,7 @@ title: "Architecture"
 description: "How HydraDB moves content from ingestion to indexed recall, and where tenants, metadata, graph context, and retrieval fit together."
 ---
 
-HydraDB is context infrastructure for AI applications. From the outside, you call a small set of HTTP APIs. Inside, HydraDB orchestrates tenant isolation, asynchronous ingestion, indexing, graph construction, and hybrid retrieval — so your application can store context once and recall the right pieces later. This page walks through what happens behind the scenes, and points at the endpoints and concepts you'll touch along the way.
+HydraDB is context infrastructure for AI applications. From the outside, you call a small set of HTTP APIs. Inside, HydraDB orchestrates tenant isolation, asynchronous ingestion, indexing, graph construction, and hybrid retrieval  -  so your application can store context once and recall the right pieces later. This page walks through what happens behind the scenes, and points at the endpoints and concepts you'll touch along the way.
 
 ---
 
@@ -85,7 +85,7 @@ flowchart LR
 Two details to notice in the diagram:
 
 - **Two vector stores, one ingest endpoint.** [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) routes to the [Knowledge](/essentials/v2/knowledge) store when `type=knowledge` and to the [Memories](/essentials/v2/memories) store when `type=memory`. Same endpoint, different bucket.
-- **One recall endpoint, every retrieval method.** [`POST /search`](/api-reference/v2/endpoint/search) is the only retrieval entry point. The `source` and `search_by` parameters decide what gets searched and how — see [Recall](/essentials/v2/recall) for the full picture.
+- **One recall endpoint, every retrieval method.** [`POST /search`](/api-reference/v2/endpoint/search) is the only retrieval entry point. The `source` and `search_by` parameters decide what gets searched and how  -  see [Recall](/essentials/v2/recall) for the full picture.
 
 ---
 
@@ -130,9 +130,9 @@ The full status table and polling pattern lives at [Source Status](/api-referenc
 
 Here's the canonical end-to-end flow. Each step links to the endpoint that owns it:
 
-1. **Create a tenant** with [`POST /tenants`](/api-reference/v2/endpoint/create-tenant) — your isolated workspace, optionally with a [metadata schema](/essentials/v2/metadata) declared up front.
+1. **Create a tenant** with [`POST /tenants`](/api-reference/v2/endpoint/create-tenant)  -  your isolated workspace, optionally with a [metadata schema](/essentials/v2/metadata) declared up front.
 2. **Wait for provisioning** by polling [`GET /tenants/status`](/api-reference/v2/endpoint/tenant-status) until both `vectorstore_status` entries and `graph_status` are `true`.
-3. **Ingest content** with [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content) — pick `type=knowledge` for shared documents or `type=memory` for per-user context. See [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) for the content models.
+3. **Ingest content** with [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content)  -  pick `type=knowledge` for shared documents or `type=memory` for per-user context. See [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) for the content models.
 4. **Watch indexing finish** by polling [`GET /source/status`](/api-reference/v2/endpoint/source-status) until each `source_id` reaches `completed` (or `graph_creation` if you don't need graph traversal).
 5. **Query** with [`POST /search`](/api-reference/v2/endpoint/search). Pick `source: "sources"` for Knowledge, `source: "memories"` for Memories, or `source: "all"` for both. Pair with `search_by: "hybrid"` (default), `"text"` (BM25, with `operator`), or `"vector"`. The mechanics live in [Recall](/essentials/v2/recall).
 
@@ -142,7 +142,7 @@ That's the whole loop. Most of what changes between integrations is *what* you p
 
 ## Tenant isolation
 
-A `tenant_id` is the top-level isolation boundary — no tenant can read another tenant's data. Within a tenant, `sub_tenant_id` carves out logical partitions: users, teams, workspaces, or projects. Omitting `sub_tenant_id` on any call resolves to the tenant's default sub-tenant, which is auto-created with the tenant itself.
+A `tenant_id` is the top-level isolation boundary  -  no tenant can read another tenant's data. Within a tenant, `sub_tenant_id` carves out logical partitions: users, teams, workspaces, or projects. Omitting `sub_tenant_id` on any call resolves to the tenant's default sub-tenant, which is auto-created with the tenant itself.
 
 The right mapping depends on your product shape:
 
@@ -152,7 +152,7 @@ The right mapping depends on your product shape:
 | **B2C app** | One tenant for your application | One sub-tenant per end user |
 | **Internal tools** | One tenant per company or environment | One sub-tenant per department or project |
 
-The deeper trade-offs — when to spin up a new tenant vs. a new sub-tenant, how scoping interacts with [metadata filters](/essentials/v2/metadata), and how this affects [Memories](/essentials/v2/memories) — are covered in [Multi-Tenant Support](/essentials/v2/multi-tenant).
+The deeper trade-offs  -  when to spin up a new tenant vs. a new sub-tenant, how scoping interacts with [metadata filters](/essentials/v2/metadata), and how this affects [Memories](/essentials/v2/memories)  -  are covered in [Multi-Tenant Support](/essentials/v2/multi-tenant).
 
 ---
 
@@ -167,7 +167,7 @@ The deeper trade-offs — when to spin up a new tenant vs. a new sub-tenant, how
 5. **Enrich.** When `graph_context: true`, traverse the [context graph](/essentials/v2/context-graphs) and attach related paths. When `mode: "thinking"`, expand the query, rerank, and pull in author-declared forceful relations.
 6. **Shape the response.** Return ranked `chunks`, deduplicated `sources`, optional `graph_context`, and any `additional_context`.
 
-The response is *retrieved context*, not a final LLM answer. You pass the chunks (and any graph context) into your own agent or model prompt — see [How to Use API Results](/essentials/v2/api-results) for the helper that formats it.
+The response is *retrieved context*, not a final LLM answer. You pass the chunks (and any graph context) into your own agent or model prompt  -  see [How to Use API Results](/essentials/v2/api-results) for the helper that formats it.
 
 ---
 
@@ -202,10 +202,10 @@ This order catches almost every "I uploaded but search returns nothing" debuggin
 
 ## Related
 
-- [Core Concepts](/core-concepts) — the five primitives: Memories, Knowledge, Recall, Tenants, Metadata
-- [Quickstart](/quickstart) — build your first integration in five minutes
-- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) — the two content models
-- [Recall](/essentials/v2/recall) — deep dive on `POST /search`
-- [Multi-Tenant Support](/essentials/v2/multi-tenant) — scoping patterns and pitfalls
-- [Context Graphs](/essentials/v2/context-graphs) — how the graph layer enriches retrieval
-- [Metadata](/essentials/v2/metadata) — designing filterable fields
+- [Core Concepts](/core-concepts)  -  the five primitives: Memories, Knowledge, Recall, Tenants, Metadata
+- [Quickstart](/quickstart)  -  build your first integration in five minutes
+- [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories)  -  the two content models
+- [Recall](/essentials/v2/recall)  -  deep dive on `POST /search`
+- [Multi-Tenant Support](/essentials/v2/multi-tenant)  -  scoping patterns and pitfalls
+- [Context Graphs](/essentials/v2/context-graphs)  -  how the graph layer enriches retrieval
+- [Metadata](/essentials/v2/metadata)  -  designing filterable fields

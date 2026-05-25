@@ -8,12 +8,12 @@ openapi: "GET /source/fetch"
 
 Pull back the original ingested content for display in your UI, audit trails, or to feed a different downstream model. Common patterns:
 
-- **UI rendering** — show the original document next to LLM-generated answers.
-- **Audit views** — let admins inspect what was actually ingested for a `source_id` returned by search.
-- **Re-processing** — fetch the raw text to run your own analyzer or summarizer.
-- **Long-lived links** — get a presigned URL valid up to 7 days for downstream services to access the file directly.
+- **UI rendering**  -  show the original document next to LLM-generated answers.
+- **Audit views**  -  let admins inspect what was actually ingested for a `source_id` returned by search.
+- **Re-processing**  -  fetch the raw text to run your own analyzer or summarizer.
+- **Long-lived links**  -  get a presigned URL valid up to 7 days for downstream services to access the file directly.
 
-Works for both knowledge sources and memories — pass the `source_id` from the ingest response or from a search hit.
+Works for both knowledge sources and memories  -  pass the `source_id` from the ingest response or from a search hit.
 
 ## Endpoint
 
@@ -89,7 +89,7 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 | Field | Description |
 |---|---|
-| `success` | Boolean — always `true` on a 200 response. |
+| `success` | Boolean  -  always `true` on a 200 response. |
 | `source_id` | The source you asked for (string). |
 | `content` | Parsed text content (string, or `null`). Present when `mode` is `content` or `both` and the file is text-parseable. |
 | `content_base64` | Base64-encoded raw file content (string, or `null`). Present when the source is binary and `mode` includes content. |
@@ -105,11 +105,11 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 </Info>
 
 <Info>
-**Presigned URL TTL.** The URL is valid only for `expiry_seconds`. Anyone with the URL can download the file during that window — treat it as a short-lived secret.
+**Presigned URL TTL.** The URL is valid only for `expiry_seconds`. Anyone with the URL can download the file during that window  -  treat it as a short-lived secret.
 </Info>
 
 <Info>
-**Memory items.** Fetching a memory's `source_id` returns its raw text content (and the inferred preference, when applicable). There is no presigned URL for memory items — `mode=url` and `mode=both` return `presigned_url: null`.
+**Memory items.** Fetching a memory's `source_id` returns its raw text content (and the inferred preference, when applicable). There is no presigned URL for memory items  -  `mode=url` and `mode=both` return `presigned_url: null`.
 </Info>
 
 ## Related endpoints
@@ -122,4 +122,4 @@ Parameters marked with <sup style={{ color: "red" }}>*</sup> are required.
 
 Common codes: `400 INVALID_PARAMETERS`, `404 SOURCE_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/error-responses) for the full list.
 
-Read more: [Sources — Overview](/api-reference/v2/endpoint/sources-overview)
+Read more: [Sources  -  Overview](/api-reference/v2/endpoint/sources-overview)

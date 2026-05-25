@@ -6,7 +6,7 @@ openapi: "GET /tenants/status"
 
 ## When to use it
 
-Tenant creation is asynchronous. Always poll this endpoint after `POST /tenants` and before your first ingestion or search call — the tenant is only ready when **all** of these are `true`:
+Tenant creation is asynchronous. Always poll this endpoint after `POST /tenants` and before your first ingestion or search call  -  the tenant is only ready when **all** of these are `true`:
 
 - Both entries in `infra.vectorstore_status` (the Knowledge and Memories collections)
 - `infra.graph_status` (the knowledge-graph layer)
@@ -121,7 +121,7 @@ done
 ## Behavior notes
 
 <Info>
-**Eventual consistency.** A freshly created tenant may briefly return `false` on one or more flags. Keep polling — provisioning is the normal path.
+**Eventual consistency.** A freshly created tenant may briefly return `false` on one or more flags. Keep polling  -  provisioning is the normal path.
 </Info>
 
 <Info>
@@ -130,8 +130,8 @@ done
 
 ## Related endpoints
 
-- **Before this:** [Create Tenant](/api-reference/v2/endpoint/create-tenant) — kicks off provisioning
-- **After this:** [Ingest Content](/api-reference/v2/endpoint/ingest-content) — once status is ready
+- **Before this:** [Create Tenant](/api-reference/v2/endpoint/create-tenant)  -  kicks off provisioning
+- **After this:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)  -  once status is ready
 
 ## Errors
 
