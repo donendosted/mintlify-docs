@@ -292,7 +292,7 @@ Poll every few seconds. Most documents complete in 1–5 minutes.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `tenant_id` | string | - *(required)* | Target tenant. |
-| `sub_tenant_id` | string | none | Scope this knowledge to a sub-tenant. If omitted, knowledge is available to all sub-tenants. |
+| `sub_tenant_id` | string | tenant's default sub-tenant | Scope this knowledge to a sub-tenant. If omitted, HydraDB uses the tenant's default sub-tenant (which shares the tenant's identifier). Knowledge is **not** shared across sub-tenants by default -- to share, ingest under each sub-tenant explicitly or query from the default sub-tenant. See [Multi-Tenant](/essentials/multi-tenant). |
 | `upsert` | boolean | `true` | Replace existing items with the same `source_id` / `file_id`. |
 
 ---
