@@ -6,20 +6,12 @@ openapi: "POST /source/list"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Browse what's in a tenant or sub-tenant  -  for admin dashboards, audit views, populating a "select source" picker, or fetching a known subset of sources by ID. Pick the bucket with `kind`:
 
 - `kind=knowledge` *(default)*  -  knowledge sources (files, app sources).
 - `kind=memories`  -  user memories.
 
 Supports pagination (`page`, `page_size`), structured filters on tenant and document metadata, source-field filters (title, type, url, etc.), and field projection (`include_fields`) for slim payloads.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 ```bash cURL
@@ -66,6 +58,14 @@ sources = client.source.list(
 )
 ```
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Request body
 

@@ -6,8 +6,6 @@ openapi: "GET /tenants/stats"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Inspect storage growth, object counts, and vector dimensions for a tenant. Common use cases:
 
 - **Billing dashboards**  -  track row counts across the Knowledge and Memories collections.
@@ -15,12 +13,6 @@ Inspect storage growth, object counts, and vector dimensions for a tenant. Commo
 - **Post-ingest sanity check**  -  confirm that ingestion actually wrote rows to the expected collection.
 
 The response splits stats into two tenant-wide collections: `normal_collection` (Knowledge) and `memory_collection` (Memories), each with its own row count and embedding dimensionality. There is no `sub_tenant_id` parameter; counts aggregate across all sub-tenants in the tenant.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 ```bash cURL
@@ -37,6 +29,14 @@ const stats = await client.tenants.stats({
 stats = client.tenants.stats(tenant_id="my_first_tenant")
 ```
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Query parameters
 

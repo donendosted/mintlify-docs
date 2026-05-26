@@ -6,8 +6,6 @@ openapi: "POST /search"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 The single retrieval endpoint for everything. Use it any time you need to feed an LLM with grounded context, surface user preferences, or fetch chunks ranked by relevance.
 
 Two independent dimensions control behavior:
@@ -16,12 +14,6 @@ Two independent dimensions control behavior:
 - **`search_by`** picks **how** to match: `"hybrid"` (semantic + BM25, the default), `"text"` (BM25 only  -  pair with `operator`), or `"vector"` (pure dense vectors).
 
 Use `mode: "thinking"` for higher-quality multi-query retrieval; `"fast"` for low-latency single-pass. Turn on `graph_context: true` to surface entity/relation paths alongside chunks. Tune `alpha`, `recency_bias`, and `metadata_filters` to shape ranking and narrow the candidate set.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 
@@ -245,6 +237,14 @@ result = client.search.query(
   </Accordion>
 </AccordionGroup>
 
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Request body
 

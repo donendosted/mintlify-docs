@@ -6,20 +6,12 @@ openapi: "DELETE /source"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Remove indexed content  -  for data-retention policies, deleting a specific user's memories on request, pruning stale documents, or cleaning up after a botched ingest. Pick the bucket with `type`:
 
 - `type=knowledge` *(default)*  -  delete knowledge sources.
 - `type=memory`  -  delete memories.
 
 Pass one or more IDs in `request.ids`. The body wraps two fields together: `request` (the actual delete payload) and `type` (the bucket).
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Deleting an already-deleted ID is a no-op for that ID  -  the rest of the batch still proceeds. `success` reflects whether *any* ID was removed.
-- **Async:** Background workers may continue removing vector entries briefly after the response  -  but the source is immediately excluded from search.
 
 <RequestExample>
 ```bash cURL
@@ -72,6 +64,14 @@ Use `type: "memory"` and pass memory `source_id`s in the same `request.ids` arra
   "type": "memory"
 }
 ```
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Deleting an already-deleted ID is a no-op for that ID  -  the rest of the batch still proceeds. `success` reflects whether *any* ID was removed.
+- **Async:** Background workers may continue removing vector entries briefly after the response  -  but the source is immediately excluded from search.
+
+</Accordion>
 
 ## Request body
 

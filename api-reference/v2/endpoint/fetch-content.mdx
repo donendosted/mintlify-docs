@@ -6,8 +6,6 @@ openapi: "GET /source/fetch"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Pull back ingested content for display in your UI, audit trails, or to feed a different downstream model. `content` is parsed text extracted by HydraDB; `presigned_url` downloads the original file when one exists. Common patterns:
 
 - **UI rendering**  -  show the original document next to LLM-generated answers.
@@ -16,13 +14,6 @@ Pull back ingested content for display in your UI, audit trails, or to feed a di
 - **Long-lived links**  -  get a presigned URL valid up to 7 days for downstream services to access the file directly.
 
 Works for both knowledge sources and memories  -  pass the `source_id` from the ingest response or from a search hit.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
-- **Presigned URL lifetime:** `expiry_seconds` is clamped to `60 ≤ x ≤ 604800` (7 days).
 
 <RequestExample>
 
@@ -55,6 +46,15 @@ file = client.source.fetch(
 ```
 
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+- **Presigned URL lifetime:** `expiry_seconds` is clamped to `60 ≤ x ≤ 604800` (7 days).
+
+</Accordion>
 
 ## Query parameters
 

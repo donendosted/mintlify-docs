@@ -6,17 +6,9 @@ openapi: "GET /tenants"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Discover the tenants your API key has access to  -  useful for admin tooling, debug dashboards, populating a tenant picker in a UI, or selecting a target tenant before ingestion or search.
 
 The response separates **active/provisioning** tenants (in `tenant_ids`) from tenants whose provisioning **failed** (in `failed_tenant_ids`). Re-create a failed tenant to retry provisioning.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 ```bash cURL
@@ -31,6 +23,14 @@ const response = await client.tenants.list();
 response = client.tenants.list()
 ```
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Response
 

@@ -6,8 +6,6 @@ openapi: "GET /tenants/status"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 Tenant creation is asynchronous. Always poll this endpoint after `POST /tenants` and before your first ingestion or search call  -  the tenant is only ready when **all** of these are `true`:
 
 - Both entries in `infra.vectorstore_status` (the Knowledge and Memories collections)
@@ -17,12 +15,6 @@ Tenant creation is asynchronous. Always poll this endpoint after `POST /tenants`
 <Note>
 Provisioning typically takes 1–2 minutes on Free and Ship plans, and 4–5 minutes on Enterprise plans, which get complete physical isolation.
 </Note>
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 ```bash cURL
@@ -39,6 +31,14 @@ const status = await client.tenants.status({
 status = client.tenants.status(tenant_id="my_first_tenant")
 ```
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Query parameters
 

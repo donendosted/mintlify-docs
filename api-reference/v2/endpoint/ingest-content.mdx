@@ -6,21 +6,12 @@ openapi: "POST /source/ingest"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 The single ingestion endpoint for everything that flows into HydraDB. Pick `type` to choose the bucket, then pass the matching content fields:
 
 - **`type=knowledge`**  -  shared content. Use `files` for binary uploads HydraDB should parse (PDF, DOCX, CSV, MD, TXT), or `app_knowledge` for pre-extracted JSON content (Slack threads, Notion pages, web pages). Both can be sent in a single request.
 - **`type=memory`**  -  per-user content. Scope with `sub_tenant_id`. Use `infer: true` to let HydraDB extract preferences from raw signal automatically; `infer: false` stores the text verbatim.
 
 Sends `multipart/form-data`. Nested JSON fields (`file_metadata`, `app_knowledge`, `memories`) must be sent as **JSON-stringified** form values.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Controlled by `upsert`  -  `true` (default) replaces an existing source with the same ID; `false` errors on conflict.
-- **Async:** Yes  -  returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `graph_creation` for search readiness or `completed` for full graph readiness.
-- **Content-Type:** `multipart/form-data` (not JSON).
 
 <RequestExample>
 
@@ -216,8 +207,6 @@ conversation_memory_result = client.source.ingest(
 </RequestExample>
 
 ## Examples
-
-Use the accordion that matches the content shape you are sending. The `type` field chooses the storage bucket; the payload fields choose how content enters that bucket.
 
 <AccordionGroup>
   <Accordion title="Knowledge files - upload PDFs, DOCX, CSV, Markdown, or text for HydraDB to parse" defaultOpen>
@@ -448,21 +437,22 @@ client.source.ingest(
 
 ## Request shape rules
 
-<AccordionGroup>
-  <Accordion title="Use `type=knowledge` with `files` when HydraDB should parse uploaded files" defaultOpen>
-    Send one or more `files`. Optionally send `file_metadata` as a JSON-stringified array in the same order as `files`. Do not send `memories` in this request.
-  </Accordion>
-  <Accordion title="Use `type=knowledge` with `app_knowledge` when your app already has extracted text">
-    Send `app_knowledge` as a JSON-stringified object or array. Use this for Slack messages, Notion pages, webpages, tickets, emails, and other app-native sources. You may combine `files` and `app_knowledge` in the same knowledge request. Do not send `memories`.
-  </Accordion>
-  <Accordion title="Use `type=memory` with `memories` for user-specific context">
-    Send `memories` as a non-empty JSON-stringified array. Do not send `files` or `app_knowledge`. Include `sub_tenant_id` when the memory belongs to a specific user, workspace, or session; omitting it writes to the default sub-tenant.
-  </Accordion>
-</AccordionGroup>
+- **Use `type=knowledge` with `files` when HydraDB should parse uploaded files.** Send one or more `files`. Optionally send `file_metadata` as a JSON-stringified array in the same order as `files`. Do not send `memories` in this request.
+- **Use `type=knowledge` with `app_knowledge` when your app already has extracted text.** Send `app_knowledge` as a JSON-stringified object or array. Use this for Slack messages, Notion pages, webpages, tickets, emails, and other app-native sources. You may combine `files` and `app_knowledge` in the same knowledge request. Do not send `memories`.
+- **Use `type=memory` with `memories` for user-specific context.** Send `memories` as a non-empty JSON-stringified array. Do not send `files` or `app_knowledge`. Include `sub_tenant_id` when the memory belongs to a specific user, workspace, or session; omitting it writes to the default sub-tenant.
 
 <Info>
 After ingestion, save every returned `results[].source_id`. Use these IDs for status polling, fetch, list filtering, deletion, and relations.
 </Info>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Controlled by `upsert`  -  `true` (default) replaces an existing source with the same ID; `false` errors on conflict.
+- **Async:** Yes  -  returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `graph_creation` for search readiness or `completed` for full graph readiness.
+- **Content-Type:** `multipart/form-data` (not JSON).
+
+</Accordion>
 
 ## Form fields
 

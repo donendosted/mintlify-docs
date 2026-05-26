@@ -6,8 +6,6 @@ openapi: "GET /source/status"
 
 import { Field } from "/snippets/field.jsx";
 
-## When to use it
-
 `POST /source/ingest` is asynchronous. Use this endpoint to know when content is ready to be searched. Common patterns:
 
 - **Polling after ingest**  -  wait until status is `graph_creation` before running searches, or `completed` before graph-heavy flows
@@ -15,12 +13,6 @@ import { Field } from "/snippets/field.jsx";
 - **Error inspection**  -  see why a specific item failed via `error_code` and `message`
 
 Works for both knowledge sources and memory items  -  pass the `source_id` you got from the ingest response.
-
-## Endpoint
-
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Read-only
-- **Async:** No
 
 <RequestExample>
 ```bash cURL
@@ -47,6 +39,14 @@ status = client.source.status(
 )
 ```
 </RequestExample>
+
+<Accordion title="HTTP request details">
+
+- **Auth:** Bearer token + `API-Version: 2`
+- **Idempotency:** Read-only
+- **Async:** No
+
+</Accordion>
 
 ## Query parameters
 
