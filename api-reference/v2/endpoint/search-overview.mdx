@@ -68,6 +68,15 @@ For `hybrid` and `vector`, use `mode` to control retrieval quality:
 | `fast` | Single query pass, lower latency | Real-time chat, autocomplete, simple lookups |
 | `thinking` | Multi-query expansion, reranking, forceful-relation context | Complex queries, customer-facing answers, anything where quality matters |
 
+## Recommended configurations
+
+| User intent | Recommended config |
+|---|---|
+| Fast RAG | `source="knowledge"`, `search_by="hybrid"`, `mode="fast"`, `max_results=5-10` |
+| Highest-quality RAG | `source="knowledge"`, `search_by="hybrid"`, `mode="thinking"`, `graph_context=true` |
+| Exact keyword lookup | `search_by="text"`, `operator="phrase"` |
+| Personalization | `source="all"`, include `sub_tenant_id` for the user/workspace/session |
+
 ## Common parameters
 
 Required fields are marked with `*`.
@@ -81,6 +90,7 @@ Required fields are marked with `*`.
 | <Field name="search_by" /> | `"hybrid"` \| `"text"` \| `"vector"` | Retrieval method. `hybrid` = dense vectors + BM25, `text` = BM25 only, `vector` = dense only. (default=`"hybrid"`) |
 | <Field name="operator" /> | `"or"` \| `"and"` \| `"phrase"` | BM25 matching when `search_by: "text"`. `or` = any term, `and` = all terms, `phrase` = exact phrase. Ignored for `hybrid` and `vector`. (default=`"or"`) |
 | <Field name="mode" /> | `"fast"` \| `"thinking"` | Retrieval quality vs latency. `fast` = single query pass. `thinking` = multi-query expansion + reranking + forceful-relation context. Applies to `hybrid` and `vector` only. (default=`"fast"`) |
+| <Field name="max_results" /> | integer | Maximum chunks to return. Start with `10` for RAG, reduce for short prompts, increase when reranking downstream. |
 | <Field name="alpha" /> | float `0.0`–`1.0`, or `"auto"` | Hybrid weight: `1.0` = pure semantic, `0.0` = pure BM25, `"auto"` = let HydraDB pick per query. Applies to `search_by: "hybrid"` only. (default=`0.8`) |
 | <Field name="recency_bias" /> | float `0.0`–`1.0` | Prefer newer content. `0.0` = no recency preference, `1.0` = strong preference for recent items. (default=`0.0`) |
 | <Field name="metadata_filters" /> | object | Deterministic narrowing before ranking. **Top-level keys** match `tenant_metadata` (must be declared in `tenant_metadata_schema` and `enable_match`). **Nest under `document_metadata`** to filter on free-form per-document fields. See the example below. |
@@ -144,6 +154,10 @@ Top-level keys (`department`, `region`) are matched against tenant-schema fields
   "operator": "phrase"
 }
 ```
+
+## Response summary
+
+`POST /search` returns ranked `chunks[]`, deduplicated `sources[]`, optional `graph_context`, and optional `additional_context` from forceful relations. Preserve `chunks[]` order when building prompts; HydraDB has already ranked the results. For prompt formatting and citation patterns, see [How to Use API Results](/essentials/v2/api-results).
 
 ## Key concepts
 

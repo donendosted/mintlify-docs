@@ -19,7 +19,7 @@ Sends `multipart/form-data`. Nested JSON fields (`file_metadata`, `app_knowledge
 
 - **Auth:** Bearer token + `API-Version: 2`
 - **Idempotency:** Controlled by `upsert`  -  `true` (default) replaces an existing source with the same ID; `false` errors on conflict.
-- **Async:** Yes  -  returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `completed`.
+- **Async:** Yes  -  returns `202 Accepted` with the new `source_id`s. Poll [Source Status](/api-reference/v2/endpoint/source-status) until each item reports `graph_creation` for search readiness or `completed` for full graph readiness.
 - **Content-Type:** `multipart/form-data` (not JSON).
 
 <RequestExample>
@@ -30,7 +30,7 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
   -H "API-Version: 2" \
   -F "type=knowledge" \
   -F "tenant_id=acme_corp" \
-  -F "sub_tenant_id=default" \
+  -F "sub_tenant_id=team_docs" \
   -F "upsert=true" \
   -F "files=@/path/to/policy.pdf" \
   -F 'file_metadata=[
@@ -89,7 +89,7 @@ const knowledgeResult = await client.source.ingest({
   // Knowledge requests can include files, app_knowledge, or both.
   type: "knowledge",
   tenant_id: "acme_corp",
-  sub_tenant_id: "default",
+  sub_tenant_id: "team_docs",
   upsert: true,
 
   // Use files when HydraDB should parse PDFs, DOCX, CSV, Markdown, or text files.
@@ -156,7 +156,7 @@ with open("/path/to/policy.pdf", "rb") as policy:
         # Knowledge requests can include files, app_knowledge, or both.
         type="knowledge",
         tenant_id="acme_corp",
-        sub_tenant_id="default",
+        sub_tenant_id="team_docs",
         upsert=True,
 
         # Use files when HydraDB should parse PDFs, DOCX, CSV, Markdown, or text files.
@@ -217,8 +217,10 @@ conversation_memory_result = client.source.ingest(
 
 ## Examples
 
+Use the accordion that matches the content shape you are sending. The `type` field chooses the storage bucket; the payload fields choose how content enters that bucket.
+
 <AccordionGroup>
-  <Accordion title="Knowledge - files" defaultOpen>
+  <Accordion title="Knowledge files - upload PDFs, DOCX, CSV, Markdown, or text for HydraDB to parse" defaultOpen>
     <CodeGroup>
 
 ```bash cURL
@@ -271,7 +273,7 @@ with open("/path/to/policy.pdf", "rb") as f1, open("/path/to/runbook.pdf", "rb")
     </CodeGroup>
   </Accordion>
 
-  <Accordion title="Knowledge - pre-extracted app sources">
+  <Accordion title="Knowledge app sources - index text your app already extracted">
     <CodeGroup>
 
 ```bash cURL
@@ -328,7 +330,7 @@ client.source.ingest(
     </CodeGroup>
   </Accordion>
 
-  <Accordion title="Memory - text">
+  <Accordion title="Memory raw text - store notes or infer user preferences">
     <CodeGroup>
 
 ```bash cURL
@@ -382,7 +384,7 @@ client.source.ingest(
     </CodeGroup>
   </Accordion>
 
-  <Accordion title="Memory - conversation pairs">
+  <Accordion title="Memory conversation pairs - store chat history or support context">
     <CodeGroup>
 
 ```bash cURL
@@ -444,20 +446,38 @@ client.source.ingest(
 </AccordionGroup>
 
 
+## Request shape rules
+
+<AccordionGroup>
+  <Accordion title="Use `type=knowledge` with `files` when HydraDB should parse uploaded files" defaultOpen>
+    Send one or more `files`. Optionally send `file_metadata` as a JSON-stringified array in the same order as `files`. Do not send `memories` in this request.
+  </Accordion>
+  <Accordion title="Use `type=knowledge` with `app_knowledge` when your app already has extracted text">
+    Send `app_knowledge` as a JSON-stringified object or array. Use this for Slack messages, Notion pages, webpages, tickets, emails, and other app-native sources. You may combine `files` and `app_knowledge` in the same knowledge request. Do not send `memories`.
+  </Accordion>
+  <Accordion title="Use `type=memory` with `memories` for user-specific context">
+    Send `memories` as a non-empty JSON-stringified array. Do not send `files` or `app_knowledge`. Include `sub_tenant_id` when the memory belongs to a specific user, workspace, or session; omitting it writes to the default sub-tenant.
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+After ingestion, save every returned `results[].source_id`. Use these IDs for status polling, fetch, list filtering, deletion, and relations.
+</Info>
+
 ## Form fields
 
 Required fields are marked with `*`.
 
 | Name | Type | Description |
 |---|---|---|
-| <Field name="type" /> | `"knowledge" \| "memory"` | Bucket selector. (default=`"knowledge"`) |
+| <Field name="type" /> | `"knowledge" \| "memory"` | Bucket selector. Use singular `"memory"` when writing memories. (default=`"knowledge"`) |
 | <Field name="tenant_id" required /> | string | Target tenant. |
 | <Field name="sub_tenant_id" /> | string | Logical partition inside the tenant. (default=`""`  -  default sub-tenant) |
 | <Field name="upsert" /> | boolean | Replace existing sources with the same ID. Set to `false` to error on conflict. (default=`true`) |
-| <Field name="files" /> | file[] | Binary uploads, **knowledge only**. Required when `type=knowledge` and you have files to upload. Omit when ingesting memories. (default=`[]`) |
-| <Field name="file_metadata" /> | string (JSON array) | One entry per file in `files`, same order. See the `file_metadata` item shape below. |
+| <Field name="files" /> | file[] | Binary uploads, **knowledge only**. Required when `type=knowledge` and you want HydraDB to parse files. Omit when ingesting memories. (default=`[]`) |
+| <Field name="file_metadata" /> | string (JSON array) | One entry per file in `files`, in the same order. If omitted, files index with inferred defaults such as filename/title. See the `file_metadata` item shape below. |
 | <Field name="app_knowledge" /> | string (JSON object or array) | Pre-extracted source objects (Slack, Notion, web pages, etc.), **knowledge only**. See the `app_knowledge` item shape below. |
-| <Field name="memories" /> | string (JSON array) | Memory items, **memory only**. Required when `type=memory`. See the `memories` item shape below. |
+| <Field name="memories" /> | string (JSON array) | Memory items, **memory only**. Required and non-empty when `type=memory`. Use plural `memories` for the form field, even though `type` is singular `memory`. See the `memories` item shape below. |
 
 ### `file_metadata` item shape
 
@@ -482,7 +502,7 @@ Required fields are marked with `*`.
 | <Field name="description" /> | string | Optional long-form description. |
 | <Field name="url" /> | string | Canonical URL or reference link. |
 | <Field name="timestamp" /> | string | ISO-8601 timestamp (creation or last-updated). |
-| <Field name="content" /> | object | Content payload. Use `{ "text": "..." }` for plain text. |
+| <Field name="content" required /> | object | Content payload. Use `{ "text": "..." }` for plain text. Required for app sources. |
 | <Field name="tenant_metadata" /> | object | Tenant-schema fields. (default=`{}`) |
 | <Field name="document_metadata" /> | object | Free-form per-document fields. (default=`{}`) |
 | <Field name="attachments" /> | array | Optional related attachments. (default=`[]`) |
@@ -494,8 +514,8 @@ Required fields are marked with `*`.
 |---|---|---|
 | <Field name="source_id" /> | string | Optional unique ID. Acts as the upsert key. (default=auto-generated) |
 | <Field name="title" /> | string | Short label for display in `/source/list` and search hits as `source.title`. (default=truncated `text`) |
-| <Field name="text" /> | string | Raw text or markdown content. Use this **or** `user_assistant_pairs`. |
-| <Field name="user_assistant_pairs" /> | array | Conversation pairs `{ user, assistant }`. Use this **or** `text`. |
+| <Field name="text" recommended /> | string | Raw text or markdown content. Required unless `user_assistant_pairs` is provided. |
+| <Field name="user_assistant_pairs" recommended /> | array | Conversation pairs `{ user, assistant }`. Required unless `text` is provided. |
 | <Field name="is_markdown" /> | boolean | Treat `text` as markdown for chunking. (default=`false`) |
 | <Field name="infer" /> | boolean | When `true`, HydraDB extracts the underlying preference from raw signal. (default=`false`) |
 | <Field name="custom_instructions" /> | string | Guides extraction when `infer: true`. Ignored when `infer: false`. |
@@ -550,9 +570,13 @@ Required fields are marked with `*`.
 **`tenant_metadata` keys must be declared.** Keys not in the tenant's `tenant_metadata_schema` are silently ignored at search time when used in `metadata_filters`. Plan schema fields up front via [Create Tenant](/api-reference/v2/endpoint/create-tenant).
 </Warning>
 
+<Warning>
+**Common mistakes.** Use `type: "memory"` for ingestion and deletion, but use `memories` for the form field and for search/list collection selectors. If you omit `sub_tenant_id`, HydraDB writes to the default sub-tenant; list available sub-tenants with [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants).
+</Warning>
+
 ## Related endpoints
 
-- **Next:** [Source Status](/api-reference/v2/endpoint/source-status)  -  poll until `completed`
+- **Next:** [Source Status](/api-reference/v2/endpoint/source-status)  -  poll until `graph_creation` for search or `completed` for graph-ready results
 - **Then:** [Search](/api-reference/v2/endpoint/search)  -  retrieve indexed content
 - **Inspect:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Fetch Content](/api-reference/v2/endpoint/fetch-content)
 - **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)

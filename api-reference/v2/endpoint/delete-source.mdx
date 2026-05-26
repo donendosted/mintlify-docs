@@ -30,7 +30,7 @@ curl -X DELETE 'https://api.hydradb.com/source' \
   -d '{
     "request": {
       "tenant_id": "acme_corp",
-      "sub_tenant_id": "default",
+      "sub_tenant_id": "team_docs",
       "ids": ["policy_main", "runbook_deploy"]
     },
     "type": "knowledge"
@@ -41,7 +41,7 @@ await client.source.delete({
   type: "knowledge",
   request: {
     tenant_id: "acme_corp",
-    sub_tenant_id: "default",
+    sub_tenant_id: "team_docs",
     ids: ["policy_main", "runbook_deploy"],
   },
 });
@@ -51,12 +51,27 @@ client.source.delete(
     type="knowledge",
     request={
         "tenant_id": "acme_corp",
-        "sub_tenant_id": "default",
+        "sub_tenant_id": "team_docs",
         "ids": ["policy_main", "runbook_deploy"],
     },
 )
 ```
 </RequestExample>
+
+### Memory delete example
+
+Use `type: "memory"` and pass memory `source_id`s in the same `request.ids` array. Include the same `sub_tenant_id` you used when ingesting the memories; omitting it targets the default sub-tenant.
+
+```json
+{
+  "request": {
+    "tenant_id": "acme_corp",
+    "sub_tenant_id": "user_alex",
+    "ids": ["mem_user_alex_tone"]
+  },
+  "type": "memory"
+}
+```
 
 ## Request body
 
@@ -65,7 +80,7 @@ The body wraps two fields together. Required fields are marked with `*`.
 | Name | Type | Description |
 |---|---|---|
 | <Field name="request.tenant_id" required /> | string | Owning tenant. |
-| <Field name="request.sub_tenant_id" /> | string \| null | Sub-tenant scope. (default=`null`) |
+| <Field name="request.sub_tenant_id" /> | string \| null | Sub-tenant scope. Use the same value used at ingestion. If omitted, the default sub-tenant is used. (default=`null`) |
 | <Field name="request.ids" required /> | string[] | One or more source IDs to delete. At least one is required. |
 | <Field name="type" /> | `"knowledge" \| "memory"` | Bucket selector. (default=`"knowledge"`) |
 

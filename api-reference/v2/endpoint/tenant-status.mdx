@@ -14,6 +14,10 @@ Tenant creation is asynchronous. Always poll this endpoint after `POST /tenants`
 - `infra.graph_status` (the knowledge-graph layer)
 - `infra.scheduler_status` (the background indexing scheduler)
 
+<Note>
+Provisioning typically takes 1–2 minutes on Free and Ship plans, and 4–5 minutes on Enterprise plans, which get complete physical isolation.
+</Note>
+
 ## Endpoint
 
 - **Auth:** Bearer token + `API-Version: 2`
@@ -76,7 +80,7 @@ Required fields are marked with `*`.
 |---|---|---|
 | <Field name="scheduler_status" /> | boolean | Whether the background indexing scheduler is up. |
 | <Field name="graph_status" /> | boolean | Whether the knowledge-graph layer is provisioned. |
-| <Field name="vectorstore_status" /> | tuple of two booleans | Status of `[Memories collection, Knowledge collection]` (indices `0` and `1`). |
+| <Field name="vectorstore_status" /> | tuple of two booleans | Status of `[Memories collection, Knowledge collection]`: index `0` is Memories, index `1` is Knowledge. |
 
 <Info>
 `infra.vectorstore_status` is a **two-element tuple**: index `0` is the Memories collection, index `1` is the Knowledge collection. The tenant is fully ready only when both are `true`.
@@ -84,7 +88,14 @@ Required fields are marked with `*`.
 
 ## Polling pattern
 
-Poll every 1–2 seconds. Most tenants are ready in under 30 seconds.
+Poll every 10–20 seconds. Stop and surface a provisioning issue if the tenant is not ready after the expected window for your plan.
+
+A tenant is ready when:
+
+- `infra.scheduler_status === true`
+- `infra.graph_status === true`
+- `infra.vectorstore_status[0] === true`
+- `infra.vectorstore_status[1] === true`
 
 <CodeGroup>
 ```typescript TypeScript
@@ -94,7 +105,7 @@ while (true) {
   if (graph_status && scheduler_status && vectorstore_status.every(Boolean)) {
     break;
   }
-  await new Promise((r) => setTimeout(r, 2000));
+  await new Promise((r) => setTimeout(r, 15000));
 }
 ```
 ```python Python
@@ -109,7 +120,7 @@ while True:
         and all(infra.vectorstore_status)
     ):
         break
-    time.sleep(2)
+    time.sleep(15)
 ```
 ```bash cURL polling loop
 TENANT="acme"
@@ -117,7 +128,7 @@ until curl -s -X GET "https://api.hydradb.com/tenants/status?tenant_id=${TENANT}
        -H "Authorization: Bearer ${HYDRA_DB_API_KEY}" \
        -H "API-Version: 2" \
      | jq -e '.data.infra | .graph_status and .scheduler_status and (.vectorstore_status | all)' > /dev/null; do
-  sleep 2
+  sleep 15
 done
 ```
 </CodeGroup>

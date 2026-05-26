@@ -46,6 +46,21 @@ response = client.tenants.list()
 
 </ResponseExample>
 
+If provisioning failed for a tenant, `failed_tenant_ids` contains diagnostic entries:
+
+```json Failed tenant example
+{
+  "tenant_ids": ["acme_corp"],
+  "failed_tenant_ids": [
+    {
+      "tenant_id": "staging_import",
+      "error": "Provisioning failed. Re-create the tenant to retry."
+    }
+  ],
+  "message": "Successfully retrieved tenant IDs"
+}
+```
+
 | Field | Description |
 |---|---|
 | <Field name="tenant_ids" /> | Array of string IDs of active or provisioning tenants. |
@@ -56,6 +71,10 @@ response = client.tenants.list()
 
 <Info>
 **Includes provisioning tenants.** Tenants returned in `tenant_ids` may still be provisioning. Use [Tenant Status](/api-reference/v2/endpoint/tenant-status) to confirm readiness before ingestion.
+</Info>
+
+<Info>
+**Retry failed tenants.** If a tenant appears in `failed_tenant_ids`, re-create that tenant with `POST /tenants` after addressing the reported issue. Poll status again before ingestion.
 </Info>
 
 ## Related endpoints

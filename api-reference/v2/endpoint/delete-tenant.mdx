@@ -62,6 +62,12 @@ Required fields are marked with `*`.
 | <Field name="status" /> | Always `deletion_scheduled` on success. Background workers continue removing data. |
 | <Field name="message" /> | Human-readable hint. |
 
+## Deletion completion
+
+Deletion is asynchronous. Treat deletion as complete when the tenant no longer appears in `GET /tenants`, or when `GET /tenants/status?tenant_id=...` returns `TENANT_NOT_FOUND`.
+
+After deletion completes, the same `tenant_id` can be used in a new `POST /tenants` request. Until then, avoid recreating the tenant or retrying ingestion/search against it.
+
 ## Behavior notes
 
 <Warning>
@@ -72,8 +78,12 @@ Required fields are marked with `*`.
 **Async cleanup.** The endpoint returns immediately after deregistering the tenant. Vector indices, MongoDB documents, the knowledge graph, and S3/MinIO objects are removed by background workers and may take a few minutes to fully disappear from infrastructure.
 </Info>
 
+<Warning>
+**Stop in-flight work first.** Stop ingestion, polling, search, and background jobs that target this tenant before deletion. Calls made after deregistration can fail with `TENANT_NOT_FOUND` even while infrastructure cleanup is still running.
+</Warning>
+
 <Info>
-**`tenant_id` reuse.** After deletion succeeds, the `tenant_id` is free to be re-used by a subsequent `POST /tenants` call.
+**Repeat calls.** Deleting an already-deleted tenant returns `404 TENANT_NOT_FOUND`. Deleting a tenant that is still provisioning or already deleting is treated as a request to tear down that tenant; use the deletion-completion checks above before recreating the same ID.
 </Info>
 
 ## Related endpoints
