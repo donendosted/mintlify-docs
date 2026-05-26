@@ -1,8 +1,4 @@
 
-*, *::before, *::after {
-    box-sizing: border-box;
-  }
-
 #content-side-layout div.code-group {
     display: none;
 }
@@ -28,25 +24,25 @@
     overflow: hidden !important;
 }
 
-#content-side-layout {
-    max-width: 18rem !important;
-}
+/* Field reference requirement indicators */
+.field-req { color: #ef4444; font-weight: bold; cursor: default; }
+.field-rec { color: #eab308; font-size: 0.6em; vertical-align: middle; cursor: default; }
 
-#content-area {
-    width: calc(100% - 20rem) !important;
-}
+@media (min-width: 1280px) {
+    #content-container {
+        overflow-x: clip;
+    }
 
-#chat-assistant-sheet {
-    display: none !important;   
-}
-    
-#navbar {
-    position: fixed
-}
+    #content-side-layout {
+        flex: 0 0 18rem !important;
+        width: 18rem !important;
+        max-width: 18rem !important;
+        min-width: 0;
+    }
 
-
-@media (min-width: 1024px) {
-    #header.relative {
-        margin-top: 7rem;
+    #content-area {
+        flex: 1 1 0% !important;
+        width: auto !important;
+        min-width: 0;
     }
 }

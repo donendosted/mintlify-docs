@@ -145,13 +145,15 @@
                   "essentials/architecture",
                   "essentials/memories",
                   "essentials/knowledge",
+                  "essentials/app-sources",
                   "essentials/recall",
                   "essentials/webhooks",
                   "essentials/multi-tenant",
                   "essentials/metadata",
                   "essentials/context-graphs",
                   "essentials/api-results",
-                  "essentials/semantic-search"
+                  "essentials/semantic-search",
+                  "continuity-assurance"
                 ]
               },
               {
@@ -161,6 +163,12 @@
                   "plugins/mcp",
                   "plugins/cli",
                   "plugins/openclaw"
+                ]
+              },
+              {
+                "group": "For Agents",
+                "pages": [
+                  "AGENTS"
                 ]
               }
             ]
@@ -207,6 +215,7 @@
                   "api-reference/endpoint/monitor-tenant",
                   "api-reference/endpoint/infra-status",
                   "api-reference/endpoint/list-sub-tenant-ids",
+                  "api-reference/endpoint/list-tenant-ids",
                   "api-reference/endpoint/delete-tenant"
                 ]
               },
@@ -238,6 +247,16 @@
                   "api-reference/endpoint/list-data",
                   "api-reference/endpoint/fetch-content",
                   "api-reference/endpoint/graph-relations"
+                ]
+              },
+              {
+                "group": "Embeddings",
+                "pages": [
+                  "api-reference/endpoint/embeddings-overview",
+                  "api-reference/endpoint/insert-raw-embeddings",
+                  "api-reference/endpoint/search-raw-embeddings",
+                  "api-reference/endpoint/filter-raw-embeddings",
+                  "api-reference/endpoint/delete-raw-embeddings"
                 ]
               }
             ]

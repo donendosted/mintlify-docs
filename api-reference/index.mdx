@@ -5,9 +5,9 @@ description: "Complete reference for every HydraDB endpoint, organized by group.
 
 ## Quick links
 
-- **New to HydraDB?** Start with the [Quickstart](/quickstart)
+- **New to HydraDB?** Start with the [Quickstart](/get-started/quickstart)
 - **Prefer SDKs?** See the [Python and TypeScript SDKs](#sdks) below
-- **Authentication:** Every endpoint requires `Authorization: Bearer <your_api_key>`
+- **Authentication:** Every endpoint requires `Authorization: Bearer $HYDRA_DB_API_KEY`
 - **Base URL:** `https://api.hydradb.com`
 - **Errors:** See [Error Responses](/api-reference/error-responses)
 
@@ -138,7 +138,7 @@ See the full reference at [SDKs](/api-reference/sdks).
 
 ## Conventions
 
-**Authentication.** Every endpoint requires `Authorization: Bearer <your_api_key>` in the request header. Get your key at [app.hydradb.com](https://app.hydradb.com).
+**Authentication.** Every endpoint requires `Authorization: Bearer $HYDRA_DB_API_KEY` in the request header (substitute the actual key value). Get your key at [app.hydradb.com](https://app.hydradb.com).
 
 **Tenant scoping.** Every endpoint requires a `tenant_id`. Most endpoints also accept an optional `sub_tenant_id` for finer-grained scoping. If omitted, the default sub-tenant is used.
 
@@ -172,7 +172,7 @@ Rate limits apply per API key. For production deployments, build retry logic wit
 
 ## Next steps
 
-- **Build something:** [Quickstart](/quickstart) walks through your first integration in five minutes
-- **Understand the model:** [Core Concepts](/core-concepts) explains tenants, memories, recall, and metadata
-- **Go deeper:** [Essentials](/essentials) covers each primitive in depth
+- **Build something:** [Quickstart](/get-started/quickstart) walks through your first integration in five minutes
+- **Understand the model:** [Core Concepts](/get-started/core-concepts) explains tenants, memories, recall, and metadata
+- **Go deeper:** [Essentials](/essentials/architecture) covers each primitive in depth
 - **Install an SDK:** [Python](https://pypi.org/project/hydradb-sdk/) · [TypeScript](https://www.npmjs.com/package/@hydradb/sdk)
