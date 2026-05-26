@@ -25,7 +25,7 @@ This guide walks you through building a **customer support agent with persistent
 By the end of this cookbook, you'll be able to:
 - Ingest help docs and past ticket resolutions into a shared HydraDB knowledge base
 - Store per-customer memory so the agent knows their plan, history, and preferences before responding
-- Make the two-call recall pattern - knowledge base + customer memory - on every incoming ticket
+- Make the two-call search pattern - knowledge base + customer memory - on every incoming ticket
 - Generate personalized support responses that reference the customer's specific context
 - Store every conversation turn back into HydraDB to continuously improve future responses
 
@@ -50,7 +50,7 @@ Three HydraDB primitives power this use case:
 
 - **Knowledge memories** - help docs, FAQs, past ticket resolutions. Uploaded once via `client.source.ingest()` and continuously available to every agent handling any customer. HydraDB automatically builds a context graph linking related articles and resolutions.
 - **User memories** - per-customer context stored via `POST /source/ingest` with the customer's `user_name`. Each conversation turn, product feedback signal, and inferred preference is stored here. HydraDB's `infer: true` mode automatically extracts implicit preferences from conversation text - "I'd prefer email updates" becomes a stored preference without you parsing it.
-- **Two-call recall pattern** - when a customer opens a ticket, the agent calls `POST /search` to search the knowledge base and `POST /search` to retrieve personal memory. Results are merged before the LLM call. Use `mode: "thinking"` on both calls to enable personalised ranking.
+- **Two-call search pattern** - when a customer opens a ticket, the agent calls `POST /search` to search the knowledge base and `POST /search` to retrieve personal memory. Results are merged before the LLM call. Use `mode: "thinking"` on both calls to enable personalised ranking.
 
 ---
 
@@ -369,7 +369,7 @@ Every customer gets their own persistent memory in HydraDB. This is what makes t
 
 ### Store Conversation Turns
 
-After every message exchange, write both the customer message and agent response to HydraDB. Use `infer: false` for verbatim storage - you want the exact words so future recall can surface the precise prior exchange.
+After every message exchange, write both the customer message and agent response to HydraDB. Use `infer: false` for verbatim storage - you want the exact words so future search can surface the precise prior exchange.
 
 <CodeGroup>
 ```typescript TypeScript SDK
@@ -524,13 +524,13 @@ store_customer_preference(
 
 ## Step 4 - Handle a Support Request
 
-When a customer opens a ticket, the agent makes two recall calls to HydraDB, merges the results, then generates a response. `/search` searches the knowledge base; `/search` searches the customer's personal memory. Both are needed - neither alone returns the full picture.
+When a customer opens a ticket, the agent makes two search calls to HydraDB, merges the results, then generates a response. `/search` searches the knowledge base; `/search` searches the customer's personal memory. Both are needed - neither alone returns the full picture.
 
-### Recall Customer Context
+### Search Customer Context
 
 <CodeGroup>
 ```typescript TypeScript SDK
-// support/recall.ts
+// support/search.ts
 import { HydraDBClient } from "@hydradb/sdk";
 
 const client = new HydraDBClient({ token: process.env.HYDRA_DB_API_KEY! });
@@ -543,7 +543,7 @@ async function recallCustomerContext(
     maxResults:  number = 12,
 ): Promise<{ chunks: any[]; graph_context: any }> {
     /**
-     * Two-call recall pattern:
+     * Two-call search pattern:
      * 1. fullRecall        - searches knowledge base (docs, resolved tickets)
      * 2. recallPreferences - searches customer's personal memory
      * Merge both before passing to LLM.
@@ -583,7 +583,7 @@ async function recallCustomerContext(
 }
 ```
 ```python Python SDK
-# support/recall.py
+# support/search.py
 
 def recall_customer_context(
     customer_id:  str,
@@ -591,7 +591,7 @@ def recall_customer_context(
     max_results:  int = 12,
 ) -> dict:
     """
-    Two-call recall pattern:
+    Two-call search pattern:
     1. search (source="knowledge") - searches knowledge base (docs, resolved tickets)
     2. search (source="memories") - searches customer's personal memory
     Merge both before passing to LLM.
@@ -649,12 +649,12 @@ async function handleTicket(
 ): Promise<string> {
     /**
      * Full support handling flow:
-     * 1. Recall customer context from HydraDB
+     * 1. Search customer context from HydraDB
      * 2. Generate personalized response via LLM
      * 3. Store the exchange back into HydraDB memory
      * Returns the agent's reply string.
      */
-    // Step 1: Recall
+    // Step 1: Search
     const contextData = await recallCustomerContext(customerId, customerMsg);
     const chunks      = contextData.chunks || [];
     const graphCtx    = contextData.graph_context || {};
@@ -711,12 +711,12 @@ def handle_ticket(
 ) -> str:
     """
     Full support handling flow:
-    1. Recall customer context from HydraDB
+    1. Search customer context from HydraDB
     2. Generate personalized response via LLM
     3. Store the exchange back into HydraDB memory
     Returns the agent's reply string.
     """
-    # Step 1: Recall
+    # Step 1: Search
     context_data = recall_customer_context(customer_id, customer_msg)
     chunks       = context_data.chunks or []
     graph_ctx    = context_data.graph_context
@@ -791,7 +791,7 @@ async function escalateToHuman(
      * Escalate a ticket to a human agent with full HydraDB context.
      * Returns the escalation payload ready to send to Zendesk, Linear, etc.
      */
-    // Recall full customer memory profile
+    // Search full customer memory profile
     const customerProfile = await client.search.query({
         source: 'memories',
         tenant_id:     TENANT_ID,
@@ -799,7 +799,7 @@ async function escalateToHuman(
         query:         "customer account history preferences past issues plan",
     });
 
-    // Recall similar past tickets resolved by humans
+    // Search similar past tickets resolved by humans
     const similarData = await client.search.query({
         tenant_id:   TENANT_ID,
         query:       `${customerMsg} resolved escalated human agent`,
@@ -846,7 +846,7 @@ def escalate_to_human(
     Escalate a ticket to a human agent with full HydraDB context.
     Returns the escalation payload ready to send to Zendesk, Linear, etc.
     """
-    # Recall full customer memory profile
+    # Search full customer memory profile
     customer_profile = client.search.query(
         source='memories',
         tenant_id=TENANT_ID,
@@ -854,7 +854,7 @@ def escalate_to_human(
         query="customer account history preferences past issues plan",
     )
 
-    # Recall similar past tickets resolved by humans
+    # Search similar past tickets resolved by humans
     similar_data = client.search.query(
         tenant_id=TENANT_ID,
         query=f"{customer_msg} resolved escalated human agent",
@@ -1075,7 +1075,7 @@ client.source.ingest(
 }
 ```
 
-### Recall Knowledge Base
+### Search Knowledge Base
 
 ```json
 {
@@ -1089,7 +1089,7 @@ client.source.ingest(
 }
 ```
 
-### Recall Customer Memory
+### Search Customer Memory
 
 ```json
 {
@@ -1112,7 +1112,7 @@ Tested across 2,400 real support tickets (mix of billing, technical, onboarding,
 | "Agent knew my history" (CSAT signal) | 12% of sessions | 84% of sessions | +600% |
 | Unnecessary escalation rate | 41% | 9% | −78% |
 | Repeated troubleshooting steps (already tried) | 67% of tickets | 4% of tickets | −94% |
-| P95 recall latency (HydraDB step) | N/A | under 200 ms | Sub-second |
+| P95 search latency (HydraDB step) | N/A | under 200 ms | Sub-second |
 
 > The 94% drop in repeated troubleshooting steps is the most direct result of persistent memory. Without HydraDB, a customer who reports the same SSO issue for the third time gets the same "try clearing your browser cache" suggestion. With HydraDB, the agent knows that was already tried - and tried twice - and goes straight to the next level of diagnosis.
 
@@ -1134,7 +1134,7 @@ customer_support_agent/
 │   ├── conversation.py           # store per-turn conversation exchanges
 │   └── preferences.py           # store inferred customer preferences
 ├── support/
-│   ├── recall.py                 # two-call recall pattern
+│   ├── search.py                 # two-call search pattern
 │   ├── respond.py                # LLM response generation (OpenAI)
 │   └── escalate.py              # human handoff with full context
 └── interfaces/

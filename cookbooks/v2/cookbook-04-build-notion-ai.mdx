@@ -24,7 +24,7 @@ HydraDB is different. It doesn't just store vectors - it builds a **living conte
 By the end of this cookbook, you'll be able to:
 - Ingest Notion pages, Confluence docs, and Slack threads into a unified HydraDB workspace
 - Answer "why did we decide X?" by retrieving decision context across linked documents
-- Batch-upload documents with verified indexing before any recall query
+- Batch-upload documents with verified indexing before any search query
 - Build a conversational interface grounded in your team's actual knowledge
 
 ---
@@ -35,15 +35,15 @@ Before writing code, understand the three primitives you'll use throughout this 
 
 - **Tenant** - your workspace. All data is isolated per tenant. Think of it as your "company" in HydraDB. Create one per application.
 - **Memory** - any unit of context: a Notion page, a Confluence doc, a Slack thread, a user preference. HydraDB automatically chunks, embeds, and connects memories into a context graph.
-- **Recall** - the retrieval call your agent makes before acting. HydraDB's recall runs a multi-stage pipeline: metadata filtering → graph traversal → semantic retrieval → personalized ranking.
+- **Search** - the retrieval call your agent makes before acting. HydraDB's search runs a multi-stage pipeline: metadata filtering → graph traversal → semantic retrieval → personalized ranking.
 
-**LongMemEvals recall accuracy: 90%**
+**LongMemEvals search accuracy: 90%**
 
 ---
 
-## Comparison: Traditional RAG vs HydraDB Recall
+## Comparison: Traditional RAG vs HydraDB Search
 
-| Feature | Traditional RAG | HydraDB recall |
+| Feature | Traditional RAG | HydraDB search |
 |---------|-----------------|----------------|
 | Search method | Vector search - nearest neighbors only | Multi-stage: intent → graph → semantic → rank |
 | Scale | Context collapses at 10M+ documents | Petabyte scale, sub-second latency |
@@ -166,7 +166,7 @@ def ingest_notion_database(database_id: str, sub_tenant_id: str = None) -> list:
 
 ### Confluence Connector
 
-Confluence pages follow the same upload format. Use `type: "confluence"` so HydraDB can distinguish sources during recall and apply metadata filtering.
+Confluence pages follow the same upload format. Use `type: "confluence"` so HydraDB can distinguish sources during search and apply metadata filtering.
 
 ```python
 from atlassian import Confluence
@@ -214,7 +214,7 @@ def ingest_space(space_key: str, sub_tenant_id: str = None) -> list:
 
 ### Verify Indexing
 
-After uploading, always verify that HydraDB has fully processed and indexed your content before running recall queries.
+After uploading, always verify that HydraDB has fully processed and indexed your content before running search queries.
 
 **Endpoint:** `GET /source/status?file_ids=FILE_ID&tenant_id=TENANT` - Check indexing status
 
@@ -245,7 +245,7 @@ def verify_all(ids: list):
 
 ## Step 03 - Add User Memories
 
-Beyond documents, HydraDB stores **user memories** - preferences, habits, and patterns that personalize recall per user. Set `infer: true` to let HydraDB extract implicit signals from text. Set `infer: false` to store facts verbatim.
+Beyond documents, HydraDB stores **user memories** - preferences, habits, and patterns that personalize search per user. Set `infer: true` to let HydraDB extract implicit signals from text. Set `infer: false` to store facts verbatim.
 
 **Endpoint:** `POST /source/ingest` - Add a user memory
 
@@ -305,11 +305,11 @@ add_user_memory(
 )
 ```
 
-After a few interactions, HydraDB builds a behavioral model per user. Alice's recall results will be ranked and formatted differently from Bob's - automatically, without any extra code.
+After a few interactions, HydraDB builds a behavioral model per user. Alice's search results will be ranked and formatted differently from Bob's - automatically, without any extra code.
 
 ---
 
-## Step 04 - Recall Context
+## Step 04 - Search Context
 
 This is the call your agent makes before answering any question. `POST /search` runs HydraDB's full multi-stage pipeline and returns ranked, contextually relevant chunks - including graph context showing relationships between entities.
 
@@ -325,7 +325,7 @@ def recall_context(
     graph_context: bool = True,
 ) -> dict:
     """
-    Full recall - searches knowledge base (documents).
+    Full search - searches knowledge base (documents).
     To also retrieve user memories, call /search separately.
     sub_tenant_id: scope to a specific workspace or user namespace.
     mode: "thinking" enables personalised ranking.
@@ -361,9 +361,9 @@ for chunk in (context.chunks or []):
 
 ---
 
-## Step 05 - Recall and Answer Generation
+## Step 05 - Search and Answer Generation
 
-For conversational, AI-generated answers, first retrieve context with `POST /search`. Then pass the returned `chunks` and `sources` into your application-layer LLM prompt. Key parameters: `alpha` (0-1, balance semantic vs lexical), `recency_bias` (0-1, prefer newer content), and `graph_context`.
+For conversational, AI-generated answers, first retrieve context with `POST /search`. Then pass the returned `chunks` and `sources` into your application-layer LLM prompt. Key parameters: `alpha` (0-1, balance semantic vs keyword bm25), `recency_bias` (0-1, prefer newer content), and `graph_context`.
 
 **Endpoint:** `POST /search` - retrieved context for app-layer answer generation
 
@@ -408,7 +408,7 @@ def build_context(result) -> str:
 result = ask_workspace("Why did we choose Postgres over MySQL?")
 print(build_context(result)[:1000])
 
-# Follow-up questions call recall again and your app includes any prior chat turns in the LLM prompt.
+# Follow-up questions call search again and your app includes any prior chat turns in the LLM prompt.
 result2 = ask_workspace("What were the tradeoffs they considered?")
 print(build_context(result2)[:1000])
 
@@ -521,7 +521,7 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
 
 **POST** `/source/status?file_ids=FILE_ID&tenant_id=YOUR_TENANT` - Poll until status = "completed"
 
-### Full recall
+### Full search
 
 **POST** `/search` - Searches knowledge base - returns chunks + graph_context
 
@@ -538,7 +538,7 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
 }
 ```
 
-### Recall for answer generation
+### Search for answer generation
 
 **POST** `/search` - retrieved context for app-layer answer generation
 
@@ -572,7 +572,7 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
 }
 ```
 
-### Recall user memories
+### Search user memories
 
 **POST** `/search` - user_name key - consistent across all calls
 
@@ -593,12 +593,12 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
 
 ## Benchmarks
 
-HydraDB leads LongMemEvals with 90% recall accuracy. Compared to a naive RAG pipeline over the same 12,400-document corpus:
+HydraDB leads LongMemEvals with 90% search accuracy. Compared to a naive RAG pipeline over the same 12,400-document corpus:
 
 | Query type | Naive RAG | HydraDB | Delta |
 |-----------|-----------|---------|-------|
-| Factual lookup queries | 81% recall | 90% recall | +11% |
-| "Why did we…" decision queries | 34% recall | 79% recall | +132% |
+| Factual lookup queries | 81% search | 90% search | +11% |
+| "Why did we…" decision queries | 34% search | 79% search | +132% |
 | Stale doc surface rate | 41% of results | 7% of results | −83% |
 | P95 query latency | 220ms | under 200 ms | Sub-second |
 

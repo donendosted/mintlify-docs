@@ -23,7 +23,7 @@ This guide walks you through building a **competitive intelligence agent with pe
 
 By the end of this cookbook, you'll be able to:
 - Ingest press releases, job postings, customer reviews, and earnings transcripts into a per-competitor HydraDB sub-tenant
-- Verify indexing before running recall queries so you never query against stale data
+- Verify indexing before running search queries so you never query against stale data
 - Answer point-in-time queries ("What has Acme announced about enterprise?") using `recency_bias: 0.8`
 - Answer trend queries ("How has their messaging shifted since Q1?") using `recency_bias: 0.3`
 - Deliver a weekly Slack briefing to sales and product channels with AI-summarized competitor signals
@@ -106,7 +106,7 @@ All four signal types use `POST /source/ingest`. This endpoint uses **multipart 
 
 > **Important**: Do not set `Content-Type: application/json` on ingestion requests. The endpoint expects `multipart/form-data`. Let your HTTP client set the boundary automatically - only pass `Authorization` in headers.
 
-> **Batch limit**: Max 20 sources per request. Wait 1 second between batches. Always call `GET /source/status` before running recall - queries against unindexed sources return empty results.
+> **Batch limit**: Max 20 sources per request. Wait 1 second between batches. Always call `GET /source/status` before running search - queries against unindexed sources return empty results.
 
 The upload response looks like this for all signal types:
 
@@ -390,7 +390,7 @@ curl -X POST 'https://api.hydradb.com/search' \
 ```
 
 ```python
-# query/recall.py
+# query/search.py
 import os
 from hydra_db import HydraDB
 
@@ -491,7 +491,7 @@ For trend and comparison questions, reduce `recency_bias` to `0.3` so HydraDB su
 
 ```python
 # query/trends.py
-# (uses ask_about_competitor from query/recall.py)
+# (uses ask_about_competitor from query/search.py)
 
 
 def ask_trend_question(question: str, competitor: str) -> dict:
@@ -664,7 +664,7 @@ GET /source/status?tenant_id=competitive-intel&file_ids=YOUR_SOURCE_ID
 Body: {}
 ```
 
-### Full Recall - Point-in-Time
+### Full Search - Point-in-Time
 ```json
 {
   "tenant_id":     "competitive-intel",
@@ -678,7 +678,7 @@ Body: {}
 }
 ```
 
-### Full Recall - Trend
+### Full Search - Trend
 ```json
 {
   "tenant_id":     "competitive-intel",
@@ -701,7 +701,7 @@ Tested across 3 competitor corpora (150+ sources each: press releases, job posti
 | Metric | Manual / Naive RAG | HydraDB CI Agent | Delta |
 |--------|-------------------|------------------|-------|
 | Time to answer "what is X doing now?" | 30–60 min (manual) | under 10 seconds | **200x faster** |
-| Recall accuracy on temporal questions | 28% | 81% | **+189%** |
+| Search accuracy on temporal questions | 28% | 81% | **+189%** |
 | Stale signals surfaced in top results | 39% | 6% | **−85%** |
 | Signal sources covered | Press only (typically) | All 4 unified | **4x coverage** |
 | P95 query latency | N/A (manual) | under 200 ms | **Sub-second** |
@@ -727,7 +727,7 @@ competitive_intel_agent/
 ├── ingest/
 │   └── verify.py                 # poll /source/status until indexed
 ├── query/
-│   ├── recall.py                 # ask_about_competitor() - point-in-time
+│   ├── search.py                 # ask_about_competitor() - point-in-time
 │   └── trends.py                 # ask_trend_question() - historical comparison
 └── briefing/
     └── weekly.py                 # generate + send weekly Slack briefings
@@ -748,7 +748,7 @@ slack-sdk          # only if using Slack briefings
 1. Run `setup.py` to create your tenant and verify the connection.
 2. Run each connector script with real competitor data - start with one competitor and two signal types.
 3. Verify all uploads are indexed before querying.
-4. Run `python query/recall.py` to confirm results look correct.
+4. Run `python query/search.py` to confirm results look correct.
 5. Schedule `briefing/weekly.py` via cron (`0 8 * * 1`) or a workflow tool like n8n.
 
 The agent improves as you add more signals - each new press release, job posting, or review adds to the context graph that HydraDB builds automatically. There is no retraining step. Run the connector scripts on a schedule and the intelligence layer stays current without any manual curation.

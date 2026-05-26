@@ -34,7 +34,7 @@
               {
                 "group": "Usage",
                 "pages": [
-                  "essentials/v2/recall",
+                  "essentials/v2/search",
                   "essentials/v2/metadata",
                   {
                     "group": "Ingestion",

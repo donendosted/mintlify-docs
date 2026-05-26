@@ -1,11 +1,11 @@
 ---
 title: "Metadata"
-description: "How HydraDB uses metadata to scope and rank recall results deterministically — schema-aligned tenant fields, free-form per-document fields, and how they combine at search time."
+description: "How HydraDB uses metadata to scope and rank search results deterministically — schema-aligned tenant fields, free-form per-document fields, and how they combine at search time."
 ---
 
-Metadata is structured data attached to [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) so you can scope recall to a known set **before** semantic retrieval runs. It bridges the gap between vector similarity (great for "things like X") and exact scoping (essential for "must be in environment=production, must be customer=acme, must be a runbook"). HydraDB exposes two metadata layers — one declared up front and fast, one free-form and slower — and lets you combine them in a single [`POST /search`](/api-reference/v2/endpoint/search) call.
+Metadata is structured data attached to [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) so you can scope search to a known set **before** semantic retrieval runs. It bridges the gap between vector similarity (great for "things like X") and exact scoping (essential for "must be in environment=production, must be customer=acme, must be a runbook"). HydraDB exposes two metadata layers  -  one declared up front and fast, one free-form and slower  -  and lets you combine them in a single [`POST /search`](/api-reference/v2/endpoint/search) call.
 
-For the full request and response schema, see [Search — API Reference](/api-reference/v2/endpoint/search).
+For the full request and response schema, see [Search  -  API Reference](/api-reference/v2/endpoint/search).
 
 ---
 
@@ -19,7 +19,7 @@ Pick the row that matches your goal and use the parameters as a starting point:
 | Scope by a one-off or per-document field (author, slack channel, doc ID) | `additional_metadata` on ingest | Nested under `additional_metadata` in `metadata_filters` | No schema change. ~3× over-fetch, slower than the fast path. |
 | Search inside a metadata field (semantic match on a description) | `tenant_metadata` with `enable_dense_embedding: true` | Just include the field's content in your `query` | Requires the schema field to be `VARCHAR`. |
 | Keyword match on a metadata field | `tenant_metadata` with `enable_sparse_embedding: true` | `search_by: "text"` on `/search` | BM25 over that field. |
-| Combine deterministic scoping with semantic search | Both metadata kinds | `metadata_filters` + your query | Scope runs before ranking — keeps recall predictable. |
+| Combine deterministic scoping with semantic search | Both metadata kinds | `metadata_filters` + your query | Scope runs before ranking  -  keeps search predictable. |
 | Keep draft / archived / region-specific content out of user answers | `tenant_metadata.status` (or similar) | `metadata_filters: { status: "published" }` | Classic published/unpublished pattern. |
 
 If a field will be scoped on **every** query, it belongs in `tenant_metadata` and the [tenant schema](/api-reference/v2/endpoint/create-tenant). If it's ad-hoc or unique to one document, use `additional_metadata` instead.
@@ -32,7 +32,7 @@ If a field will be scoped on **every** query, it belongs in `tenant_metadata` an
 
 ### Schema declaration (set at tenant creation)
 
-Defined once in `tenant_metadata_schema` on [`POST /tenants`](/api-reference/v2/endpoint/create-tenant). Immutable after creation — plan your scope fields up front.
+Defined once in `tenant_metadata_schema` on [`POST /tenants`](/api-reference/v2/endpoint/create-tenant). Immutable after creation  -  plan your scope fields up front.
 
 | Field | Type / values | Purpose |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ Most of the time the defaults are right. When they aren't, here's where to start
 
 - **Plan scoping fields before first ingest.** Schema is immutable, and undeclared scope keys are silently ignored at search time. If you'll scope on it more than once, declare it.
 - **Pick `tenant_metadata` for hot paths, `additional_metadata` for cold ones.** Tenant-level scopes are pre-applied in the vector store; document-level scopes force a post-retrieval pass with over-fetch.
-- **Use exact-equality only.** `metadata_filters` are equality constraints across all categories. Range, contains, or fuzzy matching belong in the query, recall mode, or downstream reranking — not here.
+- **Use exact-equality only.** `metadata_filters` are equality constraints across all categories. Range, contains, or fuzzy matching belong in the query, search mode, or downstream reranking  -  not here.
 - **Keep keys stable.** Renaming a metadata key requires re-ingesting affected sources. Same goes for changing `enable_match` flags.
 - **Ingested metadata is immutable.** Once a source is indexed, its `tenant_metadata` and `additional_metadata` values are locked. To change them, re-ingest the source with the new values (use `upsert: true` and the same `source_id` / `file_id`).
 - **Don't substitute `metadata_filters` for `sub_tenant_id`.** `metadata_filters` scopes results *inside* a partition. For partitioning by user, team, or workspace, use [`sub_tenant_id`](/essentials/v2/multi-tenant).
@@ -82,11 +82,11 @@ Most of the time the defaults are right. When they aren't, here's where to start
 
 Two phases: **set up metadata** (declare the schema, then attach values at ingest), then **scope at search**.
 
-### Step 1 — Create metadata
+### Step 1  -  Create metadata
 
 The schema lives at the tenant level; values land on each source at ingest time. Both happen before any search.
 
-#### Step 1a — Declare the schema at tenant creation
+#### Step 1a  -  Declare the schema at tenant creation
 
 <CodeGroup>
 ```bash cURL
@@ -131,7 +131,7 @@ client.tenants.create(
 ```
 </CodeGroup>
 
-#### Step 1b — Attach metadata at ingest
+#### Step 1b  -  Attach metadata at ingest
 
 Drop schema-aligned values into `tenant_metadata` and any free-form per-document values into `additional_metadata`:
 
@@ -205,7 +205,7 @@ client.source.ingest(
 **Ingested metadata is immutable.** Once a source is indexed, its `tenant_metadata` and `additional_metadata` values are locked. To change them, re-ingest the source with the new values using `upsert: true` and the same `source_id` / `file_id`.
 </Warning>
 
-### Step 2 — Scope at search
+### Step 2  -  Scope at search
 
 Mix tenant-level (top-level) and document-level (nested) scopes in the same `metadata_filters` object:
 
@@ -264,10 +264,10 @@ Top-level `compliance_framework` is the fast scope, applied in the vector store 
 | Scope on an `additional_metadata` key silently ignored | Scope passed as top-level key | Nest it: `metadata_filters: { additional_metadata: { author: "alice" } }`. |
 | Schema field changes don't take effect | Schema is immutable after tenant creation | Create a new tenant with the corrected schema. There's no in-place schema migration. |
 | Metadata values on a source don't update | Ingested metadata is immutable | Re-ingest the source with `upsert: true` and the same `source_id` / `file_id`. |
-| Search returns 0 results after adding a scope | Over-scoping — combined constraints exclude everything | Start with the minimum hard constraints; add scopes one at a time and re-check counts. |
+| Search returns 0 results after adding a scope | Over-scoping  -  combined constraints exclude everything | Start with the minimum hard constraints; add scopes one at a time and re-check counts. |
 | Range / contains / fuzzy scope doesn't work | `metadata_filters` is equality-only | Move that constraint into the `query` text, use a different `search_by`, or apply it in your own post-scoping. |
 | Fields used in `metadata` but missing from response objects | Field declared as embedding-only without `enable_match` | Embedding-enabled doesn't imply scoping-enabled. Add `enable_match: true` to use it in `metadata_filters`. |
-| `additional_metadata` scope feels slow | It is — over-fetches ~3× to compensate for post-retrieval matching | Move the hot field into `tenant_metadata` and declare it in the schema. |
+| `additional_metadata` scope feels slow | It is  -  over-fetches ~3× to compensate for post-retrieval matching | Move the hot field into `tenant_metadata` and declare it in the schema. |
 
 ---
 
@@ -279,15 +279,15 @@ Top-level `compliance_framework` is the fast scope, applied in the vector store 
 
 **Multi-language corpora.** Add a `language` field with `enable_match: true`; route each query to the right language by passing `metadata_filters: { language: detect_language(query) }`.
 
-**Schema-as-product.** Treat `tenant_metadata_schema` as part of your data contract — review it like a database migration. The cost of getting it wrong (immutability + re-ingest) is real; the cost of getting it right is one extra meeting.
+**Schema-as-product.** Treat `tenant_metadata_schema` as part of your data contract  -  review it like a database migration. The cost of getting it wrong (immutability + re-ingest) is real; the cost of getting it right is one extra meeting.
 
 ---
 
 ## Related
 
-- [Knowledge](/essentials/v2/knowledge) — what attaches to knowledge sources
-- [Memories](/essentials/v2/memories) — metadata fields on memory items
-- [Multi-Tenant Support](/essentials/v2/multi-tenant) — partitioning vs scoping
-- [Search](/essentials/v2/recall) — how `metadata_filters` interact with ranking
-- [Create Tenant — API Reference](/api-reference/v2/endpoint/create-tenant) — full `tenant_metadata_schema` reference
-- [Search — API Reference](/api-reference/v2/endpoint/search) — full `metadata_filters` reference
+- [Knowledge](/essentials/v2/knowledge)  -  what attaches to knowledge sources
+- [Memories](/essentials/v2/memories)  -  metadata fields on memory items
+- [Multi-Tenant Support](/essentials/v2/multi-tenant)  -  partitioning vs scoping
+- [Search](/essentials/v2/search)  -  how `metadata_filters` interact with ranking
+- [Create Tenant  -  API Reference](/api-reference/v2/endpoint/create-tenant)  -  full `tenant_metadata_schema` reference
+- [Search  -  API Reference](/api-reference/v2/endpoint/search)  -  full `metadata_filters` reference

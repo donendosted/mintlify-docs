@@ -35,7 +35,7 @@ graph LR
     E -->|"search.query() with source: memories"| F["Manager dashboard"]
 ```
 
-- **Phase 0**: Install SDK, create tenant, upload one document, run the first recall query.
+- **Phase 0**: Install SDK, create tenant, upload one document, run the first search query.
 - **Phase 1**: Upload all four knowledge types - ADRs, org chart, product specs, meeting notes.
 - **Phase 2**: Store per-hire memory and build the manager dashboard.
 
@@ -45,7 +45,7 @@ graph LR
 
 By the end of this cookbook, you'll be able to:
 - Ingest company ADRs, org charts, meeting notes, and product specs into a shared HydraDB knowledge base
-- Verify indexing before running recall queries so new hires always get answers from complete data
+- Verify indexing before running search queries so new hires always get answers from complete data
 - Answer onboarding questions like "why did we choose Postgres?" and "who owns the payments service?" with cited answers from real documents
 - Store per-hire memory so the agent personalizes responses as each hire progresses through onboarding
 - Build a manager dashboard that surfaces patterns across all new hires' questions
@@ -550,7 +550,7 @@ if __name__ == "__main__":
 
 ---
 
-### Step 5 - Test Multi-source Recall
+### Step 5 - Test Multi-source Search
 
 After all four knowledge types are uploaded, test with questions that require pulling from multiple sources:
 
@@ -697,7 +697,7 @@ if __name__ == "__main__":
 
 ---
 
-### Step 2 - Personalized Recall
+### Step 2 - Personalized Search
 
 Use the hire's `sub_tenant_id` for personal memory and the default company knowledge scope for source context:
 
@@ -836,7 +836,7 @@ All SDK methods used in this cookbook.
     type='memory',tenant_id=..., sub_tenant_id=..., memories=[...])` | Store per-hire memory |
 | `client.search.query(tenant_id=..., query=..., max_results=..., mode=...)` | Retrieve company context for a hire question |
 | `client.search.query(
-    source='memories',tenant_id=..., sub_tenant_id=..., query=...)` | Recall hire memory for manager dashboard |
+    source='memories',tenant_id=..., sub_tenant_id=..., query=...)` | Search hire memory for manager dashboard |
 
 ### client.source.ingest - key parameters
 
@@ -866,7 +866,7 @@ Tested across onboarding evaluations at three companies (50–200 employees, kno
 |---|---|---|---|
 | Factual lookup ("who owns X?") | 61% | 89% | +46% |
 | Decision context ("why did we choose X?") | 18% | 84% | +367% |
-| Cross-source recall (doc + meeting + org chart) | 12% | 78% | +550% |
+| Cross-source search (doc + meeting + org chart) | 12% | 78% | +550% |
 | Time to first correct answer (new hire, day 1) | ~45 min | ~2 min | 95% faster |
 
 > The 18% accuracy for decision questions from standard wiki search is structural - keyword search finds documents that mention Postgres, but cannot surface the ADR that explains *why* Postgres was chosen unless the hire knows to look for it. HydraDB's context graph links the system name to the decision document automatically.

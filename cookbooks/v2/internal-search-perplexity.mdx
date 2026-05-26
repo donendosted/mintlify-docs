@@ -1072,11 +1072,11 @@ async function explainDecision(
 ): Promise<string> {
   /**
    * Answer 'why' / 'what led to' questions with full provenance.
-   * Step 1: recall chunks + graph relations from fullRecall.
+   * Step 1: search chunks + graph relations from fullRecall.
    * Step 2: retrieve user profile from recallPreferences.
    * Step 3: synthesize with citations via LLM.
    */
-  // Step 1: Recall with graph context
+  // Step 1: Search with graph context
   const data = await client.search.query({
     tenant_id: TENANT_ID,
     query: question,
@@ -1167,11 +1167,11 @@ def get_user_profile(user_id: str) -> str:
 def explain_decision(question: str, user_id: str) -> str:
     """
     Answer 'why' / 'what led to' questions with full provenance.
-    Step 1: recall chunks + graph relations from /search (source="knowledge").
+    Step 1: search chunks + graph relations from /search (source="knowledge").
     Step 2: retrieve user profile from /search (source="memories").
     Step 3: synthesize with citations via LLM.
     """
-    # Step 1: Recall with graph context
+    # Step 1: Search with graph context
     data            = client.search.query(
         tenant_id=TENANT_ID,
         query=question,
@@ -1265,12 +1265,12 @@ def smart_search(question: str, user_id: str) -> dict:
     recency_bias  = 0.3 if any(s in question.lower() for s in TREND_SIGNALS) else 0.5
 
     result = search(question, user_id, recency_bias=recency_bias)
-    return {"chunks": result.chunks or [], "type": "recall"}
+    return {"chunks": result.chunks or [], "type": "search"}
 ```
 
 ---
 
-## Step 6 - Recall User Preferences
+## Step 6 - Search User Preferences
 
 To personalize any answer, retrieve the user's stored memory profile before calling the LLM. This is the same response structure as any [`/search`](/api-reference/v2/endpoint/search) call  -  an array of `chunks`.
 
@@ -1481,7 +1481,7 @@ Body: {}
 }
 ```
 
-### Recall User Preferences
+### Search User Preferences
 ```json
 {
   "tenant_id":     "company-knowledge",
@@ -1491,7 +1491,7 @@ Body: {}
 }
 ```
 
-### Full Recall - All Sources
+### Full Search - All Sources
 ```json
 {
   "tenant_id":     "company-knowledge",
@@ -1504,7 +1504,7 @@ Body: {}
 }
 ```
 
-### Full Recall - Scoped to One Source Type
+### Full Search - Scoped to One Source Type
 ```json
 {
   "tenant_id":     "company-knowledge",
@@ -1599,5 +1599,5 @@ The search quality improves as more sources are indexed - each new Slack channel
 
 | Version | Date | Notes |
 |---|---|---|
-| 1.1 | 2026-05-14 | Added TypeScript SDK tabs (CodeGroup) for all HydraDB API call blocks: tenant creation, all four connector uploads (Slack, Gmail, Confluence, GitHub), verify processing, add memory, full recall (factual + provenance), and recall preferences. |
+| 1.1 | 2026-05-14 | Added TypeScript SDK tabs (CodeGroup) for all HydraDB API call blocks: tenant creation, all four connector uploads (Slack, Gmail, Confluence, GitHub), verify processing, add memory, full search (factual + provenance), and search preferences. |
 | 1.0 | 2026-05-09 | Initial release. Python SDK + curl examples for all six source connectors. |

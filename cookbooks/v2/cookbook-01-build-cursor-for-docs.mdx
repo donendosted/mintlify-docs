@@ -1,9 +1,9 @@
 ---
 title: "Cursor for Docs"
-description: "Go from zero to a production AI assistant that answers 'why was this built this way?' - in four phases. Start with one file and a real recall query. End with a FastAPI backend that ingests GitHub, PRs, Slack, and RFCs, then generates GPT-4o answers grounded in your codebase. Every endpoint in this guide is real and copy-paste ready."
+description: "Go from zero to a production AI assistant that answers 'why was this built this way?' - in four phases. Start with one file and a real search query. End with a FastAPI backend that ingests GitHub, PRs, Slack, and RFCs, then generates GPT-4o answers grounded in your codebase. Every endpoint in this guide is real and copy-paste ready."
 ---
 
-Go from zero to a production AI assistant that answers "why was this built this way?" in four phases. Start with one file and a real recall query. End with a FastAPI backend that ingests GitHub, PRs, Slack, and RFCs, then generates GPT-4o answers grounded in your codebase.
+Go from zero to a production AI assistant that answers "why was this built this way?" in four phases. Start with one file and a real search query. End with a FastAPI backend that ingests GitHub, PRs, Slack, and RFCs, then generates GPT-4o answers grounded in your codebase.
 
 > **How this guide is structured.** Each phase ends with something that works. Phase 0 is a complete minimal system in under 10 minutes. Phases 1–3 are progressive upgrades. You never need to redo what came before.
 
@@ -32,9 +32,9 @@ By the end of this cookbook, you'll be able to:
 
 ## Phase 0 - Minimal Working System · 5–10 minutes
 
-The only goal is to see a real recall response from a real file you uploaded. No multi-source ingestion, no backend server, no VS Code extension - just the four API calls that prove the pipeline works end-to-end.
+The only goal is to see a real search response from a real file you uploaded. No multi-source ingestion, no backend server, no VS Code extension - just the four API calls that prove the pipeline works end-to-end.
 
-**Goal:** You will run one recall query and see actual results.
+**Goal:** You will run one search query and see actual results.
 
 > ⚠️ **Do Phase 0 first, even if you plan to skip ahead.** Every later phase assumes the tenant exists and indexing works. Running Phase 0 takes under 10 minutes and eliminates the most common failure modes.
 
@@ -70,7 +70,7 @@ client = HydraDB(token=HYDRA_DB_API_KEY)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL   = "gpt-4o"
 
-# Recall defaults
+# Search defaults
 RECALL_MAX_RESULTS = 15
 RECALL_MIN_SCORE   = 0.5
 RECALL_ALPHA       = 0.75
@@ -250,11 +250,11 @@ RESPONSE: {"statuses": [{"file_id": "YOUR_FILE_ID_HERE", "indexing_status": "com
 
 ---
 
-### Step 4 - Run Your First Recall Query
+### Step 4 - Run Your First Search Query
 
 **What:** Sends a POST to `/search` and receives a `chunks` array. Each chunk has a `chunk_content` field - this is the text you will later pass to GPT-4o as context. This is the end-to-end proof that tenant, ingestion, indexing, and retrieval all work.
 
-**Validated first recall - minimal working request:**
+**Validated first search - minimal working request:**
 
 ```json
 {
@@ -273,9 +273,9 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import client, TENANT_ID
 
-def recall(query: str, max_results: int = 10):
+def search(query: str, max_results: int = 10):
     """
-    Minimal working recall.
+    Minimal working search.
     Only tenant_id + query + max_results are required.
     sub_tenant_id is NOT required - HydraDB handles scope internally.
     Returns SDK object with .chunks and .sources attributes.
@@ -288,7 +288,7 @@ def recall(query: str, max_results: int = 10):
     return data
 
 if __name__ == "__main__":
-    data   = recall("internal IP auth skip logic")
+    data   = search("internal IP auth skip logic")
     chunks  = data.chunks or []     # iterate the "chunks" array
     sources = data.sources or []    # sources list for citations
 
@@ -323,7 +323,7 @@ Sources: ['auth_middleware.md']
 
 **If it fails:** `chunks: []` - Indexing is not yet complete. Wait 30 seconds and retry. Re-run Step 3 to confirm `indexing_status: completed`.
 
-> ✅ **Phase 0 complete.** The same `/search` endpoint - with the same minimal three-field body - is what every later phase uses. You'll only add parameters, not change the structure. The `chunks` array and `chunk_content` field are now your canonical recall response objects.
+> ✅ **Phase 0 complete.** The same `/search` endpoint - with the same minimal three-field body - is what every later phase uses. You'll only add parameters, not change the structure. The `chunks` array and `chunk_content` field are now your canonical search response objects.
 
 **What you just built:** You now have a working **retrieval system**. HydraDB can store your content, index it, and return the most relevant chunks - each with a `chunk_content` text field and a `relevancy_score` - for a question. The missing layer is the reasoning backend that takes those chunks and turns them into a readable, cited answer.
 
@@ -331,16 +331,16 @@ Sources: ['auth_middleware.md']
 |---|---|
 | Tenant creation | Better metadata and chunk quality |
 | File upload | More source types for deeper context |
-| Indexing verification | GPT-4o answer generation on top of recall |
-| Recall returns chunks and sources | A backend and UI your team can use daily |
+| Indexing verification | GPT-4o answer generation on top of search |
+| Search returns chunks and sources | A backend and UI your team can use daily |
 
 ---
 
 ## Phase 1 - Improve Retrieval · 15–20 minutes
 
-Ingest multiple files with structured metadata, use collections to organise content, and tune recall parameters. At the end of this phase, recall queries return more relevant chunks across many documents.
+Ingest multiple files with structured metadata, use collections to organise content, and tune search parameters. At the end of this phase, search queries return more relevant chunks across many documents.
 
-**Goal:** 50+ files indexed with metadata, scoped recall working.
+**Goal:** 50+ files indexed with metadata, scoped search working.
 
 ### How Retrieval Works
 
@@ -350,14 +350,14 @@ Before writing more ingestion code, it's worth understanding what HydraDB actual
 
 The response also includes a `sources` array - a deduplicated list of the original documents that contributed chunks. Use `sources` for citation labels; use `chunks` for the actual LLM context.
 
-**Anatomy of a recall chunk - field reference:**
+**Anatomy of a search chunk - field reference:**
 
 | Field | Required | Description |
 |---|---|---|
 | `chunk_content` | **required** | The actual text of this chunk. **This is the canonical field you must extract.** Pass this directly to your LLM as context. It is the only field you cannot skip. |
 | `relevancy_score` | optional | Higher is more relevant. Use it for ranking, filtering low-quality chunks (drop below 0.5), or deciding how many chunks to pass into the LLM context window. |
 | `title` | optional | Human-readable label from the source document. Use for `[Source: ...]` citation references in your final answer. |
-| `chunk_uuid` | optional | Unique identifier for this chunk. Useful for deduplication when fan-out recall across sub-tenants returns the same chunk more than once. |
+| `chunk_uuid` | optional | Unique identifier for this chunk. Useful for deduplication when fan-out search across sub-tenants returns the same chunk more than once. |
 | `url` | optional | The URL you set at ingestion time. Present only if supplied. Use for deep-links in citation UI. |
 | `additional_metadata` | optional | The per-source metadata object from ingestion. May include `doc_type`, `repo`, `pr_number`, etc. |
 
@@ -370,7 +370,7 @@ The response also includes a `sources` array - a deduplicated list of the origin
 | `0.40–0.65` | Weak match - tangentially related | Include only if few high-score results |
 | `below 0.40` | Low match - probably not relevant | Drop from context to reduce noise |
 
-**How graph context changes recall:** When you add `"graph_context": true` to your recall request, HydraDB walks the explicit `relations.hydradb_source_ids` edges you set at ingestion time for every high-scoring chunk. A source file chunk can pull in the PR that last changed it. That PR can pull in the RFC it referenced. This multi-hop traversal is what makes "why" questions answerable.
+**How graph context changes search:** When you add `"graph_context": true` to your search request, HydraDB walks the explicit `relations.hydradb_source_ids` edges you set at ingestion time for every high-scoring chunk. A source file chunk can pull in the PR that last changed it. That PR can pull in the RFC it referenced. This multi-hop traversal is what makes "why" questions answerable.
 
 > 💡 **Always safe to add to Phase 0.** `"graph_context": true` has no downside with a single file and no relations - it returns the same result. Turn it on now.
 
@@ -456,7 +456,7 @@ Verifying 54 files...
 
 ### P1 · Step 2 - Metadata and Collections
 
-**What:** `collections` are labels you define for scoping recall. `additional_metadata` fields are arbitrary key-value pairs used for filtering and citation labels. No extra API calls needed - these fields go in the ingestion payload.
+**What:** `collections` are labels you define for scoping search. `additional_metadata` fields are arbitrary key-value pairs used for filtering and citation labels. No extra API calls needed - these fields go in the ingestion payload.
 
 ```json
 {
@@ -478,7 +478,7 @@ Verifying 54 files...
 
 ---
 
-### P1 · Step 3 - Tuned Recall with Graph Context
+### P1 · Step 3 - Tuned Search with Graph Context
 
 ```python
 import sys, os
@@ -716,7 +716,7 @@ if __name__ == "__main__":
 
 ### P2 · Step 4 - Ingest Wikis & RFCs
 
-**What:** Ingests Architecture Decision Records, RFCs, Confluence pages, and Notion wikis. Tag each with `doc_type` so recall can be scoped to decisions-only when that is what a question requires.
+**What:** Ingests Architecture Decision Records, RFCs, Confluence pages, and Notion wikis. Tag each with `doc_type` so search can be scoped to decisions-only when that is what a question requires.
 
 ```python
 import sys, os, time, pathlib
@@ -817,31 +817,31 @@ Build a production FastAPI server. HydraDB is the memory layer - it retrieves ra
 The flow through the backend is:
 
 1. **Question** - `POST /chat` or `/ask`
-2. **Recall** - `search_docs()` → chunks
+2. **Search** - `search_docs()` → chunks
 3. **Context block** - `chunk_content` assembled
 4. **GPT-4o** - writes grounded answer
 5. **Response** - answer + citations
 
-**Why split retrieval and reasoning?** Because they fail differently. Weak recall means you improve ingestion, metadata, or graph links. Weak answers mean you improve prompt construction or model behavior. Keeping the layers separate means you can isolate which side is the problem.
+**Why split retrieval and reasoning?** Because they fail differently. Weak search means you improve ingestion, metadata, or graph links. Weak answers mean you improve prompt construction or model behavior. Keeping the layers separate means you can isolate which side is the problem.
 
 **File structure:**
 
 ```
 backend/
 ├── __init__.py       - makes backend a package so imports work
-├── config.py         - env vars, HYDRA_DB_API_KEY, HydraDB client, OpenAI keys, recall defaults
+├── config.py         - env vars, HYDRA_DB_API_KEY, HydraDB client, OpenAI keys, search defaults
 ├── hydra_client.py   - search_docs() wrapper for HydraDB retrieval
-├── recall.py         - recall_context() and build_context_block(); extracts chunk_content
+├── search.py         - recall_context() and build_context_block(); extracts chunk_content
 ├── answer.py         - prompt formatter, GPT-4o streaming call, anti-hallucination rules
 └── app.py            - FastAPI server; /chat (streaming) and /ask (sync JSON, easier for Postman)
 ```
 
 **Architecture summary:**
 
-- **`config.py`** - Loads `.env`, exposes `HYDRA_DB_API_KEY`, `TENANT_ID`, `client` (HydraDB SDK instance), `OPENAI_API_KEY`, and recall defaults. Every other file imports from here only.
-- **`hydra_client.py`** - `search_docs()` is the HydraDB retrieval path. It returns chunks, sources, and graph context; prompt formatting and OpenAI calls stay in `answer.py`. Imported by → `recall.py`, `app.py`.
-- **`recall.py`** - `recall_context()` calls `search_docs()` and returns the raw payload. `build_context_block()` extracts `chunk_content` from each chunk and assembles a formatted context string for the LLM. Imported by → `app.py`.
-- **`answer.py`** - Takes the context block from `recall.py`, formats the system + user prompt, and calls the OpenAI streaming API. Contains all anti-hallucination rules. Never calls HydraDB. Imported by → `app.py`.
+- **`config.py`** - Loads `.env`, exposes `HYDRA_DB_API_KEY`, `TENANT_ID`, `client` (HydraDB SDK instance), `OPENAI_API_KEY`, and search defaults. Every other file imports from here only.
+- **`hydra_client.py`** - `search_docs()` is the HydraDB retrieval path. It returns chunks, sources, and graph context; prompt formatting and OpenAI calls stay in `answer.py`. Imported by → `search.py`, `app.py`.
+- **`search.py`** - `recall_context()` calls `search_docs()` and returns the raw payload. `build_context_block()` extracts `chunk_content` from each chunk and assembles a formatted context string for the LLM. Imported by → `app.py`.
+- **`answer.py`** - Takes the context block from `search.py`, formats the system + user prompt, and calls the OpenAI streaming API. Contains all anti-hallucination rules. Never calls HydraDB. Imported by → `app.py`.
 - **`app.py`** - Two endpoints: `POST /chat` streams NDJSON token-by-token - ideal for a web or IDE frontend. `POST /ask` returns a complete JSON response with `answer`, `sources`, and `chunks` - easier for Postman testing. Both use the same `recall_context` → `build_context_block` → `stream_answer` pipeline.
 
 **Install dependencies for Phase 3:**
@@ -885,7 +885,7 @@ client = HydraDB(token=HYDRA_DB_API_KEY)
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 OPENAI_MODEL   = "gpt-4o"
 
-# Recall defaults
+# Search defaults
 RECALL_MAX_RESULTS = 15
 RECALL_MIN_SCORE   = 0.5   # drop chunks below this before building LLM context
 RECALL_ALPHA       = 0.75  # semantic vs keyword balance
@@ -933,7 +933,7 @@ def search_docs(
 
 ---
 
-### backend/recall.py
+### backend/search.py
 
 `recall_context()` calls `search_docs()` and returns the raw HydraDB payload. `build_context_block()` reads the `chunks` array, extracts each `chunk_content` field, and assembles them into a single formatted string that is passed to the LLM. The `sources` array from the payload is used separately by `app.py` for citation output.
 
@@ -994,7 +994,7 @@ def build_context_block(recall_payload) -> str:
 
 ### backend/answer.py
 
-Takes the context block string from `recall.py` and turns it into a grounded GPT-4o answer. This is the only file that touches OpenAI. If the context string is empty, it returns a safe fallback without calling the model at all - this is the primary hallucination guard.
+Takes the context block string from `search.py` and turns it into a grounded GPT-4o answer. This is the only file that touches OpenAI. If the context string is empty, it returns a safe fallback without calling the model at all - this is the primary hallucination guard.
 
 ```python
 from typing import Generator
@@ -1081,7 +1081,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-from backend.recall import recall_context, build_context_block
+from backend.search import recall_context, build_context_block
 from backend.answer import stream_answer
 
 app = FastAPI(title="Cursor for Docs API")
@@ -1153,7 +1153,7 @@ def ask(body: dict):
 
 Understanding the exact data path prevents debugging confusion. `build_context_block()` does the following in order:
 
-1. **Read the `chunks` array** from the recall payload. `/search` returns `{"chunks": [...], "sources": [...]}` - always iterate `chunks`, never `results`.
+1. **Read the `chunks` array** from the search payload. `/search` returns `{"chunks": [...], "sources": [...]}` - always iterate `chunks`, never `results`.
 2. **Extract `chunk_content`** from each chunk object. This is the raw text of the chunk - a few hundred tokens of the original document. It is the only required field. Skip any chunk where `chunk_content` is absent or empty.
 3. **Join all `chunk_content` values** with double newlines to form the context body.
 4. **Append the sources list** from `recall_payload.sources` in `- title (id)` format so the model can cite them.
@@ -1246,11 +1246,11 @@ curl -s -X POST http://localhost:8000/ask \
 
 ## Phase 4 - Productization · Coming next
 
-Ship the assistant to your team. Build the VS Code extension sidebar, set up a daily incremental sync cron job, wire a GitHub Actions workflow for on-push indexing, and monitor recall quality over time.
+Ship the assistant to your team. Build the VS Code extension sidebar, set up a daily incremental sync cron job, wire a GitHub Actions workflow for on-push indexing, and monitor search quality over time.
 
 **Goal:** Team using it daily with a fresh index on every merge.
 
-Detailed implementation coming in the next revision. Everything in Phase 4 is packaging around a working Phase 3 server. Planned components: VS Code extension (TypeScript), Webview chat UI, Active-file context injection, Daily cron sync, GitHub Actions on push to main, Incremental re-index, Recall quality monitoring.
+Detailed implementation coming in the next revision. Everything in Phase 4 is packaging around a working Phase 3 server. Planned components: VS Code extension (TypeScript), Webview chat UI, Active-file context injection, Daily cron sync, GitHub Actions on push to main, Incremental re-index, Search quality monitoring.
 
 ### If Your Retrieval Quality Is Weak
 
@@ -1261,7 +1261,7 @@ Detailed implementation coming in the next revision. Everything in Phase 4 is pa
 
 ### How to Extend Beyond the First Version
 
-A good progression: Phase 0 recall in the terminal → FastAPI `/ask` in Postman → FastAPI `/chat` with a simple web frontend → VS Code sidebar → streaming, incremental sync, caching, usage analytics.
+A good progression: Phase 0 search in the terminal → FastAPI `/ask` in Postman → FastAPI `/chat` with a simple web frontend → VS Code sidebar → streaming, incremental sync, caching, usage analytics.
 
 ---
 
@@ -1279,7 +1279,7 @@ A good progression: Phase 0 recall in the terminal → FastAPI `/ask` in Postman
 
 **Fix:** Run `python3 phase0/create_tenant.py` and wait for "✓ Tenant ready." before proceeding. Confirm `TENANT_ID` in `config.py` exactly matches what you passed to `create_tenant`.
 
-### 404 - Not Found (on recall or ingestion endpoint)
+### 404 - Not Found (on search or ingestion endpoint)
 
 **Cause:** The endpoint path has a typo, extra slash, or missing segment. Also occurs when querying a `sub_tenant_id` that has never had data written to it.
 
@@ -1291,15 +1291,15 @@ A good progression: Phase 0 recall in the terminal → FastAPI `/ask` in Postman
 
 **Fix:** For file upload: use `files={"files": (filename, f, "text/markdown")}` and `data={"tenant_id": TENANT_ID}`. Do NOT set `Content-Type` manually. For JSON batch: confirm each item has `id`, `type`, and `content.text`.
 
-### Empty Recall - chunks: []
+### Empty Search - chunks: []
 
 **Cause:** Indexing is still in progress, or `relevancy_score` filtering in `build_context_block` is too aggressive, or the query does not semantically match any ingested content.
 
-**Fix:** Step 1 - Run `verify_file()` and confirm `"indexing_status": "completed"` in the `statuses` array. Step 2 - Run `phase0/recall.py` directly and print the raw response - check that the `chunks` key is present and non-empty before any filtering. Step 3 - Check the `relevancy_score` values on returned chunks.
+**Fix:** Step 1 - Run `verify_file()` and confirm `"indexing_status": "completed"` in the `statuses` array. Step 2 - Run `phase0/search.py` directly and print the raw response - check that the `chunks` key is present and non-empty before any filtering. Step 3 - Check the `relevancy_score` values on returned chunks.
 
 ### 429 - OpenAI insufficient_quota
 
-**Cause:** Your OpenAI account has run out of credits or hit its usage limit. This is an OpenAI-side error - HydraDB retrieval may be working perfectly. The error appears in `stream_answer()` inside `answer.py`, not in the HydraDB recall step.
+**Cause:** Your OpenAI account has run out of credits or hit its usage limit. This is an OpenAI-side error - HydraDB retrieval may be working perfectly. The error appears in `stream_answer()` inside `answer.py`, not in the HydraDB search step.
 
 **Fix:** Add billing or upgrade your OpenAI plan at `platform.openai.com`. While debugging, replace `stream_answer` in `answer.py` with this temporary debug fallback - it returns the raw retrieved context without calling OpenAI:
 
@@ -1320,12 +1320,12 @@ def stream_answer(question: str, context: str):
 
 - **Batch size and rate limits.** The JSON batch upload endpoint accepts a maximum of **20 source objects per request**. Always sleep 1 second between batches. For large repos (1,000+ files), expect ingestion to take 10–30 minutes total.
 - **Indexing delays.** Indexing is async. Never rely on a fixed sleep; always poll [`/source/status`](/api-reference/v2/endpoint/source-status) until the `statuses` array shows `"indexing_status": "completed"`.
-- **Consistency and upserts.** HydraDB upserts by `id` - re-uploading replaces the existing document. There is a brief window where recall may return stale chunks. Run verify on new IDs before marking a deployment complete.
+- **Consistency and upserts.** HydraDB upserts by `id` - re-uploading replaces the existing document. There is a brief window where search may return stale chunks. Run verify on new IDs before marking a deployment complete.
 - **LLM context window.** The basic `build_context_block` assembles all chunk text. For production, add a `relevancy_score` filter and a character cap (e.g. 12,000 chars) to prevent exceeding GPT-4o's context window.
 - **Graph edge consistency.** Graph edges only form if both sides exist and are indexed. Always ingest source files first, then PRs. Re-ingest affected PRs if you add new files after initial ingestion.
 - **API key security.** The HydraDB API key grants full access to all tenant data. Never commit it to git. Use environment secrets in production. Rotate immediately if you suspect exposure.
 - **OpenAI token costs.** Each question sends context + system prompt + question to GPT-4o. For a 50-engineer team asking 200 questions/day, budget $2–4/day. Use `gpt-4o-mini` for factual lookups to reduce cost.
-- **Recall quality monitoring.** Log the `relevancy_score` value of each chunk included in a response. If median scores are falling over time, new content may be diluting the index - re-ingest with better metadata and collections tagging. Also confirm the `chunks` array is non-empty before sending context to GPT-4o.
+- **Search quality monitoring.** Log the `relevancy_score` value of each chunk included in a response. If median scores are falling over time, new content may be diluting the index - re-ingest with better metadata and collections tagging. Also confirm the `chunks` array is non-empty before sending context to GPT-4o.
 
 ---
 
@@ -1415,7 +1415,7 @@ client.source.ingest(
 // indexing_status: "processing" | "completed" | "errored"
 ```
 
-### Recall - Validated Minimal Request
+### Search - Validated Minimal Request
 
 **POST** `/search` - Primary verified path · `sub_tenant_id` optional · returns `chunks[]` and `sources[]`
 
@@ -1432,7 +1432,7 @@ client.source.ingest(
 // relevancy_score on each chunk indicates ranked relevance.
 ```
 
-### Multi-hop Recall
+### Multi-hop Search
 
 **POST** `/search` - Use for multi-hop retrieval, then generate the answer in your app layer
 
@@ -1457,9 +1457,9 @@ client.source.ingest(
 | Query type | Naive vector search | HydraDB with graph_context | Δ |
 |---|---|---|---|
 | "Why was X built this way?" | 22% | 87% | +295% |
-| Cross-source recall (code + PR + Slack) | 14% | 79% | +464% |
+| Cross-source search (code + PR + Slack) | 14% | 79% | +464% |
 | Factual lookup ("what does X do?") | 71% | 91% | +28% |
 | Decision trail completeness (3+ hops cited) | 4% | 68% | +1,600% |
-| P95 recall latency | 180ms | under 200 ms | Sub-second |
+| P95 search latency | 180ms | under 200 ms | Sub-second |
 
 > ℹ️ The 22% accuracy on "why" questions isn't a tuning problem - it's structural. Embedding a source file and the RFC that motivated it produces similar-but-unlinked vectors. Without explicit graph edges, the RFC never surfaces when the source file matches. HydraDB makes the connection explicit: every node linked to your query gets traversed, not just nodes that look semantically similar.

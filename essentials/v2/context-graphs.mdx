@@ -1,6 +1,6 @@
 ---
 title: "Context Graphs"
-description: "How HydraDB models relationships between chunks using triplets to improve recall quality."
+description: "How HydraDB models relationships between chunks using triplets to improve search quality."
 ---
 
 ## 1. What it is
@@ -15,7 +15,7 @@ Context graphs augment retrieval. They do not replace it.
 
 ## 2. What it does
 
-When `graph_context: true` is set on a recall call, HydraDB returns relationship data alongside the retrieved chunks - showing how those chunks connect to each other and to your query.
+When `graph_context: true` is set on a search call, HydraDB returns relationship data alongside the retrieved chunks - showing how those chunks connect to each other and to your query.
 
 This helps your LLM reason about questions that require connecting information across multiple chunks or sources. Similarity search returns relevant content; the context graph surfaces how that content fits together.
 
@@ -35,11 +35,11 @@ Skip them for direct factual lookups. Graph traversal adds response size and can
 
 ## 4. How it works
 
-Context graphs are hybrid: relationships are extracted at ingestion time and traversed at recall time.
+Context graphs are hybrid: relationships are extracted at ingestion time and traversed at search time.
 
 **At ingestion**, HydraDB extracts relationships from your data and stores them in the graph. Sources can also declare explicit relationships to other sources via a `relations` payload at ingestion.
 
-**At recall**, when `graph_context: true` is set:
+**At search**, when `graph_context: true` is set:
 
 1. HydraDB runs hybrid retrieval to find relevant chunks.
 2. It traverses the graph to discover relevant relationships between retrieved context.
@@ -174,7 +174,7 @@ The helper formats triplets as:
 
 ## 8. Common mistakes
 
-**Forgetting `graph_context: true`.** Without the flag, recall still returns chunks, but the graph fields will not be populated.
+**Forgetting `graph_context: true`.** Without the flag, search still returns chunks, but the graph fields will not be populated.
 
 **Assuming the graph replaces retrieval.** It doesn't. `chunks` is still the primary result; the graph enriches it with relationships. Use both.
 
@@ -188,8 +188,8 @@ The helper formats triplets as:
 
 ## Related
 
-- [Recall](/essentials/v2/recall) - how chunks and graph context are retrieved together
+- [Search](/essentials/v2/search) - how chunks and graph context are retrieved together
 - [Memories](/essentials/v2/memories) - user-scoped context for personalization
 - [Knowledge](/essentials/v2/knowledge) - document-level context for shared retrieval
 - [How to Use API Results](/essentials/v2/api-results) - formatting graph context for LLM prompts
-- [Full Recall API Reference](/api-reference/v2/endpoint/search-overview) - full graph response schema
+- [Full Search API Reference](/api-reference/v2/endpoint/search-overview) - full graph response schema

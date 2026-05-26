@@ -7,7 +7,7 @@ description: "What Memories are, how they differ from Knowledge, and how to writ
 
 Memories are the user-scoped context HydraDB stores so your application can **personalize responses over time**. A single memory is a unit of user-specific context  -  a preference, a past conversation, an inferred trait, or a raw fact  -  that an agent should be able to bring back to the next session and the one after that.
 
-Memories are the per-user counterpart to [Knowledge](/essentials/v2/knowledge). Knowledge holds the tenant-wide context everyone in your workspace can see; memories hold the slice that's specific to one user, workspace, or session. Both surface through [Recall](/essentials/v2/recall) when relevant.
+Memories are the per-user counterpart to [Knowledge](/essentials/v2/knowledge). Knowledge holds the tenant-wide context everyone in your workspace can see; memories hold the slice that's specific to one user, workspace, or session. Both surface through [Search](/essentials/v2/search) when relevant.
 
 | | Memories | Knowledge |
 |---|---|---|
@@ -17,7 +17,7 @@ Memories are the per-user counterpart to [Knowledge](/essentials/v2/knowledge). 
 | **`vectorstore_status`** | Index `0` (`[0]`) | Index `1` (`[1]`) |
 
 <Info>
-  **One endpoint, two stores.** Memories and [Knowledge](/essentials/v2/knowledge) live in separate stores, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"`  -  results are merged and re-ranked together. That's the canonical recipe for personalized RAG. See [Recall](/essentials/v2/recall).
+  **One endpoint, two stores.** Memories and [Knowledge](/essentials/v2/knowledge) live in separate stores, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"`  -  results are merged and re-ranked together. That's the canonical recipe for personalized RAG. See [Search](/essentials/v2/search).
 </Info>
 
 ---
@@ -144,7 +144,7 @@ Memories live in their own vector store, distinct from [Knowledge](/essentials/v
 
 <Info>
   <strong>One endpoint, two stores.</strong>
-  <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <a href="/api-reference/v2/endpoint/search"><code>POST /search</code></a> call  -  HydraDB runs both stores in parallel and merges results for you. See <a href="/essentials/v2/recall">Recall</a>.</p>
+  <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <a href="/api-reference/v2/endpoint/search"><code>POST /search</code></a> call  -  HydraDB runs both stores in parallel and merges results for you. See <a href="/essentials/v2/search">Search</a>.</p>
 </Info>
 
 Within a tenant, memories are scoped by `sub_tenant_id`. For per-user separation (B2C), use the user's ID as the `sub_tenant_id`. For shared memory across a workspace, use a stable workspace-level ID. Omitting `sub_tenant_id` writes the memory to the tenant's default sub-tenant  -  see [Multi-Tenant](/essentials/v2/multi-tenant) for scoping patterns and the pitfalls of mixing scopes on read vs. write.
@@ -176,8 +176,8 @@ Ingestion is asynchronous  -  memories aren't immediately searchable. Poll [`GET
 | `custom_instructions` | string | Guides inference extraction. Only applies when `infer: true`. |
 | `user_name` | string | The user's name. Used during inference and personalization workflows. Default `"User"`. |
 | `title` | string | Short human-readable label for the memory. Surfaced in `/source/list` results and in search hits as `source.title`. Use it as the display label in UIs and as a concise summary the LLM can quote when citing the memory. If omitted, HydraDB falls back to a truncated snippet of `text`. |
-| `expiry_time` | integer | TTL in seconds. After expiry, the memory is no longer returned by recall. |
-| `metadata` | object | Filterable fields aligned with the tenant metadata schema. Keys defined in `tenant_metadata_schema` are matchable at recall time. |
+| `expiry_time` | integer | TTL in seconds. After expiry, the memory is no longer returned by search. |
+| `metadata` | object | Filterable fields aligned with the tenant metadata schema. Keys defined in `tenant_metadata_schema` are matchable at search time. |
 | `additional_metadata` | object | Free-form key-value pairs attached to the memory. Not matchable; useful for display and bookkeeping. |
 | `relations` | object | Author-declared links to other memories. **Shape:** `{ "cortex_source_ids": ["<memory_source_id_1>", "<memory_source_id_2>"] }`. All IDs must be memories that already exist (or are being ingested in the same request) under the same `sub_tenant_id`. Pointing at a Knowledge source ID will silently return nothing. Surfaced as `additional_context` only when search is called with `mode: "thinking"`. |
 
@@ -250,14 +250,14 @@ client.source.ingest(
 ```
 </CodeGroup>
 
-At recall time, linked memories come back in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true`  -  you only need to set it if you want to disable forceful-relation expansion.
+At search time, linked memories come back in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true`  -  you only need to set it if you want to disable forceful-relation expansion.
 
 <Warning>
-**Memory items only.** Forceful relations work within the same store. Pointing a Memory item at a Knowledge source ID (or vice versa) will silently return nothing at recall time.
+**Memory items only.** Forceful relations work within the same store. Pointing a Memory item at a Knowledge source ID (or vice versa) will silently return nothing at search time.
 </Warning>
 
 <Warning>
-**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the recall request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
+**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the search request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
 </Warning>
 
 ## 8. Minimal working example
@@ -451,6 +451,6 @@ The same input with `infer: false` would index the raw text verbatim - useful on
 ## Related
 
 - [Knowledge](/essentials/v2/knowledge) - shared, tenant-wide document context
-- [Recall](/essentials/v2/recall) - how memories are retrieved at query time
+- [Search](/essentials/v2/search) - how memories are retrieved at query time
 - [Multi-tenant support](/essentials/v2/multi-tenant) - scoping memories per user or workspace
 - [Metadata](/essentials/v2/metadata) - designing filterable fields

@@ -1,21 +1,21 @@
 ---
 title: "Semantic Search & Retrieval"
-description: "How semantic, lexical, graph, and metadata signals work together in HydraDB recall."
+description: "How semantic, keyword bm25, graph, and metadata signals work together in HydraDB search."
 ---
 
-Semantic search is useful because it retrieves by meaning instead of exact wording. It is also incomplete on its own: production agents need exact matches, freshness, scope, tenant isolation, metadata filters, and graph relationships. HydraDB recall combines those signals so you can retrieve context that is useful, not just similar.
+Semantic search is useful because it retrieves by meaning instead of exact wording. It is also incomplete on its own: production agents need exact matches, freshness, scope, tenant isolation, metadata filters, and graph relationships. HydraDB search combines those signals so you can retrieve context that is useful, not just similar.
 
 ---
 
-## Semantic vs Lexical
+## Semantic vs Keyword BM25
 
 | Search Type | Finds | Best For |
 |---|---|---|
 | Semantic | Text with similar meaning | Natural-language questions, paraphrases, conceptual lookup |
-| Lexical | Text with matching tokens | Error codes, identifiers, names, SKUs, exact phrases |
+| Keyword BM25 | Text with matching tokens | Error codes, identifiers, names, SKUs, exact phrases |
 | Graph | Related entities and relationships | Multi-hop questions, dependencies, ownership, project context |
 
-`POST /search` is the single recall endpoint. Two parameters decide what runs:
+`POST /search` is the single search endpoint. Two parameters decide what runs:
 
 - **`source`** picks the collection: `"knowledge"` (Knowledge), `"memories"` (user-scoped Memories), or `"all"` (both, merged and re-ranked together).
 - **`search_by`** picks the retrieval method: `"hybrid"` (semantic + BM25, the default), `"text"` (BM25 only, with `operator: "or" | "and" | "phrase"`), or `"vector"` (dense vectors only).
@@ -38,15 +38,15 @@ That is why HydraDB exposes semantic retrieval as one method (`search_by: "hybri
 
 ## The `alpha` Parameter
 
-`alpha` controls the semantic-vs-lexical blend when `search_by: "hybrid"`. Higher values lean semantic. Lower values lean lexical.
+`alpha` controls the semantic-vs-keyword-bm25 blend when `search_by: "hybrid"`. Higher values lean semantic. Lower values lean keyword bm25.
 
 | `alpha` | Behavior | Use When |
 |---|---|---|
 | `1.0` | Semantic-heavy | Conceptual questions and paraphrases |
-| `0.8` | Default semantic-leaning hybrid | Most agent recall workflows |
+| `0.8` | Default semantic-leaning hybrid | Most agent search workflows |
 | `0.5` | Balanced | Mixed natural language and exact terms |
-| `0.2` | Lexical-leaning | Queries with product names, error strings, or IDs |
-| `0.0` | Lexical-heavy | Debugging exact-match behavior |
+| `0.2` | Keyword BM25-leaning | Queries with product names, error strings, or IDs |
+| `0.0` | Keyword BM25-heavy | Debugging exact-match behavior |
 
 Start with the API default (`0.8`) and tune from observed results. If users search for exact IDs and get loosely related content, lower `alpha`. If they ask broad conceptual questions and get sparse results, raise it. `alpha` applies only to `search_by: "hybrid"`; it is ignored for `"text"` and `"vector"`.
 
@@ -317,13 +317,13 @@ See [How to Use API Results](/essentials/v2/api-results) for complete context-bu
 
 ## Mental Model
 
-Semantic search finds text that means the same thing. Lexical search finds text that says the same thing. Graph context finds connected entities. Metadata filters decide what is allowed to be searched. `POST /search` combines all four behind one endpoint via `source`, `search_by`, `metadata_filters`, and `graph_context` so your agents get context that is scoped, relevant, and explainable.
+Semantic search finds text that means the same thing. Keyword BM25 search finds text that says the same thing. Graph context finds connected entities. Metadata filters decide what is allowed to be searched. `POST /search` combines all four behind one endpoint via `source`, `search_by`, `metadata_filters`, and `graph_context` so your agents get context that is scoped, relevant, and explainable.
 
 ---
 
 ## Related
 
-- [Recall](/essentials/v2/recall) - full parameter reference and parallel recall patterns
+- [Search](/essentials/v2/search) - full parameter reference and parallel search patterns
 - [Context Graphs](/essentials/v2/context-graphs) - how graph context enriches retrieval
 - [Metadata](/essentials/v2/metadata) - designing filterable schemas
 - [How to Use API Results](/essentials/v2/api-results) - turning the response into an LLM prompt

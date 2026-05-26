@@ -125,9 +125,9 @@ The v2 SDKs are a deliberate consolidation. A few common v1 → v2 method swaps:
 | `client.upload.knowledge(...)` | `client.source.ingest(type="knowledge", ...)` |
 | `client.upload.addMemory(...)` | `client.source.ingest(type="memory", ...)` |
 | `client.upload.verifyProcessing(...)` | `client.source.status(...)` |
-| `client.recall.fullRecall(...)` | `client.search.query(source="knowledge", ...)` |
-| `client.recall.recallPreferences(...)` | `client.search.query(source="memories", ...)` |
-| `client.recall.booleanRecall(...)` | `client.search.query(search_by="text", ...)` |
+| `client.search.fullRecall(...)` | `client.search.query(source="knowledge", ...)` |
+| `client.search.recallPreferences(...)` | `client.search.query(source="memories", ...)` |
+| `client.search.booleanRecall(...)` | `client.search.query(search_by="text", ...)` |
 | `client.fetch.listData(...)` | `client.source.list(...)` |
 | `client.fetch.graphRelationsBySourceId(...)` | `client.source.relations(...)` |
 | `client.fetch.content(...)` | `client.source.fetch(...)` |
@@ -560,5 +560,5 @@ This works because the SDKs are fully typed with comprehensive parameter docs so
 - [API Reference](/api-reference/v2)  -  complete endpoint documentation
 - [Error Responses](/api-reference/error-responses)  -  HTTP codes, error codes, retry patterns
 - [Quickstart](/get-started/v2/quickstart)  -  build your first integration in five minutes
-- [Recall](/essentials/v2/recall)  -  conceptual overview of `POST /search`
+- [Search](/essentials/v2/search)  -  conceptual overview of `POST /search`
 - [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories)  -  ingestion deep-dives

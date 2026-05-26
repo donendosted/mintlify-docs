@@ -443,7 +443,7 @@ class ChiefOfStaffOrchestrator:
         session_id = session_id or str(uuid.uuid4())
 
         # Step 1 - Ask HydraDB for the best function
-        recall = client.search.query(
+        search = client.search.query(
             tenant_id=TENANT_ID,
             sub_tenant_id=sub_tenant,
             query=task,
@@ -452,7 +452,7 @@ class ChiefOfStaffOrchestrator:
             metadata_filters={"deprecated": False},
         )
 
-        chunks = recall.chunks or []
+        chunks = search.chunks or []
         if not chunks:
             return {"status": "no_match", "message": "No function found for this task."}
 
@@ -687,7 +687,7 @@ log_function_feedback(
 ## Store Agent Memory
 
 
-Two types of memory drive personalization. **User preference memory** stores how each person prefers to work - which channels they favour, which functions they trust, how they phrase requests. **Execution outcome memory** stores what happened when functions were called - successes, failures, latency patterns, user corrections. Together, these build a complete model of each user's working style that HydraDB uses to shift function suggestion rankings on every recall.
+Two types of memory drive personalization. **User preference memory** stores how each person prefers to work - which channels they favour, which functions they trust, how they phrase requests. **Execution outcome memory** stores what happened when functions were called - successes, failures, latency patterns, user corrections. Together, these build a complete model of each user's working style that HydraDB uses to shift function suggestion rankings on every search.
 
 
 ### User preference memory
@@ -869,14 +869,14 @@ def generate_execution_plan(
 ) -> list:
     """
     Generate a multi-step execution plan for a complex task.
-    1. Recall the most relevant functions from HydraDB using mode: "thinking".
+    1. Search the most relevant functions from HydraDB using mode: "thinking".
     2. Pass the ranked functions + task to an LLM for sequencing.
     3. Return a structured plan: [{step, function_id, params, depends_on}].
 
     max_steps: cap the plan length to avoid runaway chains.
     """
-    # Step 1: recall candidate functions with thinking mode
-    recall = client.search.query(
+    # Step 1: search candidate functions with thinking mode
+    search = client.search.query(
         tenant_id=TENANT_ID,
         sub_tenant_id=sub_tenant,
         query=task,
@@ -886,7 +886,7 @@ def generate_execution_plan(
         metadata_filters={"deprecated": False},
     )
 
-    chunks = recall.chunks or []
+    chunks = search.chunks or []
     if not chunks:
         return []
 
@@ -896,7 +896,7 @@ def generate_execution_plan(
         for i, c in enumerate(chunks)
     )
 
-    # Recall user preferences to personalise the plan
+    # Search user preferences to personalise the plan
     user_prefs = client.search.query(
         source='memories',
         tenant_id=TENANT_ID,
@@ -1044,7 +1044,7 @@ COMPENSATION_REGISTRY = {
     "create_github_access":   lambda r: revoke_github_access(r.get("username")),
     "create_calendar_event":  lambda r: delete_calendar_event(r.get("event_id")),
     # "send_slack_message":    None,  - cannot be meaningfully rolled back
-    # "send_email":            None,  - cannot be recalled programmatically
+    # "send_email":            None,  - cannot be searched programmatically
 }
 
 def rollback_plan(results: dict, failed_step: int):
@@ -1093,7 +1093,7 @@ The Chief of Staff should react to three types of input: direct commands from us
 ### Slack slash-command (direct commands)
 
 
-Expose a Slack slash-command that forwards the user's natural-language instruction directly to the Orchestrator. The Slack user ID maps to the `user_id` used for memory recall, so HydraDB already knows this user's preferences and personalizes the function suggestion accordingly.
+Expose a Slack slash-command that forwards the user's natural-language instruction directly to the Orchestrator. The Slack user ID maps to the `user_id` used for memory search, so HydraDB already knows this user's preferences and personalizes the function suggestion accordingly.
 
 
 ```python title="triggers/slack_command.py"
@@ -1545,7 +1545,7 @@ Header: `Authorization: Bearer YOUR_API_KEY`
 ```
 
 
-### Recall function suggestions (single-step)
+### Search function suggestions (single-step)
 
 
 **`POST /search`** - Returns top-matched function knowledge objects
@@ -1557,14 +1557,14 @@ Header: `Authorization: Bearer YOUR_API_KEY`
   "sub_tenant_id": "functions",         // or team-scoped sub-tenant
   "query":         "book a 30-min call with alice next tuesday",
   "max_results":   5,
-  "mode":          "thinking",         // multi-query rerank + personalised recall
+  "mode":          "thinking",         // multi-query rerank + personalised search
   "graph_context": false,              // not needed for single function lookup
   "metadata_filters": { "deprecated": false }
 }
 ```
 
 
-### Recall function candidates (multi-step planning)
+### Search function candidates (multi-step planning)
 
 
 **`POST /search`** - graph_context: true surfaces composed function chains
@@ -1583,7 +1583,7 @@ Header: `Authorization: Bearer YOUR_API_KEY`
 ```
 
 
-### Recall user preferences (personalise suggestions)
+### Search user preferences (personalise suggestions)
 
 
 **`POST /search`** - Returns channel preferences, urgency signals, communication style

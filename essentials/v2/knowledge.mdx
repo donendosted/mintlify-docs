@@ -5,9 +5,9 @@ description: "What Knowledge is, how it differs from Memories, and how to ingest
 
 ## 1. What it is
 
-Knowledge is the shared, tenant-wide context that every user and agent in a tenant can recall  -  product documents, internal wikis, policy PDFs, Slack threads, Notion pages, CSVs, emails, and anything else that ought to be reusable across the workspace.
+Knowledge is the shared, tenant-wide context that every user and agent in a tenant can search  -  product documents, internal wikis, policy PDFs, Slack threads, Notion pages, CSVs, emails, and anything else that ought to be reusable across the workspace.
 
-Knowledge is the counterpart to [Memories](/essentials/v2/memories), which holds per-user context. Both are retrievable through the same [`POST /search`](/api-reference/v2/endpoint/search) endpoint, but they live in separate stores; you pick which one to search via the `source` parameter (see [Recall](/essentials/v2/recall)).
+Knowledge is the counterpart to [Memories](/essentials/v2/memories), which holds per-user context. Both are retrievable through the same [`POST /search`](/api-reference/v2/endpoint/search) endpoint, but they live in separate stores; you pick which one to search via the `source` parameter (see [Search](/essentials/v2/search)).
 
 | | Knowledge | Memories |
 |---|---|---|
@@ -18,7 +18,7 @@ Knowledge is the counterpart to [Memories](/essentials/v2/memories), which holds
 | **`vectorstore_status`** | Index `1` | Index `0` |
 
 <Info>
-  **One endpoint, two stores.** Knowledge and memories are stored separately, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"`  -  results are merged and re-ranked together. Pick `source: "knowledge"` for shared-doc RAG, `source: "memories"` for per-user context, or `source: "all"` for personalized answers grounded in both. See [Recall](/essentials/v2/recall) for the full picture.
+  **One endpoint, two stores.** Knowledge and memories are stored separately, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"`  -  results are merged and re-ranked together. Pick `source: "knowledge"` for shared-doc RAG, `source: "memories"` for per-user context, or `source: "all"` for personalized answers grounded in both. See [Search](/essentials/v2/search) for the full picture.
 </Info>
 
 ---
@@ -33,7 +33,7 @@ When you call [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content)
 4. **Embeds** every chunk into the dense and sparse vector stores.
 5. **Indexes** the result so it becomes searchable via [`POST /search`](/api-reference/v2/endpoint/search).
 
-The pipeline runs **asynchronously**. The ingest call returns `202 Accepted` with `source_id`s; the content isn't recallable until `indexing_status` reaches at least `graph_creation`. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) to track progress  -  see the full status table at [Source Status](/api-reference/v2/endpoint/source-status).
+The pipeline runs **asynchronously**. The ingest call returns `202 Accepted` with `source_id`s; the content isn't searchable until `indexing_status` reaches at least `graph_creation`. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) to track progress  -  see the full status table at [Source Status](/api-reference/v2/endpoint/source-status).
 
 ---
 
@@ -214,7 +214,7 @@ All endpoints return this envelope shape. Access the payload via `response.data`
 
 ## 5. Verifying processing
 
-Ingestion is async, so you need to confirm each source actually finished before it'll show up in [search](/essentials/v2/recall). Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) with the `source_id`s you got back from ingestion. The snippets below loop until every item reaches a terminal state (`completed` or `errored`):
+Ingestion is async, so you need to confirm each source actually finished before it'll show up in [search](/essentials/v2/search). Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) with the `source_id`s you got back from ingestion. The snippets below loop until every item reaches a terminal state (`completed` or `errored`):
 
 <CodeGroup>
 ```bash cURL
@@ -393,19 +393,19 @@ client.source.ingest(
 ```
 </CodeGroup>
 
-At recall time, linked sources are returned in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true`  -  you only need to set it explicitly if you want to disable forceful-relation expansion.
+At search time, linked sources are returned in the `additional_context` field of the [search response](/api-reference/v2/endpoint/search). `search_forceful_relations` defaults to `true`  -  you only need to set it explicitly if you want to disable forceful-relation expansion.
 
 <Warning>
-**Knowledge sources only.** Forceful relations work within the same store. Pointing a Knowledge source at a Memory source ID (or vice versa) will silently return nothing at recall time.
+**Knowledge sources only.** Forceful relations work within the same store. Pointing a Knowledge source at a Memory source ID (or vice versa) will silently return nothing at search time.
 </Warning>
 
 <Warning>
-**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the recall request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
+**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the search request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
 </Warning>
 
 ## 8. Metadata on knowledge
 
-[Metadata](/essentials/v2/metadata) is how you bridge structured filters and semantic search. Attach `tenant_metadata` at ingestion to enable deterministic narrowing at recall time:
+[Metadata](/essentials/v2/metadata) is how you bridge structured filters and semantic search. Attach `tenant_metadata` at ingestion to enable deterministic narrowing at search time:
 
 ```json
 {
@@ -413,7 +413,7 @@ At recall time, linked sources are returned in the `additional_context` field of
 }
 ```
 
-Then at recall time:
+Then at search time:
 
 ```json
 {
@@ -437,14 +437,14 @@ See [Metadata](/essentials/v2/metadata) for schema design, filter examples, and 
 | Not polling [`/source/status`](/api-reference/v2/endpoint/source-status) before searching | Chunks aren't indexed yet  -  empty search results | Wait for `indexing_status: completed` (or `graph_creation` for partial availability). |
 | Sending `file_metadata` as a JSON object instead of a JSON string | `multipart/form-data` validation fails | Stringify `file_metadata` before sending in the `-F` field. |
 | Omitting `tenant_id` | `422` validation error | Required on every call. |
-| Pointing forceful relations at memory IDs from a knowledge source | Silently returns nothing at recall | Forceful relations work **within the same store**  -  knowledge→knowledge, memory→memory. |
+| Pointing forceful relations at memory IDs from a knowledge source | Silently returns nothing at search | Forceful relations work **within the same store**  -  knowledge→knowledge, memory→memory. |
 
 ---
 
 ## Related
 
 - [Memories](/essentials/v2/memories)  -  the per-user counterpart to Knowledge
-- [Recall](/essentials/v2/recall)  -  how [`POST /search`](/api-reference/v2/endpoint/search) retrieves Knowledge
+- [Search](/essentials/v2/search)  -  how [`POST /search`](/api-reference/v2/endpoint/search) retrieves Knowledge
 - [Metadata](/essentials/v2/metadata)  -  designing filterable schemas
 - [Context Graphs](/essentials/v2/context-graphs)  -  how the graph layer enriches retrieval
 - [Ingest Content  -  API Reference](/api-reference/v2/endpoint/ingest-content)

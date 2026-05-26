@@ -110,7 +110,7 @@ print(result)
 
 ### 2.1 Earnings Call Transcripts & SEC Filings (PDF)
 
-Earnings PDFs are the primary source. Tag each with structured metadata - `ticker`, `period`, `doc_type`, `fiscal_year`, `fiscal_quarter` - so you can filter recall to a specific company or time range before semantic search even runs.
+Earnings PDFs are the primary source. Tag each with structured metadata - `ticker`, `period`, `doc_type`, `fiscal_year`, `fiscal_quarter` - so you can filter search to a specific company or time range before semantic search even runs.
 
 ```python
 # ingest/earnings_pdfs.py
@@ -497,7 +497,7 @@ verify_all_indexed(file_ids)
 
 ## Step 3 - Store Analyst Memory
 
-Per-analyst memory personalizes recall based on the analyst's focus area, preferred companies, and communication style. A macro fund PM cares about different metrics than a sector-specialist equity analyst.
+Per-analyst memory personalizes search based on the analyst's focus area, preferred companies, and communication style. A macro fund PM cares about different metrics than a sector-specialist equity analyst.
 
 ```python
 # memory/analysts.py
@@ -509,7 +509,7 @@ client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 
 def store_analyst_profile(user_id: str, profile_text: str) -> dict:
     """
-    Store an analyst's profile for personalized recall.
+    Store an analyst's profile for personalized search.
 
     user_id:      their login/email slug - must be consistent across sessions
     profile_text: natural language - focus, companies covered, preferred depth, style
@@ -561,11 +561,11 @@ store_analyst_profile(
 # Output: Stored analyst profile for 'priya'  =>  ok
 ```
 
-> **`infer: true` is the default and should stay on for analyst profiles.** HydraDB extracts signals like `user COVERS ticker:ACME`, `user PREFERS format:quantitative`, `user FOCUS unit_economics`, and builds graph connections automatically. These become structured priors that influence recall ranking for every subsequent query from that analyst.
+> **`infer: true` is the default and should stay on for analyst profiles.** HydraDB extracts signals like `user COVERS ticker:ACME`, `user PREFERS format:quantitative`, `user FOCUS unit_economics`, and builds graph connections automatically. These become structured priors that influence search ranking for every subsequent query from that analyst.
 
 ---
 
-## Step 4 - Temporal Recall Queries
+## Step 4 - Temporal Search Queries
 
 This is the core of the financial analyst use case. Four distinct query patterns, each with different `recency_bias` and retrieval configuration.
 
@@ -592,7 +592,7 @@ def query_point_in_time(
     Retrieve context about a specific quarter.
     metadata_filters narrows to exact period BEFORE semantic search runs.
     recency_bias: 0.7 - prefer the targeted period but allow adjacent context.
-    mode: "thinking" - multi-query reranking, personalised recall.
+    mode: "thinking" - multi-query reranking, personalised search.
     """
     return client.search.query(
         tenant_id=TENANT_ID,
@@ -662,7 +662,7 @@ def query_trend(
     if fiscal_year:
         filters["fiscal_year"] = fiscal_year
 
-    recall = client.search.query(
+    search = client.search.query(
         tenant_id=TENANT_ID,
         query=question,
         max_results=20,    # more results needed to cover all quarters
@@ -673,8 +673,8 @@ def query_trend(
         metadata_filters=filters,
     )
 
-    chunks      = recall.chunks or []
-    graph_ctx   = recall.graph_context
+    chunks      = search.chunks or []
+    graph_ctx   = search.graph_context
     query_paths = graph_ctx.query_paths if graph_ctx else []
 
     if not chunks:
@@ -791,10 +791,10 @@ def cross_source_reconciliation(
     Retrieve the same period from all three source types - earnings transcript,
     internal metrics, and board memo - and ask the LLM to surface discrepancies.
 
-    Uses three separate recall calls, one per sub-tenant, then merges context.
+    Uses three separate search calls, one per sub-tenant, then merges context.
     """
 
-    def recall(sub_tenant_id: str, doc_type_filter: str) -> list[dict]:
+    def search(sub_tenant_id: str, doc_type_filter: str) -> list[dict]:
         resp = client.search.query(
             tenant_id=TENANT_ID,
             query=f"{ticker} {period_label} financial performance",
@@ -812,9 +812,9 @@ def cross_source_reconciliation(
         )
         return resp.chunks or []
 
-    transcript_chunks = recall(f"earnings-{ticker.lower()}", "earnings_transcript")
-    metrics_chunks    = recall("internal-metrics",            "internal_metrics")
-    memo_chunks       = recall("board-memos",                 "board_memo")
+    transcript_chunks = search(f"earnings-{ticker.lower()}", "earnings_transcript")
+    metrics_chunks    = search("internal-metrics",            "internal_metrics")
+    memo_chunks       = search("board-memos",                 "board_memo")
 
     def fmt(chunks: list, label: str) -> str:
         if not chunks:
@@ -919,7 +919,7 @@ def track_narrative_shift(
     recency_bias: 0.2 - want even spread across all quarters, oldest to newest.
     alpha: 0.3 - lean keyword for topic-specific terms like "churn", "guidance".
     """
-    recall = client.search.query(
+    search = client.search.query(
         tenant_id=TENANT_ID,
         query=f"{ticker} management commentary {topic}",
         max_results=n_quarters * 4,   # 4 chunks per quarter
@@ -934,7 +934,7 @@ def track_narrative_shift(
     )
 
     chunks = sorted(
-        recall.chunks or [],
+        search.chunks or [],
         key=lambda c: (c.additional_metadata or {}).get("period_end_date", ""),
     )
 
@@ -999,7 +999,7 @@ print(arc)
 
 ---
 
-## Step 5 - Analyst Recall Interface
+## Step 5 - Analyst Search Interface
 
 For analyst chat interfaces, use `POST /search` to retrieve chunks, sources, and graph context. Generate the final answer in your application layer with your LLM provider so citations, formatting, and conversation memory stay under your control.
 
@@ -1153,8 +1153,8 @@ def generate_quarterly_briefing(
 ) -> str:
     """
     Full quarterly briefing pipeline:
-      1. Recall this quarter's performance data (all sources)
-      2. Recall prior quarters for trend context
+      1. Search this quarter's performance data (all sources)
+      2. Search prior quarters for trend context
       3. Cross-source reconciliation
       4. Synthesize into a structured briefing
       5. Store the briefing back into HydraDB as analyst memory
@@ -1163,7 +1163,7 @@ def generate_quarterly_briefing(
     print(f"\n=== Briefing: {ticker} {period_label} [run:{run_id}] ===")
 
     # ── 1. This quarter - all sources ────────────────────────────────────
-    print("[1/4] Recalling current quarter...")
+    print("[1/4] Searching current quarter...")
     current_q = client.search.query(
         tenant_id=TENANT_ID,
         query=f"{ticker} {period_label} performance revenue margin guidance",
@@ -1181,7 +1181,7 @@ def generate_quarterly_briefing(
     current_chunks = current_q.chunks or []
 
     # ── 2. Prior quarters for trend context ──────────────────────────────
-    print("[2/4] Recalling trend data...")
+    print("[2/4] Searching trend data...")
     trend_answer = query_trend(
         question=f"How have key metrics trended for {ticker} over the past year?",
         user_id=analyst_user_id,
@@ -1207,7 +1207,7 @@ def generate_quarterly_briefing(
         for c in current_chunks
     )
 
-    # Recall analyst profile
+    # Search analyst profile
     analyst_prefs = client.search.query(
         source='memories',
         tenant_id=TENANT_ID,
@@ -1445,7 +1445,7 @@ POST /source/ingest
 }
 ```
 
-### Point-in-Time Recall
+### Point-in-Time Search
 
 ```http
 POST /search
@@ -1469,7 +1469,7 @@ POST /search
 }
 ```
 
-### Trend Recall (raw chunks + graph paths)
+### Trend Search (raw chunks + graph paths)
 
 ```http
 POST /search
@@ -1513,7 +1513,7 @@ POST /search
 }
 ```
 
-### Recall Analyst Preferences
+### Search Analyst Preferences
 
 ```http
 POST /search
@@ -1582,7 +1582,7 @@ Tested across 3 company corpora (4 quarters of earnings transcripts + internal m
 |---|---|---|---|
 | Trend question accuracy ("how did X change?") | 18% | 81% | +350% |
 | Lookup accuracy ("what was X in Q2?") | 74% | 90% | +22% |
-| Cross-source recall (memo + earnings + metrics) | 29% | 81% | +179% |
+| Cross-source search (memo + earnings + metrics) | 29% | 81% | +179% |
 | Temporal attribution accuracy (correct quarter cited) | 51% | 93% | +82% |
 | Stale data in top results | 41% | 5% | −88% |
 | P95 query latency | 220ms | under 200 ms | Sub-second |
