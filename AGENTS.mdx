@@ -185,7 +185,7 @@ Pre-parsed records from business apps (Slack, Gmail, Jira, Notion, Linear, CRM, 
 |---|---|---|
 | Envelope | `id`, `tenant_id`, `sub_tenant_id` | Required on every item |
 | Identity | `kind`, `provider`, `external_id` | Type (`email`, `message`, `ticket`, `knowledge_base`, `comment`, `custom`), source system, and stable provider ID |
-| Content | `fields` | Searchable body/title/status/thread IDs — keys depend on `kind` (see table below). `fields.kind` must match top-level `kind` |
+| Content | `fields` | Searchable body/title/status/thread IDs - keys depend on `kind` (see table below). `fields.kind` must match top-level `kind` |
 | Scope | `metadata` | Channel, project, space, pipeline (`container_type`, `container_id`, `container_name`, …) |
 | Structure | `relations`, `comments`, `attachments` | Cross-source links, embedded snapshot discussion, extracted file text |
 
@@ -236,7 +236,7 @@ Use the same `POST /ingestion/upload_knowledge` endpoint for both initial sync a
 | Provider event | Action | Why |
 |---|---|---|
 | Ticket title/status/description changed | Re-ingest the same `ticket` source (same `id` + `external_id`), `upsert: true` | The ticket itself changed |
-| New ticket comment (Linear, Jira, Zendesk) | Ingest a **new** `kind: "comment"` source with `fields.parent_id` → ticket `external_id` | Comment is a distinct object — no need to re-ingest the ticket |
+| New ticket comment (Linear, Jira, Zendesk) | Ingest a **new** `kind: "comment"` source with `fields.parent_id` pointing to ticket `external_id` | Comment is a distinct object - no need to re-ingest the ticket |
 | Edited ticket comment | Re-ingest the same `comment` source (same `id` + `external_id`), `upsert: true` | Same comment changed |
 | Deleted ticket comment | `DELETE /ingestion/delete_knowledge` by HydraDB source `id` | Remove from recall |
 | New Slack/Teams message | Ingest a new `message` source | Messages are standalone; linked via `thread_id` / `parent_id` |
@@ -244,7 +244,7 @@ Use the same `POST /ingestion/upload_knowledge` endpoint for both initial sync a
 | New wiki page | Ingest a new `knowledge_base` source | Pages are standalone documents |
 | Existing wiki page edited | Re-ingest the same `knowledge_base` source, `upsert: true` | Page content changed |
 
-> **Do not** send only a new embedded `comments[]` entry on a ticket upsert — `upsert` replaces the entire source. For live webhooks, model each new comment as `kind: "comment"` instead.
+> **Do not** send only a new embedded `comments[]` entry on a ticket upsert - `upsert` replaces the entire source. For live webhooks, model each new comment as `kind: "comment"` instead.
 
 #### Common mistakes
 
