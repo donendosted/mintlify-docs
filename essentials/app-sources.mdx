@@ -61,16 +61,16 @@ Send app sources in the `app_knowledge` form field as a single JSON object or an
 
 The app-specific part of each item uses the public app-source shape:
 
-| Field | Required? | What it does | Details |
-|---|---|---|---|
-| `kind` | Recommended | Tells HydraDB what type of app object this is. Valid values: `email`, `message`, `ticket`, `knowledge_base`, `comment`, `custom`. | [Identity fields](#identity-fields), [Kind-specific fields](#kind-specific-fields) |
-| `provider` | Recommended | Names the system the item came from, such as `slack`, `gmail`, `jira`, `notion`, or `salesforce`. | [Identity fields](#identity-fields) |
-| `external_id` | Recommended | Stable provider ID for this exact item. | [Identity fields](#identity-fields) |
-| `fields` | Yes | Structured content and app-specific fields for the selected `kind`. | [Kind-specific fields](#kind-specific-fields), [Thread and parent fields](#thread-and-parent-fields) |
-| `metadata` | Optional | Flexible context about where the item lives, such as channel, project, space, workspace, or pipeline. | [Container metadata](#container-metadata) |
-| `relations` | Optional | Explicit source-to-source connections, such as linked tickets, blockers, or CRM-to-support links. | [Relations](#relations) |
-| `attachments` | Optional | Files attached to this app item. Include `content.text` or `content.markdown` when you already extracted attachment text. | [Attachments and comments](#attachments-and-comments) |
-| `comments` | Optional | Embedded snapshot comments attached to this app item. For live incremental comments, prefer `kind: "comment"`. | [Attachments and comments](#attachments-and-comments), [Incremental ingestion](#incremental-ingestion) |
+| Field | What it does | Details |
+|---|---|---|
+| `kind` (recommended) | Type of app object: `email`, `message`, `ticket`, `knowledge_base`, `comment`, `custom`. | [Identity fields](#identity-fields), [Kind-specific fields](#kind-specific-fields) |
+| `provider` (recommended) | System the item came from, such as `slack`, `gmail`, `jira`, `notion`, or `salesforce`. | [Identity fields](#identity-fields) |
+| `external_id` (recommended) | Stable provider ID for this exact item. | [Identity fields](#identity-fields) |
+| `fields` (required) | Structured content and app-specific fields for the selected `kind`. | [Kind-specific fields](#kind-specific-fields), [Thread and parent fields](#thread-and-parent-fields) |
+| `metadata` | Flexible context about where the item lives, such as channel, project, space, workspace, or pipeline. | [Container metadata](#container-metadata) |
+| `relations` | Explicit source-to-source connections, such as linked tickets, blockers, or CRM-to-support links. | [Relations](#relations) |
+| `attachments` | Files attached to this app item. Include `content.text` or `content.markdown` when you already extracted attachment text. | [Attachments and comments](#attachments-and-comments) |
+| `comments` | Embedded snapshot comments attached to this app item. For live incremental comments, prefer `kind: "comment"`. | [Attachments and comments](#attachments-and-comments), [Incremental ingestion](#incremental-ingestion) |
 
 For typed app sources, put the main searchable item text in `fields` (`email.body`, `message.body`, `ticket.description`, `knowledge_base.body`, `comment.body`, or `custom.data`). The top-level `content` object is the older generic knowledge payload and is not required for app-native search.
 
