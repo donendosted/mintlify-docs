@@ -5,16 +5,19 @@ description: "How to use Memories to personalize responses with user-specific co
 
 ## Why Memories exist
 
+(TODO: find from paper)
+
 Most applications start every conversation from scratch. Memories let your agent carry useful user-specific context from one session to the next, so responses can become more personal over time.
 
-A memory is one unit of user-specific context: a stated preference, an inferred trait, a past conversation, a decision, feedback, or a fact your agent should be able to retrieve later.
+A memory is one unit of context: a stated preference, an inferred trait, a past conversation, a decision, feedback, or a fact your agent should be able to retrieve later.
+Our system goes extra mile to ensure that all the preferences are stored as structural context-graph. 
 
 Use Memories when the context belongs to a specific user, workspace, or session. Use [Knowledge](/essentials/v2/knowledge) when the context should be shared across your tenant.
 (todo) 0 link to memoeries vs knowledge. not inline this. 
 | | Memories | Knowledge |
 |---|---|---|
 | **Content** | User preferences, conversations, inferred traits | Documents, files, app-generated content |
-| **Scope** | Per-user — partitioned by `sub_tenant_id` | Shared across all users in a tenant |
+| **Scope** | Per-user — partitioned by `sub_tenant_id` | Per-user — partitioned by `sub_tenant_id` |
 | **Search via** | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "memories"` | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "knowledge"` |
 | **`vectorstore_status`** | Index `0` (`[0]`) | Index `1` (`[1]`) |
 
@@ -35,12 +38,8 @@ If the answer is yes, store it as [Knowledge](/essentials/v2/knowledge). If the 
 | About a specific user or session | Memory |
 | Shared across all users in your tenant | [Knowledge](/essentials/v2/knowledge) |
 
-Good candidates for Memories include:
+HydraDB can infer various kinds of things for memories. [see more](/essentials/v2/memories#use-infer-true-when-the-input-is-raw-signal)
 
-- **Preferences**: “prefers concise answers,” “likes dark mode,” “works in PST.”
-- **Conversation history**: prior user-agent exchanges that should shape future responses.
-- **Decisions and outcomes**: choices the user made, feedback they gave, or results they want preserved.
-- **Behavioral signals**: usage patterns that imply a preference over time.
 
 Good candidates for [Knowledge ingestion](/essentials/v2/knowledge) include product docs, policy PDFs, internal wikis, Slack exports, and other shared material that should be reusable across users.
 
@@ -66,6 +65,8 @@ Ingestion is asynchronous, so memories are not searchable immediately. Poll [`GE
 ## Choose the right input shape
 
 Each memory item should usually provide either `text` or `user_assistant_pairs`, **not both**. Choose the shape based on the content you already have.
+
+(todo - remove raw text - only keep markdown, both are same for us.)
 
 <Note>
 **Raw text and markdown use the same field.** Both go into `text`. The difference is the `is_markdown` flag, which tells HydraDB to preserve markdown structure — headings, lists, and code blocks — during chunking and embedding. Set `is_markdown: true` for structured notes, and leave it `false` for plain prose.
@@ -122,14 +123,6 @@ Memories live in their own store, separate from [Knowledge](/essentials/v2/knowl
   <p>For personalized responses grounded in shared context, use <code>source: "all"</code> on a single <a href="/api-reference/v2/endpoint/search"><code>POST /search</code></a> call. HydraDB runs both stores in parallel and merges results for you. See <a href="/essentials/v2/search">Search</a>.</p>
 </Info>
 
-Within a tenant, memories are scoped by `sub_tenant_id`:
-
-- For per-user memory in B2C apps, use the user's ID as `sub_tenant_id`.
-- For shared memory across a workspace, use a stable workspace-level ID.
-- If you omit `sub_tenant_id`, the memory is written to the tenant's default sub-tenant.
-
-Be consistent across writes and reads. If you write to one `sub_tenant_id` and search another, the memory will not appear. See [Multi-Tenant](/essentials/v2/multi-tenant) for scoping patterns and common pitfalls.
-
 ---
 
 ## Connect related memories with forceful relations
@@ -140,10 +133,11 @@ Use forceful relations when you already know two memories belong together, even 
 
 Set forceful relations with the `relations` field on any item in the `memories` array:
 
+(todo - cortex_source_ids -> change to source_ids) in codebase as well - with backwards compatibility for cortex_source_ids (perefer to use pydantic)
 ```json
 {
   "relations": {
-    "cortex_source_ids": ["memory-id-1", "memory-id-2"]
+    "source_ids": ["memory-id-1", "memory-id-2"]
   }
 }
 ```
@@ -209,6 +203,7 @@ To make relations work reliably, control the `source_id` for the memories you in
 
 <Warning>
 **`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the search request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
+todo : in api -> reject this with nice error message - 422 and error - that this is only allowed in thisking mode.
 </Warning>
 
 ---
