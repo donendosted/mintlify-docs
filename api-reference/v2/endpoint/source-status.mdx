@@ -50,13 +50,11 @@ status = client.source.status(
 
 ## Query parameters
 
-Required fields are marked with `*`. Provide `tenant_id` and at least one source ID using `file_ids` or the deprecated single `file_id`.
+ Provide `tenant_id` and at least one source ID using `file_ids` or the deprecated single `file_id`.
 
-For multiple IDs over raw HTTP, repeat the query parameter:
-
-```bash
-/source/status?tenant_id=acme_corp&file_ids=policy_main&file_ids=runbook_deploy
-```
+<Info>
+For multiple IDs over raw HTTP, repeat the query parameter: `/source/status?tenant_id=acme_corp&file_ids=policy_main&file_ids=runbook_deploy`
+</Info>
 
 | Name | Type | Description |
 |---|---|---|
@@ -65,7 +63,8 @@ For multiple IDs over raw HTTP, repeat the query parameter:
 | <Field name="tenant_id" required /> | string | Tenant the items belong to. |
 | <Field name="sub_tenant_id" /> | string \| null | Sub-tenant scope. If omitted, the default sub-tenant is used. (default=`null`) |
 
-<Info>
+<Info> 
+TODO: remove and fix api
 The query parameter is named `file_ids` for legacy reasons. It accepts the `source_id` returned by both file uploads and app sources and memories  -  not only file-backed sources.
 </Info>
 

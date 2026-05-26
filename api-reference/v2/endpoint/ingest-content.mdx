@@ -206,7 +206,7 @@ conversation_memory_result = client.source.ingest(
 
 </RequestExample>
 
-## Examples
+## Common use-cases
 
 <AccordionGroup>
   <Accordion title="Knowledge files - upload PDFs, DOCX, CSV, Markdown, or text for HydraDB to parse" defaultOpen>
@@ -456,7 +456,7 @@ After ingestion, save every returned `results[].source_id`. Use these IDs for st
 
 ## Form fields
 
-Required fields are marked with `*`.
+
 
 | Name | Type | Description |
 |---|---|---|
@@ -544,32 +544,25 @@ Required fields are marked with `*`.
 
 ## Behavior notes
 
-<Info>
-**Async indexing.** `202 Accepted` only means HydraDB **queued** the work. Content is not retrievable until `indexing_status` reaches `graph_creation` (partial) or `completed` (full). Always poll [Source Status](/api-reference/v2/endpoint/source-status) before searching.
-</Info>
+- **Async indexing.** `202 Accepted` only means HydraDB **queued** the work. Content is not retrievable until `indexing_status` reaches `graph_creation` (partial) or `completed` (full). Always poll [Source Status](/api-reference/v2/endpoint/source-status) before searching.
 
-<Info>
-**`type=knowledge` + `app_knowledge` and `files` mix.** You can send both in the same request. HydraDB processes each item independently and returns one `result` per source.
-</Info>
+- **`type=knowledge` + `app_knowledge` and `files` mix.** You can send both in the same request. HydraDB processes each item independently and returns one `result` per source.
 
-<Info>
-**Multipart, not JSON.** This is one of the few endpoints that uses `multipart/form-data`. Stringify the JSON arrays (`file_metadata`, `app_knowledge`, `memories`) before sending them in the form field.
-</Info>
+- **Multipart, not JSON.** This is one of the few endpoints that uses `multipart/form-data`. Stringify the JSON arrays (`file_metadata`, `app_knowledge`, `memories`) before sending them in the form field.
 
-<Warning>
-**`tenant_metadata` keys must be declared.** Keys not in the tenant's `tenant_metadata_schema` are silently ignored at search time when used in `metadata_filters`. Plan schema fields up front via [Create Tenant](/api-reference/v2/endpoint/create-tenant).
-</Warning>
+- **`tenant_metadata` keys must be declared.** Keys not in the tenant's `tenant_metadata_schema` are silently ignored at search time when used in `metadata_filters`. Plan schema fields up front via [Create Tenant](/api-reference/v2/endpoint/create-tenant).
 
-<Warning>
-**Common mistakes.** Use `type: "memory"` for ingestion and deletion, but use `memories` for the form field and for search/list collection selectors. If you omit `sub_tenant_id`, HydraDB writes to the default sub-tenant; list available sub-tenants with [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants).
-</Warning>
+- **Common mistakes.** Use `type: "memory"` for ingestion and deletion, but use `memories` for the form field and for search/list collection selectors. If you omit `sub_tenant_id`, HydraDB writes to the default sub-tenant; list available sub-tenants with [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants).
 
+
+<Tip>
 ## Related endpoints
 
 - **Next:** [Source Status](/api-reference/v2/endpoint/source-status)  -  poll until `graph_creation` for search or `completed` for graph-ready results
 - **Then:** [Search](/api-reference/v2/endpoint/search)  -  retrieve indexed content
 - **Inspect:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Fetch Content](/api-reference/v2/endpoint/fetch-content)
 - **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
+</Tip>
 
 ## Errors
 
