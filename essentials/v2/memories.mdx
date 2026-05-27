@@ -5,25 +5,11 @@ description: "How to use Memories to personalize responses with user-specific co
 
 ## Why Memories exist
 
-(TODO: find from paper)
+Most applications start every conversation from scratch. Memories let your agent carry useful user-specific context from one session to the next, so responses become more personal over time.
 
-Most applications start every conversation from scratch. Memories let your agent carry useful user-specific context from one session to the next, so responses can become more personal over time.
+A memory is one unit of context: a stated preference, an inferred trait, a past conversation, a decision, feedback, or a fact your agent should be able to retrieve later. HydraDB stores every memory in a structural [context graph](/essentials/v2/context-graphs), so related preferences surface together at retrieval time.
 
-A memory is one unit of context: a stated preference, an inferred trait, a past conversation, a decision, feedback, or a fact your agent should be able to retrieve later.
-Our system goes extra mile to ensure that all the preferences are stored as structural context-graph. 
-
-Use Memories when the context belongs to a specific user, workspace, or session. Use [Knowledge](/essentials/v2/knowledge) when the context should be shared across your tenant.
-(todo) 0 link to memoeries vs knowledge. not inline this. 
-| | Memories | Knowledge |
-|---|---|---|
-| **Content** | User preferences, conversations, inferred traits | Documents, files, app-generated content |
-| **Scope** | Per-user — partitioned by `sub_tenant_id` | Per-user — partitioned by `sub_tenant_id` |
-| **Search via** | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "memories"` | [`POST /search`](/api-reference/v2/endpoint/search) with `source: "knowledge"` |
-| **`vectorstore_status`** | `vectorstore_status.memories` | `vectorstore_status.knowledge` |
-
-<Info>
-  **One endpoint, two stores.** Memories and [Knowledge](/essentials/v2/knowledge) live in separate stores, but a single [`POST /search`](/api-reference/v2/endpoint/search) call can hit both via `source: "all"`. HydraDB merges and re-ranks those results together. That's the canonical recipe for personalized RAG. See [Search](/essentials/v2/search).
-</Info>
+Use Memories when the context belongs to a specific user, workspace, or session. Use [Knowledge](/essentials/v2/knowledge) when the context should be shared across your tenant - see [Knowledge vs Memories](/essentials/v2/knowledge#1-what-it-is) for the side-by-side comparison.
 
 ---
 
@@ -56,9 +42,9 @@ The pipeline works like this:
 3. **Process and index the result** — the memory is prepared for retrieval.
 4. **Make it searchable** — later, [`POST /search`](/api-reference/v2/endpoint/search) can retrieve it with `source: "memories"` or `source: "all"`.
 
-The most important choice is [`infer`](#choose-whether-hydradb-should-infer-the-memory) (todo - check this links). It decides whether HydraDB should extract the useful memory from raw signal, or store exactly what you send.
+The most important choice is [`infer`](#choose-whether-hydradb-should-infer-the-memory). It decides whether HydraDB should extract the useful memory from raw signal, or store exactly what you send.
 
-Ingestion is asynchronous, so memories are not searchable immediately. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) until the memory reaches at least `graph_creation`, or wait for `indexing_status` to become `completed` if you need full indexing. - or register webhooks (todo - check this)
+Ingestion is asynchronous, so memories are not searchable immediately. Poll [`GET /source/status`](/api-reference/v2/endpoint/source-status) until the memory reaches at least `graph_creation`, or wait for `indexing_status` to become `completed` if you need full indexing. Alternatively, [register a webhook](/essentials/v2/webhooks) to be notified when indexing finishes instead of polling.
 
 ---
 
@@ -66,26 +52,9 @@ Ingestion is asynchronous, so memories are not searchable immediately. Poll [`GE
 
 Each memory item should usually provide either `text` or `user_assistant_pairs`, **not both**. Choose the shape based on the content you already have.
 
-(todo - remove raw text - only keep markdown, both are same for us.)
+### Text
 
-<Note>
-**Raw text and markdown use the same field.** Both go into `text`. The difference is the `is_markdown` flag, which tells HydraDB to preserve markdown structure — headings, lists, and code blocks — during chunking and embedding. Set `is_markdown: true` for structured notes, and leave it `false` for plain prose.
-</Note>
-
-### Raw text
-
-Use raw text for plain observations, captured facts, or short preference statements.
-
-```json
-{
-  "text": "Prefers detailed technical explanations and works in PST.",
-  "infer": true
-}
-```
-
-### Markdown
-
-Use markdown when structure carries meaning, such as meeting notes, memos, lists, or semi-structured records.
+Use `text` for any prose input - plain observations, captured facts, preference statements, meeting notes, memos, or semi-structured records. Set `is_markdown: true` when the content uses markdown syntax (headings, lists, code blocks) and you want HydraDB to preserve that structure during chunking and embedding. Leave `is_markdown` unset (or `false`) for plain prose.
 
 ```json
 {
@@ -95,9 +64,16 @@ Use markdown when structure carries meaning, such as meeting notes, memos, lists
 }
 ```
 
+```json
+{
+  "text": "Prefers detailed technical explanations and works in PST.",
+  "infer": true
+}
+```
+
 ### User–assistant pairs
 
-Use user–assistant pairs when the useful signal comes from dialogue, especially when the preference is implied rather than explicitly stated.
+Use `user_assistant_pairs` when the useful signal comes from dialogue, especially when the preference is implied rather than explicitly stated.
 
 ```json
 {
@@ -133,7 +109,6 @@ Use forceful relations when you already know two memories belong together, even 
 
 Set forceful relations with the `relations` field on any item in the `memories` array:
 
-(todo - cortex_source_ids -> change to source_ids) in codebase as well - with backwards compatibility for cortex_source_ids (perefer to use pydantic)
 ```json
 {
   "relations": {
@@ -141,6 +116,10 @@ Set forceful relations with the `relations` field on any item in the `memories` 
   }
 }
 ```
+
+<Note>
+The legacy alias `cortex_source_ids` is still accepted for backward compatibility. Prefer `source_ids` for new integrations.
+</Note>
 
 <CodeGroup>
 ```bash cURL
@@ -155,7 +134,7 @@ curl -X POST 'https://api.hydradb.com/source/ingest' \
       "text": "User prefers concise answers",
       "source_id": "pref-concise",
       "infer": true,
-      "relations": { "cortex_source_ids": ["pref-tone", "pref-format"] }
+      "relations": { "source_ids": ["pref-tone", "pref-format"] }
     }
   ]'
 ```
@@ -169,7 +148,7 @@ await client.source.ingest({
       text: "User prefers concise answers",
       source_id: "pref-concise",
       infer: true,
-      relations: { cortex_source_ids: ["pref-tone", "pref-format"] },
+      relations: { source_ids: ["pref-tone", "pref-format"] },
     },
   ]),
 });
@@ -186,7 +165,7 @@ client.source.ingest(
             "text": "User prefers concise answers",
             "source_id": "pref-concise",
             "infer": True,
-            "relations": {"cortex_source_ids": ["pref-tone", "pref-format"]},
+            "relations": {"source_ids": ["pref-tone", "pref-format"]},
         }
     ]),
 )
@@ -202,8 +181,7 @@ To make relations work reliably, control the `source_id` for the memories you in
 </Warning>
 
 <Warning>
-**`thinking` mode only.** Forceful-relation context is fetched only when `mode: "thinking"` is set on the search request. In `fast` mode, `search_forceful_relations` is ignored even if set to `true`.
-todo : in api -> reject this with nice error message - 422 and error - that this is only allowed in thisking mode.
+**`thinking` mode only.** Forceful-relation context is only fetched when `mode: "thinking"` is set on the search request. Passing `search_forceful_relations: true` with `mode: "fast"` is rejected with HTTP `422` - set `mode: "thinking"` or remove the flag.
 </Warning>
 
 ---
