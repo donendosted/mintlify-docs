@@ -6,9 +6,9 @@ openapi: "DELETE /tenants"
 
 import { Field } from "/snippets/field.jsx";
 
-Tearing down a workspace  -  for customer offboarding, end-of-life environments, or cleanup after testing. Deletes the tenant **and all of its ingested data, memories, metadata schema, vector indices, graph, and infrastructure**.
+Permanently delete a tenant and all of its associated data, including ingested content, memories, metadata schema, vector indices, and graphs.
 
-This action is irreversible. There is no soft-delete and no recovery window.
+This action is irreversible. There is no soft-delete and no recovery window. For details on multi-tenant architecture, see the [Multi-Tenant Support](/essentials/v2/multi-tenant) guide.
 
 <RequestExample>
 ```bash cURL
@@ -26,13 +26,7 @@ response = client.tenants.delete(tenant_id="my_first_tenant")
 ```
 </RequestExample>
 
-<Accordion title="HTTP request details">
 
-- **Auth:** Bearer token + `API-Version: 2`
-- **Idempotency:** Calling on an already-deleted tenant returns `404 TENANT_NOT_FOUND`
-- **Async:** Yes  -  the response acknowledges the deletion; cleanup of vector indices, the graph, and storage objects runs in the background.
-
-</Accordion>
 
 ## Query parameters
 
