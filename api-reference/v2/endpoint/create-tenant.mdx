@@ -130,14 +130,16 @@ Schema field names are **immutable** after tenant creation. You can add per-docu
 - **Default sub-tenant:** HydraDB assigns an auto-generated default sub-tenant ID for calls that omit `sub_tenant_id`. That default is created once and reused. See [Essentials → Multi-Tenant](/essentials/v2/multi-tenant) for details.
 - **Reserved field names:** Some names are reserved by the indexing layer (e.g., system fields used to track ingestion and graph state). `name` values are validated server-side; reserved names return a `422 VALIDATION_ERROR`. Use prefixes like `app_` if you're worried about collisions.
 
-## Related endpoints
-
-- **Next:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)  -  poll until provisioning completes
-- **Next:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)  -  start ingesting data once status is ready
-- **Related:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)  -  teardown
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `409 TENANT_ALREADY_EXISTS`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant) · [Essentials → Metadata](/essentials/v2/metadata)
+<Tip>
+**Related Resources**
+
+- **Next:** [Tenant Status](/api-reference/v2/endpoint/tenant-status) - poll until provisioning completes
+- **Next:** [Ingest Content](/api-reference/v2/endpoint/ingest-content) - start ingesting data once status is ready
+- **Related:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant) - teardown
+- **Read more:** [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+- **Read more:** [Essentials → Metadata](/essentials/v2/metadata)
+</Tip>

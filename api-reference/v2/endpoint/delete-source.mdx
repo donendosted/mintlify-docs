@@ -115,14 +115,16 @@ The body wraps two fields together.
 - **Search drops the source immediately:** Even before background cleanup finishes, deleted IDs disappear from `/search` and `/source/list` responses.
 - **Mixed deletes need two calls:** To delete both knowledge and memory items, send two requests  -  one with `type=knowledge`, one with `type=memory`. A single call cannot mix the two buckets.
 
-## Related endpoints
-
-- **Find IDs:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Search](/api-reference/v2/endpoint/search)
-- **Re-add content:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)
-- **Bigger hammer:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)  -  removes the entire workspace
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 SOURCE_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+<Tip>
+**Related Resources**
+
+- **Find IDs:** [List Documents](/api-reference/v2/endpoint/list-documents)
+- **Perform a search:** [Search](/api-reference/v2/endpoint/search)
+- **Re-add content:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)
+- **Bigger hammer:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant) - removes the entire workspace
+- **Read more:** [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+</Tip>

@@ -59,13 +59,14 @@ After deletion completes, the same `tenant_id` can be used in a new `POST /tenan
 - **Async cleanup:** The endpoint returns immediately after deregistering the tenant. Infrastructure cleanup of vector stores, graphs, and storage objects runs in the background and may take a few minutes to complete.
 - **Repeat calls:** Deleting an already-deleted tenant returns `404 TENANT_NOT_FOUND`. Deleting a tenant that is still provisioning or deleting is treated as a request to tear down that tenant.
 
-## Related endpoints
-
-- **Before this:** [List Tenants](/api-reference/v2/endpoint/list-tenants)  -  find the tenant ID
-- **Alternative:** [Delete Source](/api-reference/v2/endpoint/delete-source)  -  remove specific knowledge or memories without deleting the whole tenant
-
 ## Errors
 
 Common codes: `404 TENANT_NOT_FOUND`, `401 UNAUTHORIZED`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+<Tip>
+**Related Resources**
+
+- **Before this:** [List Tenants](/api-reference/v2/endpoint/list-tenants) - find the tenant ID
+- **Alternative:** [Delete Source](/api-reference/v2/endpoint/delete-source) - remove specific knowledge or memories without deleting the whole tenant
+- **Read more:** [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+</Tip>

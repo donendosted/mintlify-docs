@@ -132,14 +132,14 @@ while True:
 - **Ordering:** Treat `relations[]` as ranked by relevance within the response. Preserve order for display or LLM context, but do not compare scores across unrelated queries as absolute probabilities.
 - **Graph completeness:** Source relations only fully populate once the source's `indexing_status` reaches `completed`. Items in `graph_creation` are searchable but their relations may still be in flight.
 
-## Related endpoints
-
-- **Indexing status:** [Source Status](/api-reference/v2/endpoint/source-status)  -  confirm the graph is complete
-- **Search with graph context:** [Search](/api-reference/v2/endpoint/search) with `graph_context: true`
-- **Concepts:** [Essentials → Context Graphs](/essentials/v2/context-graphs)
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 SOURCE_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Context Graphs](/essentials/v2/context-graphs)
+<Tip>
+**Related Resources**
+
+- **Indexing status:** [Source Status](/api-reference/v2/endpoint/source-status) - confirm the graph is complete
+- **Search with graph context:** [Search](/api-reference/v2/endpoint/search) with `graph_context: true`
+- **Concepts:** [Essentials → Context Graphs](/essentials/v2/context-graphs)
+</Tip>

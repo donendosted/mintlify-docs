@@ -533,17 +533,19 @@ Sends `multipart/form-data`. Nested JSON fields (`file_metadata`, `app_knowledge
 - **Common mistakes.** Use `type: "memory"` for ingestion and deletion, but use `memories` for the form field and for search/list collection selectors. If you omit `sub_tenant_id`, HydraDB writes to the default sub-tenant; list available sub-tenants with [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants).
 
 
-<Tip>
-## Related endpoints
-
-- **Next:** [Source Status](/api-reference/v2/endpoint/source-status)  -  poll until `graph_creation` for search or `completed` for graph-ready results
-- **Then:** [Search](/api-reference/v2/endpoint/search)  -  retrieve indexed content
-- **Inspect:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Fetch Content](/api-reference/v2/endpoint/fetch-content)
-- **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
-</Tip>
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 TENANT_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Knowledge](/essentials/v2/knowledge) · [Essentials → Memories](/essentials/v2/memories) · [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+<Tip>
+**Related Resources**
+
+- **Next:** [Source Status](/api-reference/v2/endpoint/source-status) - poll until `graph_creation` for search or `completed` for graph-ready results
+- **Then:** [Search](/api-reference/v2/endpoint/search) - retrieve indexed content
+- **Inspect:** [List Documents](/api-reference/v2/endpoint/list-documents)
+- **Inspect:** [Fetch Content](/api-reference/v2/endpoint/fetch-content)
+- **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
+- **Read more:** [Essentials → Knowledge](/essentials/v2/knowledge)
+- **Read more:** [Essentials → Memories](/essentials/v2/memories)
+- **Read more:** [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+</Tip>

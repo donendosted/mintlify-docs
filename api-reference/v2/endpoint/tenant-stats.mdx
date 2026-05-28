@@ -75,14 +75,15 @@ For a new or empty tenant, both collections are present and report zero rows:
 - **Both collections always exist:** Even if you've only ingested knowledge (or only memories), both collections are provisioned. Empty collections report `row_count: 0` with the configured `dimensions`.
 - **Stats are eventually consistent:** Immediately after ingestion or deletion, counts may lag until background processing completes. Check [Source Status](/api-reference/v2/endpoint/source-status) for recently ingested source IDs before treating counts as final.
 
-## Related endpoints
-
-- **List sources/memories:** [List Documents](/api-reference/v2/endpoint/list-documents)
-- **List sub-tenants:** [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants)
-- **Check provisioning:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)
-
 ## Errors
 
 Common codes: `404 TENANT_NOT_FOUND`, `401 UNAUTHORIZED`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+<Tip>
+**Related Resources**
+
+- **List sources/memories:** [List Documents](/api-reference/v2/endpoint/list-documents)
+- **List sub-tenants:** [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants)
+- **Check provisioning:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)
+- **Read more:** [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+</Tip>

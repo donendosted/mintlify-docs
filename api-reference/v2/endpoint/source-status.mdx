@@ -205,13 +205,17 @@ Typical processing time:
 
 - **Unknown IDs return as `errored`:** If you pass an ID that does not exist (e.g., a typo), HydraDB returns an entry with `indexing_status: "errored"` rather than silently dropping it.
 
-## Related endpoints
-
-- **Before this:** [Ingest Content](/api-reference/v2/endpoint/ingest-content)  -  to get the IDs
-- **After completion:** [Search](/api-reference/v2/endpoint/search) · [Fetch Content](/api-reference/v2/endpoint/fetch-content) · [Source Relations](/api-reference/v2/endpoint/source-relations)
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 TENANT_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Knowledge](/essentials/v2/knowledge) · [Essentials → Memories](/essentials/v2/memories)
+<Tip>
+**Related Resources**
+
+- **Before this:** [Ingest Content](/api-reference/v2/endpoint/ingest-content) - to get the IDs
+- **After completion:** [Search](/api-reference/v2/endpoint/search)
+- **After completion:** [Fetch Content](/api-reference/v2/endpoint/fetch-content)
+- **After completion:** [Source Relations](/api-reference/v2/endpoint/source-relations)
+- **Read more:** [Essentials → Knowledge](/essentials/v2/knowledge)
+- **Read more:** [Essentials → Memories](/essentials/v2/memories)
+</Tip>

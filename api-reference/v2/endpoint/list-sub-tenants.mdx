@@ -63,14 +63,14 @@ A tenant with no indexed content can return an empty list:
 - **Default sub-tenant included:** HydraDB assigns an auto-generated default sub-tenant ID for calls that omit `sub_tenant_id`. That default is created once and reused. It appears here once any data is written without an explicit `sub_tenant_id`.
 - **Only sub-tenants with data are listed:** A sub-tenant that has been referenced in a search but never received an ingest will not show up here.
 
-## Related endpoints
-
-- **Inspect content:** [List Documents](/api-reference/v2/endpoint/list-documents)  -  scoped to a `sub_tenant_id`
-- **Inspect usage:** [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
-- **Concepts:** [Essentials → Multi-Tenant](/essentials/v2/multi-tenant)
-
 ## Errors
 
 Common codes: `404 TENANT_NOT_FOUND`, `401 UNAUTHORIZED`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+<Tip>
+**Related Resources**
+
+- **Inspect content:** [List Documents](/api-reference/v2/endpoint/list-documents) - scoped to a `sub_tenant_id`
+- **Inspect usage:** [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
+- **Concepts:** [Essentials → Multi-Tenant](/essentials/v2/multi-tenant)
+</Tip>

@@ -58,14 +58,16 @@ If provisioning failed for a tenant, `failed_tenant_ids` contains diagnostic ent
 ## Behavior notes
 - **Retry failed tenants:** If a tenant appears in `failed_tenant_ids`, re-create that tenant with `POST /tenants` after addressing the reported issue. Poll status again before ingestion.
 
-## Related endpoints
-
-- **Create:** [Create Tenant](/api-reference/v2/endpoint/create-tenant)
-- **Inspect:** [Tenant Status](/api-reference/v2/endpoint/tenant-status) · [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
-- **Delete:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)
-
 ## Errors
 
 Common codes: `401 UNAUTHORIZED`, `500 INTERNAL_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+<Tip>
+**Related Resources**
+
+- **Create:** [Create Tenant](/api-reference/v2/endpoint/create-tenant)
+- **Inspect:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)
+- **Inspect:** [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
+- **Delete:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)
+- **Read more:** [Essentials → Multi-Tenant Support](/essentials/v2/multi-tenant)
+</Tip>

@@ -147,14 +147,16 @@ Use `mode=url` when you need the original file. Use `mode=content` when you only
 - **Presigned URL TTL:** The URL is valid only for `expiry_seconds`. Anyone with the URL can download the file during that window, so treat it as a short-lived secret.
 - **Memory items:** Fetching a memory's `source_id` returns its raw text content. There are no presigned URLs for memory items  -  `mode=url` and `mode=both` return `presigned_url: null`.
 
-## Related endpoints
-
-- **Discover IDs:** [List Documents](/api-reference/v2/endpoint/list-documents) · [Search](/api-reference/v2/endpoint/search)
-- **Status check:** [Source Status](/api-reference/v2/endpoint/source-status)
-- **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
-
 ## Errors
 
 Common codes: `400 INVALID_PARAMETERS`, `404 SOURCE_NOT_FOUND`, `422 VALIDATION_ERROR`. See [Error Responses](/api-reference/v2/error-responses) for the full list.
 
-Read more: [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+<Tip>
+**Related Resources**
+
+- **Discover IDs:** [List Documents](/api-reference/v2/endpoint/list-documents)
+- **Perform a search:** [Search](/api-reference/v2/endpoint/search)
+- **Status check:** [Source Status](/api-reference/v2/endpoint/source-status)
+- **Cleanup:** [Delete Source](/api-reference/v2/endpoint/delete-source)
+- **Read more:** [Sources - Overview](/api-reference/v2/endpoint/sources-overview)
+</Tip>
