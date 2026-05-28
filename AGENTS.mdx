@@ -7,6 +7,14 @@ description: "LLM-facing reference for building against the current HydraDB v2 d
 
 This document is a self-contained reference designed for AI coding agents. It covers everything needed to understand, install, configure, and integrate HydraDB into any project -- from zero prior knowledge to production-ready usage.
 
+### TL;DR: Critical v2 Endpoints
+
+1. **`POST /tenants`** (`client.tenants.create()`): Provision an isolated tenant workspace.
+2. **`GET /tenants/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
+3. **`POST /source/ingest`** (`client.source.ingest()`): Ingest documents, app records, or memories under `type="knowledge"` or `type="memory"`.
+4. **`GET /source/status`** (`client.source.status()`): Poll status using `source_ids` until `indexing_status` is `completed` or `graph_creation`.
+5. **`POST /search`** (`client.search.query()`): Retrieve context via `source: "knowledge"`, `"memory"`, or `"all"`.
+
 
 > **Important:** Prefer the v2 surface in this guide. Older v1 routes like `/recall/full_recall`, `/ingestion/upload_knowledge`, `/list/data`, and `/tenants/create` may still appear in the OpenAPI file for compatibility, but new integrations should use the consolidated v2 endpoints: `/tenants`, `/source/*`, and `/search`.
 
@@ -1173,21 +1181,21 @@ Use this only when the application owns embedding generation and chunking.
 
 ## 15. Cookbook patterns
 
-The v2 cookbooks show production patterns. Use them as design references, not as separate API surfaces.
+The v2 cookbooks show production patterns. Click the links below to read the raw Markdown guides with complete setup code and schemas:
 
-| Cookbook | Pattern |
-|---|---|
-| Cursor for Docs | ingest GitHub/PRs/Slack/RFCs; answer codebase/documentation questions with provenance |
-| Build your own Glean | enterprise search across workplace apps |
-| Internal Search Perplexity | synthesized cited answers over Slack/Gmail/Confluence/GitHub/Linear |
-| Customer Support Agent with Memory | help docs + ticket history + per-customer memories |
-| Internal IT Support Agent / Notion AI | workspace docs + Slack/Confluence with graph-aware answers |
-| AI Financial Analyst with Memory | earnings PDFs, internal metrics, board memos, temporal analysis |
-| AI LinkedIn Recruiter | natural-language people/candidate search |
-| AI Travel Planner | personalized recommendations using search + memory |
-| AI Onboarding Agent | decision logs, org charts, specs; answers for new hires |
-| Competitive Intelligence Agent | competitor releases, reviews, transcripts, job postings; temporal context |
-| AI Chief of Staff / Function Routing | register callable functions as searchable knowledge objects; route tasks to actions |
+| Cookbook Guide | Purpose & Retrieval Patterns | Link to Guide |
+|---|---|---|
+| **Cursor for Docs** | Ingest codebase, PRs, Slack; multi-hop reasoning | [Guide Link](https://docs.hydradb.com/cookbooks/v2/cookbook-01-build-cursor-for-docs.md) |
+| **Build your own Glean** | Enterprise workplace search across SaaS platforms | [Guide Link](https://docs.hydradb.com/cookbooks/v2/glean-clone.md) |
+| **Internal Search Perplexity** | Citations and answer synthesis over Confluence/Slack | [Guide Link](https://docs.hydradb.com/cookbooks/v2/internal-search-perplexity.md) |
+| **Customer Support Agent** | Personalizing help with user/plan-specific memory | [Guide Link](https://docs.hydradb.com/cookbooks/v2/customer-support-agent.md) |
+| **IT Support / Notion AI** | Relational reasoning across Notion and Slack threads | [Guide Link](https://docs.hydradb.com/cookbooks/v2/cookbook-04-build-notion-ai.md) |
+| **Financial Analyst** | Trend analysis, temporal metadata, precise citations | [Guide Link](https://docs.hydradb.com/cookbooks/v2/cookbook-10-ai-financial-analyst.md) |
+| **LinkedIn Recruiter** | Exact skill/experience matching and post-filtering | [Guide Link](https://docs.hydradb.com/cookbooks/v2/ai-linkedin-recruiter.md) |
+| **AI Travel Planner** | Collaborative planning using personalized context | [Guide Link](https://docs.hydradb.com/cookbooks/v2/ai-travel-planner.md) |
+| **AI Onboarding Agent** | Org charts, specifications, and meeting transcripts | [Guide Link](https://docs.hydradb.com/cookbooks/v2/ai-onboarding-agent.md) |
+| **Competitive Intelligence** | Competitor announcements, job listings, pricing | [Guide Link](https://docs.hydradb.com/cookbooks/v2/competitive-intelligence-agent.md) |
+| **Chief of Staff / Actions** | Function routing, task tracking, and planning | [Guide Link](https://docs.hydradb.com/cookbooks/v2/ai-chief-of-staff.md) |
 
 Common architecture across cookbooks:
 
@@ -1225,11 +1233,45 @@ Common architecture across cookbooks:
 
 ---
 
-## 17. Correct copy-paste examples
+## 17. SDK Method Reference
 
-This section is intentionally redundant: use these as known-good starting points when implementing integrations.
+### 17.1 TypeScript SDK (v2)
 
-### 17.1 Raw HTTP: create tenant, ingest memory, poll, search
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `client.source.ingest()` | `POST /source/ingest` | Ingest files, app sources, or memories |
+| `client.source.status()` | `GET /source/status` | Check processing status of ingested items |
+| `client.source.fetch()` | `GET /source/fetch` | Retrieve original source content or get a presigned URL |
+| `client.source.list()` | `POST /source/list` | Browse knowledge or memories |
+| `client.source.delete()` | `DELETE /source` | Delete sources or memories |
+| `client.source.relations()` | `GET /source/relations` | Inspect graph relationships |
+| `client.search.query()` | `POST /search` | Unified search over knowledge, memories, or both |
+| `client.tenants.create()` | `POST /tenants` | Create a new isolated workspace |
+| `client.tenants.list()` | `GET /tenants` | List all tenants registered for the organization |
+| `client.tenants.delete()` | `DELETE /tenants` | Permanently remove a tenant |
+| `client.tenants.status()` | `GET /tenants/status` | Check provisioning readiness of a tenant's infrastructure |
+| `client.tenants.subTenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
+| `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
+
+### 17.2 Python SDK (v2)
+
+| Group | Method | Endpoint | Description |
+|---|---|---|---|
+| Source | `client.source.ingest()` | `POST /source/ingest` | Ingest files, app sources, or memories |
+| Source | `client.source.status()` | `GET /source/status` | Check processing status of ingested items |
+| Source | `client.source.fetch()` | `GET /source/fetch` | Retrieve original source content or get a presigned URL |
+| Source | `client.source.list()` | `POST /source/list` | Browse knowledge or memories |
+| Source | `client.source.delete()` | `DELETE /source` | Delete sources or memories |
+| Source | `client.source.relations()` | `GET /source/relations` | Inspect graph relationships |
+| Search | `client.search.query()` | `POST /search` | Unified search over knowledge, memories, or both |
+| Tenants | `client.tenants.create()` | `POST /tenants` | Create a new isolated workspace |
+| Tenants | `client.tenants.list()` | `GET /tenants` | List all tenants registered for the organization |
+| Tenants | `client.tenants.delete()` | `DELETE /tenants` | Permanently remove a tenant |
+| Tenants | `client.tenants.status()` | `GET /tenants/status` | Check provisioning readiness of a tenant's infrastructure |
+| Tenants | `client.tenants.sub_tenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
+| Tenants | `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
+
+### 17.3 Minimal cURL example
 
 Use `source` on raw `/search` requests because that is the OpenAPI field. The raw API response is wrapped; read payloads from `.data`.
 
@@ -1250,17 +1292,17 @@ curl -s "https://api.hydradb.com/tenants/status?tenant_id=${TENANT_ID}" \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" | jq '.data.infra'
 
-# 3. Ingest a memory. The memories field is JSON serialized inside multipart form data.
+# 3. Ingest a memory.
 SOURCE_ID=$(curl -s -X POST 'https://api.hydradb.com/source/ingest' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -F "type=memory" \
   -F "tenant_id=${TENANT_ID}" \
   -F "sub_tenant_id=${SUB_TENANT_ID}" \
-  -F 'memories=[{"source_id":"alex_pref_001","text":"Alex prefers concise technical answers and dark mode.","infer":true,"user_name":"Alex"}]' \
+  -F 'memories=[{"source_id":"alex_pref_001","text":"Alex prefers concise technical answers.","infer":true,"user_name":"Alex"}]' \
   | jq -r '.data.results[0].source_id')
 
-# 4. Poll indexing. Stop at graph_creation if searchable is enough; wait for completed for full graph.
+# 4. Poll indexing.
 curl -s -G 'https://api.hydradb.com/source/status' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
@@ -1278,7 +1320,7 @@ curl -s -X POST 'https://api.hydradb.com/search' \
   | jq '.data.chunks'
 ```
 
-### 17.2 Raw HTTP: ingest app-source knowledge
+### 17.4 Raw HTTP: ingest app-source knowledge
 
 Use this for connector output where your app already extracted the text. `app_knowledge` must be a JSON string in multipart form data.
 
@@ -1332,297 +1374,6 @@ curl -s -X POST 'https://api.hydradb.com/search' \
     "search_apps": true,
     "graph_context": true
   }' | jq '.data.chunks'
-```
-
-### 17.3 TypeScript: production helpers
-
-The SDK unwraps `.data`. SDK docs show `type` for search; if your installed SDK exposes `source` instead, use `source`.
-
-```ts
-import { HydraDBClient, HydraDBError } from "@hydradb/sdk";
-
-const client = new HydraDBClient({
-  token: process.env.HYDRA_DB_API_KEY,
-});
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function waitForTenant(tenant_id: string, timeoutMs = 300_000) {
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    const status = await client.tenants.status({ tenant_id });
-    const infra = status.infra;
-
-    if (infra.ready_for_ingestion) return status;
-
-    const vectorReady =
-      typeof infra.vectorstore_status === "object" &&
-      Boolean(infra.vectorstore_status.knowledge) &&
-      Boolean(infra.vectorstore_status.memory ?? infra.vectorstore_status.memories);
-
-    if (infra.scheduler_status && infra.graph_status && vectorReady) return status;
-
-    await sleep(5_000);
-  }
-
-  throw new Error(`Tenant ${tenant_id} was not ready after ${timeoutMs}ms`);
-}
-
-async function waitForSources(params: {
-  tenant_id: string;
-  source_ids: string[];
-  sub_tenant_id?: string;
-  requireCompleted?: boolean;
-  timeoutMs?: number;
-}) {
-  const deadline = Date.now() + (params.timeoutMs ?? 300_000);
-  const ok = params.requireCompleted ? new Set(["completed"]) : new Set(["graph_creation", "completed"]);
-  const failed = new Set(["errored", "failed"]);
-
-  while (Date.now() < deadline) {
-    const response = await client.source.status({
-      tenant_id: params.tenant_id,
-      sub_tenant_id: params.sub_tenant_id,
-      source_ids: params.source_ids,
-    });
-
-    const statuses = response.statuses ?? [];
-    if (statuses.some((s) => failed.has(s.indexing_status))) {
-      throw new Error(`Indexing failed: ${JSON.stringify(statuses)}`);
-    }
-    if (statuses.length === params.source_ids.length && statuses.every((s) => ok.has(s.indexing_status))) {
-      return statuses;
-    }
-
-    await sleep(2_000);
-  }
-
-  throw new Error(`Sources did not finish indexing: ${params.source_ids.join(", ")}`);
-}
-
-async function withHydraRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (!(error instanceof HydraDBError)) throw error;
-      const retryable = [429, 500, 503].includes(error.statusCode);
-      if (!retryable || attempt === maxRetries) throw error;
-
-      const delayMs = 2 ** attempt * 1000 + Math.floor(Math.random() * 250);
-      await sleep(delayMs);
-    }
-  }
-  throw new Error("unreachable");
-}
-```
-
-### 17.4 Python: production helpers
-
-```python
-import random
-import time
-from hydra_db import HydraDBError
-
-
-def wait_for_tenant(client, tenant_id: str, timeout_s: int = 300):
-    deadline = time.time() + timeout_s
-
-    while time.time() < deadline:
-        status = client.tenants.status(tenant_id=tenant_id)
-        infra = status.infra
-
-        if getattr(infra, "ready_for_ingestion", False):
-            return status
-
-        vectorstore = getattr(infra, "vectorstore_status", None)
-        vector_ready = False
-        if vectorstore is not None:
-            knowledge_ready = bool(getattr(vectorstore, "knowledge", False))
-            memory_ready = bool(getattr(vectorstore, "memory", getattr(vectorstore, "memories", False)))
-            vector_ready = knowledge_ready and memory_ready
-
-        if infra.scheduler_status and infra.graph_status and vector_ready:
-            return status
-
-        time.sleep(5)
-
-    raise TimeoutError(f"Tenant {tenant_id} was not ready after {timeout_s}s")
-
-
-def wait_for_sources(client, tenant_id: str, source_ids: list[str], sub_tenant_id: str | None = None, require_completed: bool = False, timeout_s: int = 300):
-    deadline = time.time() + timeout_s
-    ok = {"completed"} if require_completed else {"graph_creation", "completed"}
-    failed = {"errored", "failed"}
-
-    while time.time() < deadline:
-        response = client.source.status(
-            tenant_id=tenant_id,
-            sub_tenant_id=sub_tenant_id,
-            source_ids=source_ids,
-        )
-        statuses = response.statuses
-        values = {s.indexing_status for s in statuses}
-
-        if values & failed:
-            raise RuntimeError(f"Indexing failed: {statuses}")
-        if len(statuses) == len(source_ids) and values.issubset(ok):
-            return statuses
-
-        time.sleep(2)
-
-    raise TimeoutError(f"Sources did not finish indexing: {source_ids}")
-
-
-def with_hydra_retry(operation, max_retries: int = 3):
-    for attempt in range(max_retries + 1):
-        try:
-            return operation()
-        except HydraDBError as exc:
-            retryable = exc.status_code in (429, 500, 503)
-            if not retryable or attempt == max_retries:
-                raise
-            time.sleep((2 ** attempt) + random.uniform(0, 0.25))
-```
-
-### 17.5 TypeScript: end-to-end app-source RAG
-
-```ts
-import { buildString } from "@hydradb/sdk";
-
-const tenantId = "acme_corp";
-
-await client.tenants.create({
-  tenant_id: tenantId,
-  tenant_metadata_schema: [
-    { name: "workspace", data_type: "VARCHAR", enable_match: true },
-    { name: "channel", data_type: "VARCHAR", enable_match: true },
-  ],
-});
-await waitForTenant(tenantId);
-
-const ingest = await client.source.ingest({
-  type: "knowledge",
-  tenant_id: tenantId,
-  app_knowledge: JSON.stringify([
-    {
-      id: "slack_C123_1715012345_000100",
-      tenant_id: tenantId,
-      sub_tenant_id: "default",
-      title: "Pricing discussion - Slack #product",
-      type: "slack",
-      content: { text: "Starter is $29, Pro is $79, Enterprise is $199." },
-      tenant_metadata: { workspace: "acme", channel: "product" },
-      additional_metadata: { author: "alice", slack_ts: "1715012345.000100" },
-      url: "https://slack.com/archives/C123/p1715012345000100",
-    },
-  ]),
-});
-
-const sourceIds = ingest.results.map((r) => r.source_id);
-await waitForSources({ tenant_id: tenantId, source_ids: sourceIds });
-
-const result = await client.search.query({
-  tenant_id: tenantId,
-  query: "What are the pricing tiers?",
-  type: "knowledge",
-  search_by: "hybrid",
-  mode: "thinking",
-  search_apps: true,
-  metadata_filters: {
-    workspace: "acme",
-    channel: "product",
-  },
-});
-
-const context = buildString(result);
-```
-
-### 17.6 TypeScript: personalized support answer
-
-```ts
-import { buildString } from "@hydradb/sdk";
-
-const tenantId = "support_prod";
-const userScope = "user_123";
-
-await client.source.ingest({
-  type: "memory",
-  tenant_id: tenantId,
-  sub_tenant_id: userScope,
-  memories: JSON.stringify([
-    {
-      source_id: "user_123_plan",
-      text: "User is on the Enterprise plan and prefers short bullet-point answers.",
-      infer: true,
-      user_name: "Jordan",
-    },
-  ]),
-});
-
-const result = await client.search.query({
-  tenant_id: tenantId,
-  sub_tenant_id: userScope,
-  query: "How should this customer reset SSO after an IdP rotation?",
-  type: "all",
-  search_by: "hybrid",
-  mode: "thinking",
-  graph_context: true,
-  max_results: 10,
-});
-
-const promptContext = buildString(result);
-```
-
-### 17.7 Webhook receiver example
-
-```ts
-import crypto from "node:crypto";
-import express from "express";
-
-const app = express();
-const signingSecret = process.env.HYDRADB_WEBHOOK_SECRET;
-
-app.post("/webhooks/hydradb", express.raw({ type: "application/json" }), (req, res) => {
-  const signature = req.header("X-HydraDB-Signature");
-
-  if (signingSecret && signature) {
-    const expected = crypto
-      .createHmac("sha256", signingSecret)
-      .update(req.body)
-      .digest("hex");
-
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-      return res.status(401).send("invalid signature");
-    }
-  }
-
-  const event = JSON.parse(req.body.toString("utf8"));
-  if (event.event === "indexing.status_changed") {
-    // Store event.delivery_id to dedupe retries.
-    // Mark event.id as completed/errored in your own DB.
-    console.log(event.id, event.status, event.error_code, event.error_message);
-  }
-
-  res.status(204).send();
-});
-```
-
-### 17.8 SDK context helper
-
-Do **not** reimplement context formatting unless you have a product-specific prompt format. The SDK helpers handle chunks, source titles, graph context, and forceful-relation `additional_context` consistently with the docs.
-
-```python
-from hydra_db import build_string
-
-context = build_string(result)
-```
-
-```ts
-import { buildString } from "@hydradb/sdk";
-
-const context = buildString(result);
 ```
 
 ---
