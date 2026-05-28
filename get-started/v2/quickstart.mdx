@@ -9,79 +9,33 @@ If you're new to HydraDB, the [Core Concepts](/get-started/core-concepts) page i
 
 ---
 
-## What you'll build
+### Install and initialize
 
-By the end of this quickstart you'll have a working **production grade super scalable search that scales from 10 documents to 10,000+ with no code changes** and reaches across content that extends to **millions of tokens**. HydraDB does the parsing, chunking, embedding, graph construction, and hybrid retrieval; your application sends the query and gets back the right slice of context  -  ready to feed into an LLM prompt.
-
-```mermaid
-flowchart LR
-  A([1. Create Tenant]) --> B([2. Ingest Data])
-  B --> C([3. Verify Processing])
-  C --> D([4. Search Context])
-  D --> E([5. Pass to LLM])
-
-  style A fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
-  style B fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
-  style C fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2.5px,color:#f8fafc,stroke-linecap:round
-  style D fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
-  style E fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
-```
-
-Steps 1 and 3 are **asynchronous**(runs in background)  -  HydraDB provisions infrastructure and indexes your content in the background, so each one needs a short polling loop. Steps 2, 4, and 5 run in real time. The same loop scales as your corpus grows; nothing in the code changes between 10 documents and 10,000.
-
----
-
-## Prerequisites
-
-- An API key from [app.hydradb.com](https://app.hydradb.com)
-- A backend that can make HTTP calls, or one of the HydraDB [SDKs](/api-reference/v2/sdks)
-
-| Setting | Value |
-|---|---|
-| **Base URL** | `https://api.hydradb.com` |
-| **Auth header** | `Authorization: Bearer <your_api_key>` |
-| **Version header** | `API-Version: 2` (auto-set by the SDKs) |
-
-### Install the SDK (optional)
+- Grab an API key from [app.hydradb.com](https://app.hydradb.com)
 
 <CodeGroup>
-```bash cURL
-# No install needed — smoke-test the connection directly.
-# Lists tenants visible to this key. A 200 response confirms
-# auth + the version header are both wired up.
-export HYDRA_DB_API_KEY="your_api_key"
+```python Python SDK
+# Install: pip install "hydradb-sdk>=2,<3"
+import os
+from hydra_db import HydraDB
 
-curl 'https://api.hydradb.com/tenants' \
-  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
-  -H "API-Version: 2"
-```
-```bash TypeScript SDK
-npm install @hydradb/sdk@^2
-```
-```bash Python SDK
-pip install "hydradb-sdk>=2,<3"
-```
-</CodeGroup>
-
-### Initialize a client
-
-<CodeGroup>
-```bash cURL
-# Set your key once and reuse it on every request
-export HYDRA_DB_API_KEY="your_api_key"
+client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 ```
 ```typescript TypeScript SDK
+// Install: npm install @hydradb/sdk@^2
 import { HydraDBClient } from "@hydradb/sdk";
 
 const client = new HydraDBClient({
   token: process.env.HYDRA_DB_API_KEY,
 });
 ```
-```python Python SDK
-import os
-from hydra_db import HydraDB
+```bash cURL
+# No SDK needed — set your key once and reuse it.
+export HYDRA_DB_API_KEY="your_api_key"
 
-client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
+curl 'https://api.hydradb.com/tenants' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
 ```
 </CodeGroup>
 
@@ -241,7 +195,7 @@ curl -s -X POST 'https://api.hydradb.com/search' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
-  -d @- <<EOF | jq '.data.chunks'
+  --data-binary @- <<EOF | jq '.data.chunks'
 {
   "tenant_id": "${TENANT_ID}",
   "source": "memories",
@@ -250,6 +204,28 @@ curl -s -X POST 'https://api.hydradb.com/search' \
 EOF
 ```
 </CodeGroup>
+
+---
+
+## What you have built
+
+You have built a working **production grade super scalable search that scales from 10 documents to 10,000+ with no code changes** and reaches across content that extends to **millions of tokens**. HydraDB does the parsing, chunking, embedding, graph construction, and hybrid retrieval; your application sends the query and gets back the right slice of context  -  ready to feed into an LLM prompt.
+
+```mermaid
+flowchart LR
+  A([1. Create Tenant]) --> B([2. Ingest Data])
+  B --> C([3. Verify Processing])
+  C --> D([4. Search Context])
+  D --> E([5. Pass to LLM])
+
+  style A fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style B fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style C fill:#8b5cf6,stroke:#8b5cf6,stroke-width:2.5px,color:#f8fafc,stroke-linecap:round
+  style D fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+  style E fill:#0f172a,stroke:#334155,stroke-width:2px,color:#f8fafc,stroke-linecap:round
+```
+
+Steps 1 and 3 are **asynchronous**(runs in background)  -  HydraDB provisions infrastructure and indexes your content in the background, so each one needs a short polling loop. Steps 2, 4, and 5 run in real time. The same loop scales as your corpus grows; nothing in the code changes between 10 documents and 10,000.
 
 
 ---

@@ -15,6 +15,11 @@
       "claude"
     ]
   },
+  "api": {
+    "examples": {
+      "languages": ["python", "javascript", "curl"]
+    }
+  },
   "navigation": {
     "versions": [
       {
