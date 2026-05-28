@@ -103,6 +103,14 @@ A single method covers all retrieval. Pick `source` (`"knowledge"`, `"memories"`
 |---|---|
 | `client.search.query()` | `POST /search` |
 
+### Formatting Helper (SDK only)
+
+| Method | Description |
+|---|---|
+| `buildString()` / `build_string()` | Formats any `POST /search` result into a plain string for LLM injection |
+
+See [buildString / build_string](/api-reference/endpoint/build-string) for full documentation.
+
 ### Tenants
 
 | Method | Endpoint |
@@ -342,7 +350,7 @@ const knowledge = await client.search.query({
   graph_context: true,
 });
 
-// Personalized — searches knowledge AND user memories together
+// Searches knowledge AND user memories together
 const personalized = await client.search.query({
   tenant_id: "my_first_tenant",
   sub_tenant_id: "user_alex",
@@ -372,7 +380,7 @@ knowledge = client.search.query(
     graph_context=True,
 )
 
-# Personalized — searches knowledge AND user memories together
+# Searches knowledge AND user memories together
 personalized = client.search.query(
     tenant_id="my_first_tenant",
     sub_tenant_id="user_alex",
@@ -394,6 +402,10 @@ exact = client.search.query(
 </CodeGroup>
 
 For the full parameter reference, see [Search – Overview](/api-reference/v2/endpoint/search-overview).
+
+<Tip>
+Use `build_string` / `buildString` to format any search result into a plain string for LLM injection. See [buildString / build_string](/api-reference/endpoint/build-string).
+</Tip>
 
 ### Browse, fetch, and inspect
 
@@ -520,7 +532,7 @@ try {
     if (code === "TENANT_NOT_FOUND") {
       // Handle missing tenant
     } else if (error.statusCode === 429) {
-      // Rate limit — retry with backoff
+      // Rate limit - retry with backoff
     } else {
       throw error;
     }
@@ -546,7 +558,7 @@ except HydraDBError as e:
         # Handle missing tenant
         pass
     elif status == 429:
-        # Rate limit — retry with backoff
+        # Rate limit - retry with backoff
         pass
     else:
         raise
