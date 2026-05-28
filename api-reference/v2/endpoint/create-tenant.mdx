@@ -9,6 +9,46 @@ import { Field } from "/snippets/field.jsx";
 For details on structuring your multi-tenant setup, see the [Multi-Tenant Support](/essentials/v2/multi-tenant) guide.
 
 <RequestExample>
+```python Python SDK
+response = client.tenants.create(
+    tenant_id="my_first_tenant",
+    tenant_metadata_schema=[
+        {
+            "name": "category",
+            "data_type": "VARCHAR",
+            "max_length": 256,
+            "enable_match": True,
+        },
+        {
+            "name": "product_description",
+            "data_type": "VARCHAR",
+            "max_length": 4096,
+            "enable_dense_embedding": True,
+            "enable_sparse_embedding": True,
+        },
+    ],
+)
+```
+```typescript TypeScript SDK
+const response = await client.tenants.create({
+  tenant_id: "my_first_tenant",
+  tenant_metadata_schema: [
+    {
+      name: "category",
+      data_type: "VARCHAR",
+      max_length: 256,
+      enable_match: true,
+    },
+    {
+      name: "product_description",
+      data_type: "VARCHAR",
+      max_length: 4096,
+      enable_dense_embedding: true,
+      enable_sparse_embedding: true,
+    },
+  ],
+});
+```
 ```bash cURL
 curl -X POST 'https://api.hydradb.com/tenants' \
   -H "Authorization: Bearer <your_api_key>" \
@@ -32,46 +72,6 @@ curl -X POST 'https://api.hydradb.com/tenants' \
       }
     ]
   }'
-```
-```typescript TypeScript SDK
-const response = await client.tenants.create({
-  tenant_id: "my_first_tenant",
-  tenant_metadata_schema: [
-    {
-      name: "category",
-      data_type: "VARCHAR",
-      max_length: 256,
-      enable_match: true,
-    },
-    {
-      name: "product_description",
-      data_type: "VARCHAR",
-      max_length: 4096,
-      enable_dense_embedding: true,
-      enable_sparse_embedding: true,
-    },
-  ],
-});
-```
-```python Python SDK
-response = client.tenants.create(
-    tenant_id="my_first_tenant",
-    tenant_metadata_schema=[
-        {
-            "name": "category",
-            "data_type": "VARCHAR",
-            "max_length": 256,
-            "enable_match": True,
-        },
-        {
-            "name": "product_description",
-            "data_type": "VARCHAR",
-            "max_length": 4096,
-            "enable_dense_embedding": True,
-            "enable_sparse_embedding": True,
-        },
-    ],
-)
 ```
 </RequestExample>
 

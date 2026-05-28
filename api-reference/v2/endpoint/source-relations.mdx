@@ -11,13 +11,12 @@ This endpoint queries the entity-and-relationship graph built during ingestion.
 Pass `source_id` to scope to a single ingested item, or omit it to return all relations in the sub-tenant. Set `is_memory=true` to inspect a memory's relations instead of a knowledge source's. Cursor-based pagination handles large result sets. For more concepts, see the [Context Graphs](/essentials/v2/context-graphs) guide.
 
 <RequestExample>
-```bash cURL
-curl -G 'https://api.hydradb.com/source/relations' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2" \
-  --data-urlencode "tenant_id=acme_corp" \
-  --data-urlencode "source_id=billing_runbook_v3" \
-  --data-urlencode "limit=500"
+```python Python SDK
+relations = client.source.relations(
+    tenant_id="acme_corp",
+    source_id="billing_runbook_v3",
+    limit=500,
+)
 ```
 ```typescript TypeScript SDK
 const relations = await client.source.relations({
@@ -26,12 +25,13 @@ const relations = await client.source.relations({
   limit: 500,
 });
 ```
-```python Python SDK
-relations = client.source.relations(
-    tenant_id="acme_corp",
-    source_id="billing_runbook_v3",
-    limit=500,
-)
+```bash cURL
+curl -G 'https://api.hydradb.com/source/relations' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2" \
+  --data-urlencode "tenant_id=acme_corp" \
+  --data-urlencode "source_id=billing_runbook_v3" \
+  --data-urlencode "limit=500"
 ```
 </RequestExample>
 

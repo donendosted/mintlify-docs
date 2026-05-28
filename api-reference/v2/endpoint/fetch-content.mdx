@@ -10,14 +10,13 @@ Specify the `source_id` of the knowledge source or memory you want to retrieve.
 
 <RequestExample>
 
-```bash cURL
-curl -G 'https://api.hydradb.com/source/fetch' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2" \
-  --data-urlencode "source_id=policy_main" \
-  --data-urlencode "tenant_id=acme_corp" \
-  --data-urlencode "mode=both" \
-  --data-urlencode "expiry_seconds=3600"
+```python Python SDK
+file = client.source.fetch(
+    source_id="policy_main",
+    tenant_id="acme_corp",
+    mode="both",
+    expiry_seconds=3600,
+)
 ```
 
 ```typescript TypeScript SDK
@@ -29,13 +28,14 @@ const file = await client.source.fetch({
 });
 ```
 
-```python Python SDK
-file = client.source.fetch(
-    source_id="policy_main",
-    tenant_id="acme_corp",
-    mode="both",
-    expiry_seconds=3600,
-)
+```bash cURL
+curl -G 'https://api.hydradb.com/source/fetch' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2" \
+  --data-urlencode "source_id=policy_main" \
+  --data-urlencode "tenant_id=acme_corp" \
+  --data-urlencode "mode=both" \
+  --data-urlencode "expiry_seconds=3600"
 ```
 
 </RequestExample>

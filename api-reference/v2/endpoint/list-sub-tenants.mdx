@@ -9,18 +9,18 @@ import { Field } from "/snippets/field.jsx";
 Sub-tenants are created implicitly during ingestion the first time a `sub_tenant_id` value is written. For details, see the [Multi-Tenant Support](/essentials/v2/multi-tenant) guide.
 
 <RequestExample>
-```bash cURL
-curl -X GET 'https://api.hydradb.com/tenants/sub-tenants?tenant_id=my_first_tenant' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2"
+```python Python SDK
+response = client.tenants.sub_tenants(tenant_id="my_first_tenant")
 ```
 ```typescript TypeScript SDK
 const response = await client.tenants.subTenants({
   tenant_id: "my_first_tenant",
 });
 ```
-```python Python SDK
-response = client.tenants.sub_tenants(tenant_id="my_first_tenant")
+```bash cURL
+curl -X GET 'https://api.hydradb.com/tenants/sub-tenants?tenant_id=my_first_tenant' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2"
 ```
 </RequestExample>
 

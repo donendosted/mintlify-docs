@@ -18,31 +18,42 @@ Two independent dimensions control behavior:
 Read more about choosing the perfect mode for your use case [here](/api-reference/v2/endpoint/search-overview#recommended-configurations).
 <RequestExample>
 
-```bash cURL
-curl -X POST 'https://api.hydradb.com/search' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tenant_id": "acme_corp",
-    "sub_tenant_id": "user_alex",
-    "query": "What is our refund policy, and how should I explain it to this user?",
-    "source": "all",
-    "search_by": "hybrid", // or "text" or "vector"
-    "mode": "thinking",
-    "max_results": 10,
-    "alpha": "auto",
-    "recency_bias": 0.2,
-    "graph_context": true,
-    "search_forceful_relations": true,
-    "metadata_filters": {
-      "department": "support",
-      "document_metadata": {
-        "source": "policy"
-      }
+```python Python SDK
+result = client.search.query(
+    tenant_id="acme_corp",
+    sub_tenant_id="user_alex",
+    query="What is our refund policy, and how should I explain it to this user?",
+
+    # What to search: "knowledge", "memories", or "all".
+    source="all",
+
+    # How to match: "hybrid" (default), "text" (BM25), or "vector".
+    search_by="hybrid",
+
+    # "thinking" improves quality; use "fast" for lowest latency.
+    mode="thinking",
+
+    # Ranking and response controls.
+    max_results=10,
+    alpha="auto",
+    recency_bias=0.2,
+    graph_context=True,
+
+    # Pull author-declared related sources into additional_context.
+    # Only applies when mode="thinking".
+    search_forceful_relations=True,
+
+    # Top-level keys match tenant_metadata; document_metadata is per-source.
+    metadata_filters={
+        "department": "support",
+        "document_metadata": {
+            "source": "policy",
+        },
     },
-    "additional_context": "User is asking from the billing help center."
-  }'
+
+    # Short factual hint; not a hard filter.
+    additional_context="User is asking from the billing help center.",
+)
 ```
 
 ```typescript TypeScript SDK
@@ -83,42 +94,31 @@ const result = await client.search.query({
 });
 ```
 
-```python Python SDK
-result = client.search.query(
-    tenant_id="acme_corp",
-    sub_tenant_id="user_alex",
-    query="What is our refund policy, and how should I explain it to this user?",
-
-    # What to search: "knowledge", "memories", or "all".
-    source="all",
-
-    # How to match: "hybrid" (default), "text" (BM25), or "vector".
-    search_by="hybrid",
-
-    # "thinking" improves quality; use "fast" for lowest latency.
-    mode="thinking",
-
-    # Ranking and response controls.
-    max_results=10,
-    alpha="auto",
-    recency_bias=0.2,
-    graph_context=True,
-
-    # Pull author-declared related sources into additional_context.
-    # Only applies when mode="thinking".
-    search_forceful_relations=True,
-
-    # Top-level keys match tenant_metadata; document_metadata is per-source.
-    metadata_filters={
-        "department": "support",
-        "document_metadata": {
-            "source": "policy",
-        },
+```bash cURL
+curl -X POST 'https://api.hydradb.com/search' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenant_id": "acme_corp",
+    "sub_tenant_id": "user_alex",
+    "query": "What is our refund policy, and how should I explain it to this user?",
+    "source": "all",
+    "search_by": "hybrid", // or "text" or "vector"
+    "mode": "thinking",
+    "max_results": 10,
+    "alpha": "auto",
+    "recency_bias": 0.2,
+    "graph_context": true,
+    "search_forceful_relations": true,
+    "metadata_filters": {
+      "department": "support",
+      "document_metadata": {
+        "source": "policy"
+      }
     },
-
-    # Short factual hint; not a hard filter.
-    additional_context="User is asking from the billing help center.",
-)
+    "additional_context": "User is asking from the billing help center."
+  }'
 ```
 
 </RequestExample>

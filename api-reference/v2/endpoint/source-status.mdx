@@ -11,14 +11,12 @@ Since ingestion is asynchronous, use this endpoint to determine when content is 
 Pass one or more `source_id` values in `file_ids` to retrieve status. Works for files, app sources, and memories. For more information, see the [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) guides.
 
 <RequestExample>
-```bash cURL
-curl -G 'https://api.hydradb.com/source/status' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2" \
-  --data-urlencode "tenant_id=acme_corp" \
-  --data-urlencode "sub_tenant_id=team_docs" \
-  --data-urlencode "file_ids=policy_main" \
-  --data-urlencode "file_ids=runbook_deploy"
+```python Python SDK
+status = client.source.status(
+    tenant_id="acme_corp",
+    sub_tenant_id="team_docs",
+    file_ids=["policy_main", "runbook_deploy"],
+)
 ```
 ```typescript TypeScript SDK
 const status = await client.source.status({
@@ -27,12 +25,14 @@ const status = await client.source.status({
   file_ids: ["policy_main", "runbook_deploy"],
 });
 ```
-```python Python SDK
-status = client.source.status(
-    tenant_id="acme_corp",
-    sub_tenant_id="team_docs",
-    file_ids=["policy_main", "runbook_deploy"],
-)
+```bash cURL
+curl -G 'https://api.hydradb.com/source/status' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2" \
+  --data-urlencode "tenant_id=acme_corp" \
+  --data-urlencode "sub_tenant_id=team_docs" \
+  --data-urlencode "file_ids=policy_main" \
+  --data-urlencode "file_ids=runbook_deploy"
 ```
 </RequestExample>
 

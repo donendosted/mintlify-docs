@@ -9,16 +9,16 @@ import { Field } from "/snippets/field.jsx";
 The response separates active or provisioning tenants (in `tenant_ids`) from tenants whose provisioning failed (in `failed_tenant_ids`). 
 
 <RequestExample>
-```bash cURL
-curl -X GET 'https://api.hydradb.com/tenants' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2"
+```python Python SDK
+response = client.tenants.list()
 ```
 ```typescript TypeScript SDK
 const response = await client.tenants.list();
 ```
-```python Python SDK
-response = client.tenants.list()
+```bash cURL
+curl -X GET 'https://api.hydradb.com/tenants' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2"
 ```
 </RequestExample>
 

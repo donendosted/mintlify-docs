@@ -14,6 +14,26 @@ Specify the resource category with the `type` parameter:
 Pass one or more IDs in `request.ids`. The body wraps two fields together: `request` (the actual delete payload) and `type` (the bucket).
 
 <RequestExample>
+```python Python SDK
+client.source.delete(
+    type="knowledge",
+    request={
+        "tenant_id": "acme_corp",
+        "sub_tenant_id": "team_docs",
+        "ids": ["policy_main", "runbook_deploy"],
+    },
+)
+```
+```typescript TypeScript SDK
+await client.source.delete({
+  type: "knowledge",
+  request: {
+    tenant_id: "acme_corp",
+    sub_tenant_id: "team_docs",
+    ids: ["policy_main", "runbook_deploy"],
+  },
+});
+```
 ```bash cURL
 curl -X DELETE 'https://api.hydradb.com/source' \
   -H "Authorization: Bearer <your_api_key>" \
@@ -27,26 +47,6 @@ curl -X DELETE 'https://api.hydradb.com/source' \
     },
     "type": "knowledge"
   }'
-```
-```typescript TypeScript SDK
-await client.source.delete({
-  type: "knowledge",
-  request: {
-    tenant_id: "acme_corp",
-    sub_tenant_id: "team_docs",
-    ids: ["policy_main", "runbook_deploy"],
-  },
-});
-```
-```python Python SDK
-client.source.delete(
-    type="knowledge",
-    request={
-        "tenant_id": "acme_corp",
-        "sub_tenant_id": "team_docs",
-        "ids": ["policy_main", "runbook_deploy"],
-    },
-)
 ```
 </RequestExample>
 

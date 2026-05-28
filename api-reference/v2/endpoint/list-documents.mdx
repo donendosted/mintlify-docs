@@ -14,6 +14,32 @@ Specify the category using the `kind` parameter to filter and view ingested know
 Supports pagination, metadata filters, and field projection. For more details on metadata filters, see the [Scoping using metadata](/essentials/v2/metadata) guide.
 
 <RequestExample>
+```python Python SDK
+sources = client.source.list(
+    tenant_id="acme_corp",
+    kind="knowledge",
+    page=1,
+    page_size=50,
+    filters={
+        "tenant_metadata": {"department": "legal"},
+        "source_fields": {"type": "slack"},
+    },
+    include_fields=["title", "type", "url", "timestamp"],
+)
+```
+```typescript TypeScript SDK
+const sources = await client.source.list({
+  tenant_id: "acme_corp",
+  kind: "knowledge",
+  page: 1,
+  page_size: 50,
+  filters: {
+    tenant_metadata: { department: "legal" },
+    source_fields: { type: "slack" },
+  },
+  include_fields: ["title", "type", "url", "timestamp"],
+});
+```
 ```bash cURL
 curl -X POST 'https://api.hydradb.com/source/list' \
   -H "Authorization: Bearer <your_api_key>" \
@@ -30,32 +56,6 @@ curl -X POST 'https://api.hydradb.com/source/list' \
     },
     "include_fields": ["title", "type", "url", "timestamp"]
   }'
-```
-```typescript TypeScript SDK
-const sources = await client.source.list({
-  tenant_id: "acme_corp",
-  kind: "knowledge",
-  page: 1,
-  page_size: 50,
-  filters: {
-    tenant_metadata: { department: "legal" },
-    source_fields: { type: "slack" },
-  },
-  include_fields: ["title", "type", "url", "timestamp"],
-});
-```
-```python Python SDK
-sources = client.source.list(
-    tenant_id="acme_corp",
-    kind="knowledge",
-    page=1,
-    page_size=50,
-    filters={
-        "tenant_metadata": {"department": "legal"},
-        "source_fields": {"type": "slack"},
-    },
-    include_fields=["title", "type", "url", "timestamp"],
-)
 ```
 </RequestExample>
 

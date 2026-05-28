@@ -9,18 +9,18 @@ import { Field } from "/snippets/field.jsx";
 This action is irreversible. Deleting a tenant removes all of its associated data, including ingested content, memories, metadata schema, vector indices, and graphs. There is no soft-delete and no recovery window.
 
 <RequestExample>
-```bash cURL
-curl -X DELETE 'https://api.hydradb.com/tenants?tenant_id=my_first_tenant' \
-  -H "Authorization: Bearer <your_api_key>" \
-  -H "API-Version: 2"
+```python Python SDK
+response = client.tenants.delete(tenant_id="my_first_tenant")
 ```
 ```typescript TypeScript SDK
 const response = await client.tenants.delete({
   tenant_id: "my_first_tenant",
 });
 ```
-```python Python SDK
-response = client.tenants.delete(tenant_id="my_first_tenant")
+```bash cURL
+curl -X DELETE 'https://api.hydradb.com/tenants?tenant_id=my_first_tenant' \
+  -H "Authorization: Bearer <your_api_key>" \
+  -H "API-Version: 2"
 ```
 </RequestExample>
 
