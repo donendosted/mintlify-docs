@@ -7,9 +7,9 @@ openapi: "api-reference/v2/openapi.json POST /source/ingest"
 import { Field } from "/snippets/field.jsx";
 
 - **`type=knowledge`** - Build your knowledge base using:
-  - **Files** - Use `files` for binary uploads (PDF, DOCX, CSV, MD, TXT) that HydraDB should parse. Read more about [ingesting files](/essentials/v2/knowledge-files).
-  - **App Sources** - Use `app_knowledge` for pre-extracted JSON content (Slack threads, Notion pages, web pages). Read more about [ingesting knowledge from your apps](/essentials/v2/app-knowledge).
-- **`type=memory`** - Use `memories` for per-user content, scoped with `sub_tenant_id`. Set `infer: true` to automatically extract preferences from raw signals, or `infer: false` to store the text verbatim. Read more about [ingesting memories](/essentials/v2/memory).
+  - **Files** - Use `files` for binary uploads (PDF, DOCX, CSV, MD, TXT) that HydraDB should parse. Read more about [ingesting files](/essentials/v2/knowledge).
+  - **App Sources** - Use `app_knowledge` for pre-extracted JSON content (Slack threads, Notion pages, emails, tickets). Read more about [ingesting knowledge from your apps](/essentials/v2/app-sources).
+- **`type=memory`** - Use `memories` for per-user content, scoped with `sub_tenant_id`. Set `infer: true` to automatically extract preferences from raw signals, or `infer: false` to store the text verbatim. Read more about [ingesting memories](/essentials/v2/memories).
 
 
 <RequestExample>

@@ -25,8 +25,8 @@ description: "Single reference to all HydraDB endpoints"
 |---|---|---|
 | `tenant_id` | Your isolated workspace for data, metadata schema, and search. | Send it on every API call so HydraDB knows which workspace to read or write. |
 | `sub_tenant_id` | Optional partition inside a tenant, often a user, team, account, or customer. | Use it when one tenant contains data for multiple users or customers. Read more about our [multi-tenant architecture](/essentials/v2/multi-tenant) |
-| [Knowledge](essentials/v2/knowledge) | Shared source material such as PDFs, docs, app pages, tickets, Slack threads, or webpages. | Use `type=knowledge` when many users or agents should search the same content. |
-| [Memory](essentials/v2/memory) | User-specific context such as preferences, conversation history, notes, and inferred traits. | Use `type=memory` when the content should personalize answers for a specific user or sub-tenant. |
+| [Knowledge](/essentials/v2/knowledge) | Shared source material such as PDFs, docs, app pages, tickets, Slack threads, or webpages. | Use `type=knowledge` when many users or agents should search the same content. |
+| [Memory](/essentials/v2/memories) | User-specific context such as preferences, conversation history, notes, and inferred traits. | Use `type=memory` when the content should personalize answers for a specific user or sub-tenant. |
 | `tenant_metadata_schema` | Tenant-level fields you define up front so metadata can be filtered or searched consistently. | Use it for stable fields like department, customer, region, plan, category, or compliance label. |
 | `file_metadata` | Per-file metadata sent during file ingestion. | Use it to attach source IDs, titles, filterable metadata, document metadata, or forceful relations to each uploaded file. |
 | `source_ids` | IDs returned by ingestion or visible from `/source/list`. | Use them when polling processing status, fetching content, listing a specific subset, deleting sources, or inspecting relations. |

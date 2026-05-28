@@ -39,10 +39,10 @@ When you call [`POST /source/ingest`](/api-reference/v2/endpoint/ingest-content)
 
 The pipeline works like this:
 
-1. **Parse the input** — raw text, markdown, or user–assistant pairs.
-2. **Optionally infer meaning** — if `infer: true`, HydraDB extracts the underlying preference, trait, or fact.
-3. **Process and index the result** — the memory is prepared for retrieval.
-4. **Make it searchable** — later, [`POST /search`](/api-reference/v2/endpoint/search) can retrieve it with `source: "memories"` or `source: "all"`.
+1. **Parse the input**  -  raw text, markdown, or user–assistant pairs.
+2. **Optionally infer meaning**  -  if `infer: true`, HydraDB extracts the underlying preference, trait, or fact.
+3. **Process and index the result**  -  the memory is prepared for retrieval.
+4. **Make it searchable**  -  later, [`POST /search`](/api-reference/v2/endpoint/search) can retrieve it with `source: "memories"` or `source: "all"`.
 
 The most important choice is [`infer`](#choose-whether-hydradb-should-infer-the-memory). It decides whether HydraDB should extract the useful memory from raw signal, or store exactly what you send.
 
@@ -96,11 +96,11 @@ The full schema lives on [`POST /source/ingest`](/api-reference/v2/endpoint/inge
 
 | Field | Default | Description |
 |---|---|---|
-| <Field name="type" type="memory" required /> | — | Selects the Memories store. Use singular `memory`. |
-| <Field name="tenant_id" type="string" required /> | — | Target tenant. |
+| <Field name="type" type="memory" required /> |  -  | Selects the Memories store. Use singular `memory`. |
+| <Field name="tenant_id" type="string" required /> |  -  | Target tenant. |
 | <Field name="sub_tenant_id" type="string" recommended /> | default sub-tenant | User, workspace, or session scope for the memory. |
 | <Field name="upsert" type="boolean" /> | `true` | Replace existing memories with the same `source_id`. |
-| <Field name="memories" type="string (JSON array)" required /> | — | JSON-stringified array of memory items. |
+| <Field name="memories" type="string (JSON array)" required /> |  -  | JSON-stringified array of memory items. |
 
 ### `memories` item fields
 
@@ -327,7 +327,7 @@ The `infer` flag is the key design decision. It controls how much extraction wor
 
 ### Use `infer: true` when the input is raw signal
 
-With `infer: true`, you give HydraDB messy or indirect evidence — dialogue, logs, behavior, feedback, or observations — and HydraDB extracts the useful preference, trait, or fact.
+With `infer: true`, you give HydraDB messy or indirect evidence  -  dialogue, logs, behavior, feedback, or observations  -  and HydraDB extracts the useful preference, trait, or fact.
 
 For example, instead of writing custom logic to decide whether a user prefers dark mode, you can send a stream of UI events. If the user switched to dark mode, kept it for a month, briefly toggled back to light mode, then reverted, HydraDB can infer the useful memory: `"user prefers dark mode"`.
 
@@ -424,7 +424,7 @@ client.source.ingest(
 
 </CodeGroup>
 
-Later, when [`POST /search`](/api-reference/v2/endpoint/search) runs with `source: "memories"` and a query like `"what UI settings does the user prefer?"`, HydraDB can return the inferred preference — for example, `"prefers dark mode"` — rather than the raw event log.
+Later, when [`POST /search`](/api-reference/v2/endpoint/search) runs with `source: "memories"` and a query like `"what UI settings does the user prefer?"`, HydraDB can return the inferred preference  -  for example, `"prefers dark mode"`  -  rather than the raw event log.
 
 If you sent the same input with `infer: false`, HydraDB would index the event log verbatim. That is useful only when you want to retrieve the log itself.
 
@@ -434,7 +434,7 @@ If you sent the same input with `infer: false`, HydraDB would index the event lo
 
 | Mistake | What goes wrong | Fix |
 |---|---|---|
-| Sending `"memory": "..."` instead of `"memories": [...]` | Validation fails | Use `"memories": [ { "text": "..." } ]` — always an array of objects |
+| Sending `"memory": "..."` instead of `"memories": [...]` | Validation fails | Use `"memories": [ { "text": "..." } ]`  -  always an array of objects |
 | Omitting `tenant_id` | Request validation error | Include `tenant_id` on every call |
 | Omitting `sub_tenant_id` for per-user data | The memory lands in the default sub-tenant and may surface in the wrong scope | Use the user's ID as `sub_tenant_id` for B2C separation |
 | Setting `custom_instructions` with `infer: false` | Instructions are ignored | Set `infer: true` if you need instructions to affect extraction |
@@ -449,7 +449,7 @@ If you sent the same input with `infer: false`, HydraDB would index the event lo
 
 ## Related
 
-- [Knowledge](/essentials/v2/knowledge) — shared, tenant-wide document context
-- [Search](/essentials/v2/search) — how memories are retrieved at query time
-- [Multi-tenant support](/essentials/v2/multi-tenant) — scoping memories per user or workspace
-- [Metadata](/essentials/v2/metadata) — designing filterable fields
+- [Knowledge](/essentials/v2/knowledge)  -  shared, tenant-wide document context
+- [Search](/essentials/v2/search)  -  how memories are retrieved at query time
+- [Multi-tenant support](/essentials/v2/multi-tenant)  -  scoping memories per user or workspace
+- [Metadata](/essentials/v2/metadata)  -  designing filterable fields
