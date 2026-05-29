@@ -82,14 +82,14 @@ curl -X GET 'https://api.hydradb.com/tenants/status?tenant_id=my_first_tenant' \
 </ResponseExample>
 
 <Info>
-The tenant is fully ready only when both `vectorstore_status.knowledge` and `vectorstore_status.memories` are `true`.
+For parsed-source ingestion (`/source/ingest`), the tenant is fully ready only when both `vectorstore_status.knowledge` and `vectorstore_status.memories` are `true`.
 </Info>
 
 ## Polling pattern
 
 Poll every 10–20 seconds. Stop and surface a provisioning issue if the tenant is not ready after the expected window for your plan.
 
-A tenant is ready when:
+A tenant is ready for ingestion when:
 
 - `infra.scheduler_status === true`
 - `infra.graph_status === true`
