@@ -73,8 +73,8 @@ The key to powerful AI search is structuring candidate data correctly. Here's ho
 const candidateProfile = {
   // Required fields for HydraDB
   id: 'candidate_123456',
-  tenantId: 'recruiting_tenant',
-  subTenantId: 'ml_engineering',
+  tenant_id: 'recruiting_tenant',
+  sub_tenant_id: 'ml_engineering',
   title: 'Senior Machine Learning Engineer - John Smith',
   type: 'candidate_profile', // Type app identifier
   timestamp: '2024-01-15T10:30:00Z', // Profile last updated
@@ -1104,8 +1104,8 @@ class AIInterviewPrep {
 const recommendedCandidateFields = {
   // Core identification (Required by HydraDB)
   id: "unique_candidate_identifier",
-  tenantId: "recruiting_tenant",
-  subTenantId: "ml_engineering",
+  tenant_id: "recruiting_tenant",
+  sub_tenant_id: "ml_engineering",
   title: "Descriptive candidate title with name and role",
   type: "candidate_profile", // Type app identifier
   timestamp: "2024-01-01T00:00:00Z", // Profile last updated
