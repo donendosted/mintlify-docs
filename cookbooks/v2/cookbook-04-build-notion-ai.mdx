@@ -125,7 +125,7 @@ def upload_batch(sources: list, sub_tenant_id: str = None) -> list:
         tenant_id=TENANT_ID,
         app_knowledge=json.dumps(sources),
     )
-    return [r.id for r in (result.results or []) if r.id]
+    return [r.id for r in (result.data.results or []) if r.id]
 
 
 def ingest_notion_database(database_id: str, sub_tenant_id: str = None) -> list:
@@ -227,7 +227,7 @@ def poll_until_indexed(id: str, timeout: int = 120, interval: int = 3):
             tenant_id=TENANT_ID,
             ids=id,
         )
-        items  = result.statuses or []
+        items  = result.data.statuses or []
         status = items[0].indexing_status if items else None
         if status == "completed":
             return True
