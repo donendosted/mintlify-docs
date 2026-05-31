@@ -99,7 +99,7 @@ SDK methods mirror the API: `client.<group>.<method>()` maps to the correspondin
 | [`/tenants/status`](/api-reference/v2/endpoint/tenant-status) | `GET` | `tenants.status` | Check provisioning readiness | You just created a tenant and need to wait before ingesting data. |
 | [`/tenants/sub-tenants`](/api-reference/v2/endpoint/list-sub-tenants) | `GET` | `tenants.subTenants` / `tenants.sub_tenants` | List active sub-tenants | You partition data by user, team, customer, or account and need to inspect those partitions. |
 | [`/tenants/stats`](/api-reference/v2/endpoint/tenant-stats) | `GET` | `tenants.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a tenant. |
-| [`/source/ingest`](/api-reference/v2/endpoint/ingest-content) | `POST` | `source.ingest` | Ingest knowledge or memories | You are uploading files, app-generated sources, or user memories. |
+| [`/source/ingest`](/api-reference/v2/endpoint/ingest-context) | `POST` | `source.ingest` | Ingest knowledge or memories | You are uploading files, app-generated sources, or user memories. |
 | [`/source/status`](/api-reference/v2/endpoint/source-status) | `GET` | `source.status` | Check processing status | You have source IDs from ingestion and need to know when they are queryable. |
 | [`/source/fetch`](/api-reference/v2/endpoint/fetch-content) | `GET` | `source.fetch` | Retrieve original source content or presigned URL | You need to display or inspect the original ingested content. |
 | [`/source/list`](/api-reference/v2/endpoint/list-documents) | `POST` | `source.list` | Browse knowledge or memories | You need pagination, filters, field projection, or a specific subset by `source_ids`. |
