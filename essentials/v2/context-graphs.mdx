@@ -86,12 +86,12 @@ curl -X POST 'https://api.hydradb.com/query' \
 
 ```typescript TypeScript SDK
 const result = await client.query({
-  tenant_id: "acme_corp",
+  tenantId: "acme_corp",
   query: "How does the billing system handle failed payments?",
   type: "knowledge",
-  query_by: "hybrid",
+  queryBy: "hybrid",
   mode: "thinking",
-  graph_context: true,
+  graphContext: true,
 });
 
 if (result.graph_context) {
