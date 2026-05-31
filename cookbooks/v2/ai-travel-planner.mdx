@@ -266,9 +266,9 @@ class TravelAssistant {
   async processResponse(response) {
     // Generate structured itinerary from AI response
     return {
-      chunks: response.chunks,
-      graphRelations: response.graph_context.chunk_relations,
-      queryPaths: response.graph_context.query_paths
+      chunks: response.data?.chunks,
+      graphRelations: response.data?.graphContext?.chunkRelations,
+      queryPaths: response.data?.graphContext?.queryPaths
     };
   }
 }
@@ -316,7 +316,7 @@ class PersonalizationEngine {
 
     // memories.chunks contains the user's past preference signals ranked by relevance.
     // Pass these as context to your LLM to generate personalized recommendations.
-    return memories.chunks;
+    return memories.data?.chunks;
   }
 }
 ```
@@ -369,7 +369,7 @@ const handleTravelQuery = async (query, context) => {
     maxResults: isComplex ? 20 : 10
   });
 
-  return response.chunks;
+  return response.data.chunks;
 };
 ```
 
@@ -392,12 +392,12 @@ const planFamilyVacation = async (query, userProfile) => {
   });
 
   // Filter chunks by type to build a structured itinerary.
-  // response.chunks are ranked by AI relevance — filter by metadata type to categorize.
+  // response.data.chunks are ranked by AI relevance — filter by metadata type to categorize.
   const itinerary = {
-    accommodation: response.chunks.filter(c => c.metadata?.type === "accommodation"),
-    activities:    response.chunks.filter(c => c.metadata?.type === "activity"),
-    dining:        response.chunks.filter(c => c.metadata?.type === "dining"),
-    transportation: response.chunks.filter(c => c.metadata?.type === "transportation")
+    accommodation: response.data.chunks.filter(c => c.metadata?.type === "accommodation"),
+    activities:    response.data.chunks.filter(c => c.metadata?.type === "activity"),
+    dining:        response.data.chunks.filter(c => c.metadata?.type === "dining"),
+    transportation: response.data.chunks.filter(c => c.metadata?.type === "transportation")
   };
 
   return itinerary;
@@ -421,7 +421,7 @@ const planBusinessTravel = async (query, userProfile) => {
   });
 
   // Return ranked chunks directly. Filter by metadata.amenities or metadata.location as needed.
-  return response.chunks;
+  return response.data.chunks;
 };
 ```
 
@@ -442,7 +442,7 @@ const planAdventureTravel = async (query, userProfile) => {
   });
 
   // Return ranked chunks directly. Sort or filter by metadata.difficulty for hiking-specific results.
-  return response.chunks;
+  return response.data.chunks;
 };
 ```
 
