@@ -64,7 +64,7 @@ Your webhook URL must be reachable from the public internet. Localhost and priva
 </Warning>
 
 <Info>
-Webhook management endpoints return their response object directly, not inside the standard v2 `{ success, data, error, meta }` envelope used by `/tenants`, `/source/*`, and `/query`.
+Webhook management endpoints return their response object directly, not inside the standard v2 `{ success, data, error, meta }` envelope used by `/tenants`, `/context/*`, and `/query`.
 </Info>
 
 ### Register with cURL
@@ -190,7 +190,7 @@ HydraDB sends a `POST` request with a JSON body.
 {
   "event": "indexing.status_changed",
   "delivery_id": "<delivery_id>",
-  "id": "<source_id>",
+  "id": "<id>",
   "tenant_id": "<tenant_id>",
   "sub_tenant_id": "<sub_tenant_id>",
   "status": "completed",
@@ -204,7 +204,7 @@ For failed indexing, the payload can include `error_code` and `error_message`:
 {
   "event": "indexing.status_changed",
   "delivery_id": "<delivery_id>",
-  "id": "<source_id>",
+  "id": "<id>",
   "tenant_id": "<tenant_id>",
   "sub_tenant_id": "<sub_tenant_id>",
   "status": "errored",
@@ -381,7 +381,7 @@ curl 'https://api.hydradb.com/webhooks/indexing/deliveries?limit=20' \
   "deliveries": [
     {
       "delivery_id": "<delivery_id>",
-      "doc_id": "<source_id>",
+      "doc_id": "<id>",
       "status": "delivered",
       "indexing_status": "completed",
       "event_type": "indexing.status_changed",
