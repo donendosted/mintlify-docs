@@ -1,13 +1,13 @@
 ---
 title: "HydraDB Agent Integration Guide"
-description: "LLM-facing reference for building against the current HydraDB v2 docs, API, SDKs, and cookbooks."
+description: "LLM-facing reference for building against the current HydraDB docs, API, SDKs, and cookbooks."
 ---
 
 # HydraDB Agent Integration Guide
 
 This document is a self-contained reference designed for AI coding agents. It covers everything needed to understand, install, configure, and integrate HydraDB into any project -- from zero prior knowledge to production-ready usage.
 
-### TL;DR: Critical v2 Endpoints
+### TL;DR: Critical endpoints
 
 1. **`POST /tenants`** (`client.tenants.create()`): Provision an isolated tenant workspace.
 2. **`GET /tenants/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
@@ -15,8 +15,6 @@ This document is a self-contained reference designed for AI coding agents. It co
 4. **`GET /context/status`** (`client.context.status()`): Poll status using `ids` until `indexing_status` is `completed` or `graph_creation`.
 5. **`POST /query`** (`client.query()`): Retrieve context via `type: "knowledge"`, `"memory"`, or `"all"`.
 
-
-> **Important:** Prefer the v2 surface in this guide. Older v1 routes like `/recall/full_recall`, `/ingestion/upload_knowledge`, `/list/data`, and `/tenants/create` may still appear in the OpenAPI file for compatibility, but new integrations should use the consolidated v2 endpoints: `/tenants`, `/context/*`, and `/query`.
 
 ---
 
@@ -33,7 +31,7 @@ This document is a self-contained reference designed for AI coding agents. It co
 
 ### Response envelope
 
-Core raw HTTP responses (`/tenants`, `/context/*`, and `/search`) are wrapped:
+Core raw HTTP responses (`/tenants`, `/context/*`, and `/query`) are wrapped:
 
 ```json
 {
@@ -52,9 +50,9 @@ Core raw HTTP responses (`/tenants`, `/context/*`, and `/search`) are wrapped:
 - Log `meta.request_id` for failed requests.
 - Exception: webhook management endpoints (`/webhooks/indexing*`) return their documented response object directly, without the `{ success, data, error, meta }` envelope.
 
-### Use v2 endpoints for new work
+### Core endpoints
 
-| Task | Use this v2 endpoint / SDK method |
+| Task | Use this endpoint / SDK method |
 |---|---|
 | Create tenant | `POST /tenants` · `client.tenants.create()` |
 | Check tenant readiness | `GET /tenants/status` · `client.tenants.status()` |
@@ -100,9 +98,9 @@ Use the same `type` enum across context lifecycle APIs and search. Search additi
 
 - `tenant_metadata`: schema-aligned, declared at tenant creation, fast filter path.
 - `additional_metadata`: canonical free-form per-document metadata.
-- `document_metadata`: supported/deprecated alias for free-form metadata in many examples.
+- `document_metadata`: multipart field carrying per-document metadata for file uploads; use `additional_metadata` inside each item for free-form metadata.
 - `metadata_filters` top-level keys match `tenant_metadata`.
-- `metadata_filters.additional_metadata` or `metadata_filters.document_metadata` scopes free-form metadata.
+- `metadata_filters.additional_metadata` scopes free-form metadata.
 
 ### Do not mix scopes accidentally
 
@@ -193,7 +191,7 @@ At search time, set or rely on default `query_forceful_relations: true` with `mo
 Rules:
 
 - Forceful relation expansion only takes effect in `mode: "thinking"`.
-- Use `ids` for new code.
+- Use `ids`.
 - Relations are store-local: memory-to-memory or knowledge-to-knowledge. Cross-store relation lookups may not surface anything.
 
 ---
@@ -238,9 +236,10 @@ const client = new HydraDBClient({
 
 SDK naming:
 
-- Python methods: snake_case.
-- TypeScript methods: camelCase where the method itself needs it, e.g. `client.tenants.subTenants()`.
-- Request/response fields remain snake_case in both SDKs, e.g. `tenant_id`, `sub_tenant_id`, `page_size`, `query_by`.
+- Python methods and fields: snake_case, e.g. `client.tenants.sub_tenants()`, `tenant_id`, `sub_tenant_id`, `page_size`, `query_by`.
+- TypeScript methods and fields: camelCase, e.g. `client.tenants.subTenants()`, `tenantId`, `subTenantId`, `pageSize`, `queryBy`.
+- Both SDKs return a `{ success, data, error, meta }` envelope; the payload is under `.data` (e.g. `response.data.infra`, `response.data.statuses`, `response.data.results`).
+- Values that are passed as JSON strings (`memories`, `app_knowledge`, `document_metadata`) keep snake_case keys inside the stringified payload in both SDKs, since that is raw wire data.
 
 ---
 
@@ -292,10 +291,10 @@ while True:
         ids=[ingest_id],
     ).data.statuses[0]
 
-    if status.get("indexing_status") in ("graph_creation", "completed"):
+    if status.indexing_status in ("graph_creation", "completed"):
         break
-    if status.get("indexing_status") in ("errored", "failed"):
-        raise RuntimeError(status.get("error_message", "Indexing failed"))
+    if status.indexing_status in ("errored", "failed"):
+        raise RuntimeError(status.error_message or "Indexing failed")
     time.sleep(2)
 
 # 5. Search memories.
@@ -320,20 +319,20 @@ const client = new HydraDBClient({
   token: process.env.HYDRA_DB_API_KEY,
 });
 
-const tenant_id = "my_first_tenant";
+const tenantId = "my_first_tenant";
 
-await client.tenants.create({ tenant_id: tenant_id });
+await client.tenants.create({ tenantId: tenantId });
 
 while (true) {
-  const status = await client.tenants.status({ tenant_id: tenant_id });
-  if (status.data.infra.ready_for_ingestion) break;
+  const status = await client.tenants.status({ tenantId: tenantId });
+  if (status.data.infra.readyForIngestion) break;
   await new Promise((resolve) => setTimeout(resolve, 5_000));
 }
 
 const ingest = await client.context.ingest({
   type: "memory",
-  tenant_id: tenant_id,
-  sub_tenant_id: "user_alex",
+  tenantId: tenantId,
+  subTenantId: "user_alex",
   memories: JSON.stringify([
     {
       id: "user_alex_pref_001",
@@ -348,25 +347,25 @@ const ingestId = ingest.data.results[0].id;
 
 while (true) {
   const status = (await client.context.status({
-    tenant_id: tenant_id,
-    sub_tenant_id: "user_alex",
+    tenantId: tenantId,
+    subTenantId: "user_alex",
     ids: [ingestId],
   })).data.statuses[0];
 
-  if (["graph_creation", "completed"].includes(status.indexing_status as string)) break;
-  if (["errored", "failed"].includes(status.indexing_status as string)) {
-    throw new Error((status.error_message as string) ?? "Indexing failed");
+  if (["graph_creation", "completed"].includes(status.indexingStatus as string)) break;
+  if (["errored", "failed"].includes(status.indexingStatus as string)) {
+    throw new Error((status.errorMessage as string) ?? "Indexing failed");
   }
 
   await new Promise((resolve) => setTimeout(resolve, 2_000));
 }
 
 const result = await client.query({
-  tenant_id: tenant_id,
-  sub_tenant_id: "user_alex",
+  tenantId: tenantId,
+  subTenantId: "user_alex",
   query: "What does the user prefer?",
   type: "memory",
-  query_by: "hybrid",
+  queryBy: "hybrid",
   mode: "thinking",
 });
 
@@ -475,7 +474,7 @@ with open("policy.pdf", "rb") as f:
 |---|---|
 | `id` | stable ID / upsert key |
 | `tenant_metadata` | schema-aligned filterable fields |
-| `additional_metadata` / `document_metadata` | free-form display/bookkeeping fields |
+| `additional_metadata` | free-form display/bookkeeping fields |
 | `title`, `type`, `url`, `timestamp` | source display and citation fields |
 | `relations` | explicit forceful relations, e.g. `{ "ids": [...] }` |
 
@@ -486,8 +485,8 @@ Use `app_knowledge` when your connector already extracted text from Slack, Gmail
 ```ts
 await client.context.ingest({
   type: "knowledge",
-  tenant_id: "acme_corp",
-  app_knowledge: JSON.stringify([
+  tenantId: "acme_corp",
+  appKnowledge: JSON.stringify([
     {
       id: "slack_C123_1715012345_000100",
       tenant_id: "acme_corp",
@@ -580,7 +579,7 @@ Memory item fields:
 | `user_name` | helps inference |
 | `expiry_time` | TTL in seconds |
 | `tenant_metadata` | schema-aligned fields; for memory items, encode as a JSON string inside the JSON-stringified `memories` field |
-| `additional_metadata` / `document_metadata` | free-form fields; keep as objects |
+| `additional_metadata` | free-form fields; keep as objects |
 | `relations` | explicit memory-to-memory links |
 
 ---
@@ -599,7 +598,7 @@ Parameters:
 
 Status meanings from docs:
 
-| Status | Searchable? | Meaning |
+| Status | Searchable? | Meaning |s
 |---|---:|---|
 | `queued` | No | accepted, not picked up |
 | `processing` | No | parsing/chunking/embedding |
@@ -612,13 +611,13 @@ Pattern:
 ```ts
 while (true) {
   const status = (await client.context.status({
-    tenant_id: "acme_corp",
+    tenantId: "acme_corp",
     ids: ["policy_v2"],
   })).data.statuses[0];
 
-  if (["graph_creation", "completed"].includes(status.indexing_status as string)) break;
-  if (["errored", "failed"].includes(status.indexing_status as string)) {
-    throw new Error((status.error_message as string) ?? (status.message as string) ?? "Indexing failed");
+  if (["graph_creation", "completed"].includes(status.indexingStatus as string)) break;
+  if (["errored", "failed"].includes(status.indexingStatus as string)) {
+    throw new Error((status.errorMessage as string) ?? (status.message as string) ?? "Indexing failed");
   }
   await new Promise((r) => setTimeout(r, 2_000));
 }
@@ -716,13 +715,13 @@ Knowledge RAG:
 
 ```ts
 const result = await client.query({
-  tenant_id: "acme_corp",
+  tenantId: "acme_corp",
   query: "What is our refund policy?",
   type: "knowledge",
-  query_by: "hybrid",
+  queryBy: "hybrid",
   mode: "thinking",
-  max_results: 10,
-  graph_context: true,
+  maxResults: 10,
+  graphContext: true,
 });
 ```
 
@@ -730,11 +729,11 @@ Personalized answer using knowledge and memories:
 
 ```ts
 const result = await client.query({
-  tenant_id: "acme_corp",
-  sub_tenant_id: "user_alex",
+  tenantId: "acme_corp",
+  subTenantId: "user_alex",
   query: "What is our refund policy, and how should I explain it to this user?",
   type: "all",
-  query_by: "hybrid",
+  queryBy: "hybrid",
   mode: "thinking",
   alpha: "auto",
 });
@@ -882,12 +881,12 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const question = "How does authentication work?";
 
 const result = await hydra.query({
-  tenant_id: "your-tenant",
-  sub_tenant_id: "your-sub-tenant",
+  tenantId: "your-tenant",
+  subTenantId: "your-sub-tenant",
   query: question,
   type: "knowledge",
-  query_by: "hybrid",
-  max_results: 5,
+  queryBy: "hybrid",
+  maxResults: 5,
 });
 
 const context = buildString(result);
@@ -977,10 +976,10 @@ Rules:
 
 ```ts
 const sources = await client.context.list({
-  tenant_id: "acme_corp",
+  tenantId: "acme_corp",
   type: "knowledge",
   page: 1,
-  page_size: 50,
+  pageSize: 50,
   filters: {
     tenant_metadata: { department: "support" },
     additional_metadata: { author: "alice" },
@@ -997,7 +996,7 @@ Parameters:
 - `ids`
 - `page`, `page_size` (1–100)
 - `filters.tenant_metadata`
-- `filters.additional_metadata` / `filters.document_metadata`
+- `filters.additional_metadata`
 - `filters.source_fields`
 - `include_fields` for projection
 
@@ -1028,7 +1027,7 @@ Modes:
 
 ```ts
 const relations = await client.context.relations({
-  tenant_id: "acme_corp",
+  tenantId: "acme_corp",
   id: "policy_v2",
   type: "knowledge",
   limit: 5000,
@@ -1044,10 +1043,8 @@ Use it for graph debugging and provenance inspection. It supports pagination via
 ```ts
 await client.context.delete({
   type: "knowledge",
-  request: {
-    tenant_id: "acme_corp",
-    ids: ["policy_v2"],
-  },
+  tenantId: "acme_corp",
+  ids: ["policy_v2"],
 });
 ```
 
@@ -1075,7 +1072,7 @@ Use `type: "memory"` to delete memory IDs.
 
 | Code | Meaning |
 |---|---|
-| `INVALID_PARAMETERS` | required/malformed/incompatible parameter |
+| `INVALID_PARAMETERS` | required, malformed, or conflicting parameter |
 | `UNAUTHORIZED` | missing/invalid bearer token |
 | `FORBIDDEN` | key lacks access |
 | `TENANT_ALREADY_EXISTS` | duplicate tenant ID |
@@ -1113,7 +1110,7 @@ import { HydraDBError } from "@hydradb/sdk";
 
 try {
   const result = await client.query({
-    tenant_id: "acme_corp",
+    tenantId: "acme_corp",
     query: "pricing tiers",
     type: "knowledge",
   });
@@ -1129,33 +1126,9 @@ try {
 
 ---
 
-## 13. v1 to v2 migration cheatsheet
+## 13. Cookbook patterns
 
-| v1 concept/method | v2 replacement |
-|---|---|
-| `client.upload.knowledge(...)` | `client.context.ingest(type="knowledge", ...)` |
-| `client.upload.addMemory(...)` | `client.context.ingest(type="memory", ...)` |
-| `client.upload.verifyProcessing(...)` | `client.context.status(...)` |
-| `client.search.fullRecall(...)` | `client.query(type="knowledge", ...)` |
-| `client.search.recallPreferences(...)` | `client.query(type="memory", ...)` |
-| `client.search.booleanRecall(...)` | `client.query(query_by="text", ...)` |
-| `client.fetch.listData(...)` | `client.context.list(...)` |
-| `client.fetch.graphRelationsBySourceId(...)` | `client.context.relations(...)` |
-| `client.fetch.content(...)` | `client.context.inspect(...)` |
-| `client.data.delete(...)` | `client.context.delete(type="knowledge", ...)` |
-| `client.upload.deleteMemory(...)` | `client.context.delete(type="memory", ...)` |
-| `client.tenant.create(...)` | `client.tenants.create(...)` |
-| `client.tenant.getTenantIds(...)` | `client.tenants.list(...)` |
-| `client.tenant.deleteTenant(...)` | `client.tenants.delete(...)` |
-| `client.tenant.getInfraStatus(...)` | `client.tenants.status(...)` |
-| `client.tenant.getSubTenantIds(...)` | TS `client.tenants.subTenants(...)` / Python `client.tenants.sub_tenants(...)` |
-| `client.tenant.monitor(...)` | `client.tenants.stats(...)` |
-
----
-
-## 14. Cookbook patterns
-
-The v2 cookbooks show production patterns. Click the links below to read the raw Markdown guides with complete setup code and schemas:
+The cookbooks show production patterns. Click the links below to read the raw Markdown guides with complete setup code and schemas:
 
 | Cookbook Guide | Purpose & Retrieval Patterns | Link to Guide |
 |---|---|---|
@@ -1183,9 +1156,8 @@ Common architecture across cookbooks:
 
 ---
 
-## 15. Common mistakes checklist
+## 14. Common mistakes checklist
 
-- [ ] Using v1 endpoints for new code instead of `/tenants`, `/context/*`, `/query`.
 - [ ] Forgetting `API-Version: 2` in raw HTTP calls.
 - [ ] Parsing raw HTTP response from the top level instead of `data`.
 - [ ] Assuming SDK responses include the raw envelope; SDKs unwrap `data`.
@@ -1207,9 +1179,9 @@ Common architecture across cookbooks:
 
 ---
 
-## 16. SDK Method Reference
+## 15. SDK Method Reference
 
-### 16.1 TypeScript SDK (v2)
+### 15.1 TypeScript SDK
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -1227,7 +1199,7 @@ Common architecture across cookbooks:
 | `client.tenants.subTenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
 | `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
 
-### 16.2 Python SDK (v2)
+### 15.2 Python SDK
 
 | Group | Method | Endpoint | Description |
 |---|---|---|---|
@@ -1245,7 +1217,7 @@ Common architecture across cookbooks:
 | Tenants | `client.tenants.sub_tenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
 | Tenants | `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
 
-### 16.3 Minimal cURL example
+### 15.3 Minimal cURL example
 
 Use `type` on raw `/query` requests to select `knowledge`, `memory`, or `all`. The raw API response is wrapped; read payloads from `.data`.
 
@@ -1294,7 +1266,7 @@ curl -s -X POST 'https://api.hydradb.com/query' \
   | jq '.data.chunks'
 ```
 
-### 16.4 Raw HTTP: ingest app-source knowledge
+### 15.4 Raw HTTP: ingest app-source knowledge
 
 Use this for connector output where your app already extracted the text. `app_knowledge` must be a JSON string in multipart form data.
 
@@ -1352,7 +1324,7 @@ curl -s -X POST 'https://api.hydradb.com/query' \
 
 ---
 
-## 17. Navigation and support
+## 16. Navigation and support
 
 - Docs root for v2: `get-started/v2`, `essentials/v2`, `api-reference/v2`, `cookbooks/v2`
 - API reference OpenAPI: `api-reference/v2/openapi.json`
