@@ -103,7 +103,7 @@ curl -X POST 'https://api.hydradb.com/context/ingest' \
   -F "documents=@/path/to/billing-policy.pdf" \
   -F "documents=@/path/to/deploy-runbook.pdf" \
   -F 'document_metadata=[{ "id": "billing-policy-doc" }, { "id": "deploy-runbook-doc" }]' \
-  -F 'app_knowledge=[{ "id": "slack-incident-42", "type": "slack", "content": { "text": "Platform team paged for the payments outage." } }]' \
+  -F 'app_knowledge=[{ "id": "slack-incident-42", "kind": "message", "provider": "slack", "external_id": "slack-incident-42", "fields": { "kind": "message", "body": "Platform team paged for the payments outage." } }]' \
   -F 'graph_payload={
     "billing-policy-doc": {
       "entities": {
@@ -184,8 +184,9 @@ with open("/path/to/billing-policy.pdf", "rb") as f1, open("/path/to/deploy-runb
         ],
         document_metadata=json.dumps([{"id": "billing-policy-doc"}, {"id": "deploy-runbook-doc"}]),
         app_knowledge=json.dumps([
-            {"id": "slack-incident-42", "type": "slack",
-             "content": {"text": "Platform team paged for the payments outage."}},
+            {"id": "slack-incident-42", "kind": "message", "provider": "slack",
+             "external_id": "slack-incident-42",
+             "fields": {"kind": "message", "body": "Platform team paged for the payments outage."}},
         ]),
         graph_payload=json.dumps(graphs),
     )
@@ -234,8 +235,8 @@ await client.context.ingest({
   ],
   documentMetadata: JSON.stringify([{ id: "billing-policy-doc" }, { id: "deploy-runbook-doc" }]),
   appKnowledge: JSON.stringify([
-    { id: "slack-incident-42", type: "slack",
-      content: { text: "Platform team paged for the payments outage." } },
+    { id: "slack-incident-42", kind: "message", provider: "slack", external_id: "slack-incident-42",
+      fields: { kind: "message", body: "Platform team paged for the payments outage." } },
   ]),
   graphPayload: JSON.stringify(graphs),
 });
