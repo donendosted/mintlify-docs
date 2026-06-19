@@ -59,7 +59,7 @@ curl -G 'https://api.hydradb.com/context/inspect' \
 | `url` | Presigned URL (`presigned_url`) valid for `expiry_seconds`. | You want a client or a service to download the original file directly without proxying through your backend. |
 | `both`_(default)_ | Text **and** presigned URL. | UI flows that show parsed text inline plus a "Download original" link. |
 
-Regardless of `mode`, the response also includes `inferred_content` when available — the model-derived text for the source (for memories, the inferred memory statement; for knowledge, derived/normalized content). It is `null` when the source has no inferred content.
+Regardless of `mode`, the response also includes `inferred_content` when available  -  the model-derived text for the source (for memories, the inferred memory statement; for knowledge, derived/normalized content). It is `null` when the source has no inferred content.
 
 <Info>
 Use `mode=url` when you need the original file. Use `mode=content` when you only need extracted text for display, summarization, or prompting.
@@ -228,7 +228,7 @@ Use `mode=url` when you need the original file. Use `mode=content` when you only
   **Text vs binary handling.** When the source is text-parseable (PDF, DOCX, MD, TXT), `content` is populated with parsed text. For non-text/binary files, HydraDB returns `content_base64`. Check both fields when handling unknown content types.
 </Info>
 
-- **`inferred_content`:** Alongside the raw `content`, the response carries `inferred_content` — the model-derived text for the source. For **memories** this is the inferred memory statement (e.g. `"User prefers concise answers and dark mode."`); for **knowledge** sources it is typically `null` unless derived content exists. It is returned for every `mode`.
+- **`inferred_content`:** Alongside the raw `content`, the response carries `inferred_content`  -  the model-derived text for the source. For **memories** this is the inferred memory statement (e.g. `"User prefers concise answers and dark mode."`); for **knowledge** sources it is typically `null` unless derived content exists. It is returned for every `mode`.
 
 - **Recently ingested sources:** Fetching immediately after ingestion may return a record before the parsed text is ready. For reliable reads, use [Ingestion Status](/api-reference/v2/endpoint/source-status) first.
 - **Presigned URL TTL:** The URL is valid only for `expiry_seconds`. Anyone with the URL can download the file during that window, so treat it as a short-lived secret.
