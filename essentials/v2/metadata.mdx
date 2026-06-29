@@ -34,7 +34,7 @@ The `database` field was formerly `tenant_id` and `collection` was formerly `sub
 
 ### Schema declaration (set at tenant creation)
 
-Defined once in `tenant_metadata_schema` on [`POST /tenants`](/api-reference/v2/endpoint/create-tenant). Immutable after creation  -  plan your scope fields up front.
+Defined once in `tenant_metadata_schema` on [`POST /databases`](/api-reference/v2/endpoint/create-tenant). Immutable after creation  -  plan your scope fields up front.
 
 | Field | Type / values | Purpose |
 | --- | --- | --- |
@@ -96,7 +96,7 @@ The schema lives at the tenant level; values land on each source at ingest time.
 
 <CodeGroup>
 ```bash cURL
-curl -X POST 'https://api.hydradb.com/tenants' \
+curl -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \

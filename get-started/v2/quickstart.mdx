@@ -30,7 +30,7 @@ const client = new HydraDBClient({
 # No SDK needed — set your key once and reuse it.
 export HYDRA_DB_API_KEY="your_api_key"
 
-curl 'https://api.hydradb.com/tenants' \
+curl 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
@@ -145,14 +145,14 @@ export HYDRA_DB_API_KEY="your_api_key"
 DATABASE="my_first_database"
 
 # 1. Create a database.
-curl -s -X POST 'https://api.hydradb.com/tenants' \
+curl -s -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d "{\"database\":\"${DATABASE}\"}"
 
 # 2. Wait until the database can accept data.
-until curl -s "https://api.hydradb.com/tenants/status?database=${DATABASE}" \
+until curl -s "https://api.hydradb.com/databases/status?database=${DATABASE}" \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   | jq -e '.data.infra.ready_for_ingestion' > /dev/null; do

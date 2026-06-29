@@ -57,12 +57,12 @@ Before writing code, understand the three primitives you'll use throughout this 
 
 Every HydraDB workspace starts with a database. Create one for your knowledge base - it provides complete data isolation and multi-tenant support out of the box.
 
-**Endpoint:** `POST /tenants` - Create your workspace
+**Endpoint:** `POST /databases` - Create your workspace
 
 ### Bash
 
 ```bash
-curl -X POST 'https://api.hydradb.com/tenants' \
+curl -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"database": "notion-ai-workspace"}'
@@ -481,7 +481,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com`. Header
 
 ### Tenant management
 
-**POST** `/tenants` - Create workspace - idempotent
+**POST** `/databases` - Create workspace - idempotent
 
 ```json
 { "database": "notion-ai-workspace" }

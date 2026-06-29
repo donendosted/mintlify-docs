@@ -1,7 +1,7 @@
 ---
 title: "Tenant Status"
 description: "Check the readiness of a tenant's infrastructure."
-openapi: "api-reference/v2/openapi.json GET /tenants/status"
+openapi: "api-reference/v2/openapi.json GET /databases/status"
 ---
 
 Database creation is asynchronous, check if your database is ready before executing ingestion or any queries.
@@ -34,7 +34,7 @@ if (response.data?.infra.readyForIngestion) {
 ```
 
 ```bash cURL
-curl -X GET 'https://api.hydradb.com/tenants/status?database=my_first_tenant' \
+curl -X GET 'https://api.hydradb.com/databases/status?database=my_first_tenant' \
   -H "Authorization: Bearer <your_api_key>" \
   -H "API-Version: 2"
 ```

@@ -84,7 +84,7 @@ RECALL_ALPHA       = 0.75
 
 **What:** Registers your top-level namespace. Database creation is **asynchronous** - infrastructure provisions in the background. Do not upload files until polling confirms it is ready.
 
-**Endpoint:** `POST /tenants` - Async, poll `/tenants/status` before ingesting
+**Endpoint:** `POST /databases` - Async, poll `/databases/status` before ingesting
 
 ```python
 import sys, os, time
@@ -118,7 +118,7 @@ python3 phase0/create_tenant.py
 **Expected output:**
 
 ```
-Accepted: {'database': 'engineering-docs', 'status': 'accepted', 'message': 'Tenant accepted. Poll /tenants/status for readiness.'}
+Accepted: {'database': 'engineering-docs', 'status': 'accepted', 'message': 'Tenant accepted. Poll /databases/status for readiness.'}
 Polling for readiness...
   scheduler=False graph=False vectorstore=[False, False] - retrying in 4s
 ✓ Tenant ready.
@@ -1335,7 +1335,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com`. Header
 
 ### Create Tenant
 
-**POST** `/tenants` - Async, poll `/tenants/status` before ingesting
+**POST** `/databases` - Async, poll `/databases/status` before ingesting
 
 ```json
 Request:  { "database": "engineering-docs" }
@@ -1344,10 +1344,10 @@ Response:
 {
   "database": "engineering-docs",
   "status":    "accepted",
-  "message":   "Tenant accepted. Poll /tenants/status for readiness."
+  "message":   "Tenant accepted. Poll /databases/status for readiness."
 }
 
-GET /tenants/status?database=engineering-docs
+GET /databases/status?database=engineering-docs
 → { "status": "ready" }
 ```
 

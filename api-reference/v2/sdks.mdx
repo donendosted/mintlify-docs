@@ -80,7 +80,7 @@ SDK methods are grouped under three top-level namespaces  -  one per `/api-refer
 |---|---|---|
 | `/context/*` and `/context` | `client.context` | Ingest, status, fetch, list, delete, graph relations |
 | `/query` | `client.query` | Unified retrieval over knowledge, memories, or both |
-| `/tenants/*` and `/tenants` | `client.tenants` | Create, list, delete, status, sub-tenants, stats |
+| `/databases/*` and `/databases` | `client.tenants` | Create, list, delete, status, collections, stats. Legacy `/tenants/*` paths remain as deprecated aliases. |
 
 
 ## Method reference
@@ -110,12 +110,12 @@ A single method covers all retrieval. Pick `type` (`"knowledge"`, `"memory"`, `"
 
 | Method | Endpoint |
 |---|---|
-| `client.tenants.create()` | `POST /tenants` |
-| `client.tenants.list()` | `GET /tenants` |
-| `client.tenants.delete()` | `DELETE /tenants` |
-| `client.tenants.status()` | `GET /tenants/status` |
-| `client.tenants.sub_tenants()` | `GET /tenants/sub-tenants` |
-| `client.tenants.stats()` | `GET /tenants/stats` |
+| `client.tenants.create()` | `POST /databases` |
+| `client.tenants.list()` | `GET /databases` |
+| `client.tenants.delete()` | `DELETE /databases` |
+| `client.tenants.status()` | `GET /databases/status` |
+| `client.tenants.sub_tenants()` | `GET /databases/collections` |
+| `client.tenants.stats()` | `GET /databases/stats` |
 
 The method-reference tables above use the Python (snake_case) method names. In TypeScript, multi-word method names are camelCase: for example, `client.tenants.sub_tenants()` in Python is `client.tenants.subTenants()` in TypeScript.
 

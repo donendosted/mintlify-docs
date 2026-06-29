@@ -9,8 +9,8 @@ This document is a self-contained reference designed for AI coding agents. It co
 
 ### TL;DR: Critical endpoints
 
-1. **`POST /tenants`** (`client.tenants.create()`): Provision an isolated tenant workspace.
-2. **`GET /tenants/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
+1. **`POST /databases`** (`client.tenants.create()`): Provision an isolated tenant workspace.
+2. **`GET /databases/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
 3. **`POST /context/ingest`** (`client.context.ingest()`): Ingest documents, app records, or memories under `type="knowledge"` or `type="memory"`.
 4. **`GET /context/status`** (`client.context.status()`): Poll status using `ids` until `indexing_status` is `completed` or `graph_creation`.
 5. **`POST /query`** (`client.query()`): Retrieve context via `type: "knowledge"`, `"memory"`, or `"all"`.
@@ -31,7 +31,7 @@ This document is a self-contained reference designed for AI coding agents. It co
 
 ### Response envelope
 
-Core raw HTTP responses (`/tenants`, `/context/*`, and `/query`) are wrapped:
+Core raw HTTP responses (`/databases`, `/context/*`, and `/query`) are wrapped:
 
 ```json
 {
@@ -54,11 +54,11 @@ Core raw HTTP responses (`/tenants`, `/context/*`, and `/query`) are wrapped:
 
 | Task | Use this endpoint / SDK method |
 |---|---|
-| Create tenant | `POST /tenants` · `client.tenants.create()` |
-| Check tenant readiness | `GET /tenants/status` · `client.tenants.status()` |
-| List tenants | `GET /tenants` · `client.tenants.list()` |
-| List sub-tenants | `GET /tenants/sub-tenants` · TS `client.tenants.subTenants()` / Python `client.tenants.sub_tenants()` |
-| Tenant stats | `GET /tenants/stats` · `client.tenants.stats()` |
+| Create tenant | `POST /databases` · `client.tenants.create()` |
+| Check tenant readiness | `GET /databases/status` · `client.tenants.status()` |
+| List tenants | `GET /databases` · `client.tenants.list()` |
+| List sub-tenants | `GET /databases/collections` · TS `client.tenants.subTenants()` / Python `client.tenants.sub_tenants()` |
+| Tenant stats | `GET /databases/stats` · `client.tenants.stats()` |
 | Ingest documents, app sources, memories | `POST /context/ingest` · `client.context.ingest()` |
 | Check indexing | `GET /context/status` · `client.context.status()` |
 | Search knowledge/memories/both | `POST /query` · `client.query()` |
@@ -72,7 +72,7 @@ Core raw HTTP responses (`/tenants`, `/context/*`, and `/query`) are wrapped:
 
 Two operations are asynchronous:
 
-1. **Tenant creation**: after `POST /tenants`, poll `GET /tenants/status` until infrastructure is ready.
+1. **Tenant creation**: after `POST /databases`, poll `GET /databases/status` until infrastructure is ready.
 2. **Ingestion**: after `POST /context/ingest`, poll `GET /context/status` until the content is searchable or fully complete.
 
 Searchable status:
@@ -378,7 +378,7 @@ console.log(result.data.chunks);
 
 ### Create tenant
 
-`POST /tenants` · `client.tenants.create()`
+`POST /databases` · `client.tenants.create()`
 
 ```json
 {
@@ -401,11 +401,11 @@ Notes:
 - Tenant creation is async.
 - `database` should be stable; docs recommend lowercase letters, numbers, and underscores for portability.
 - `tenant_metadata_schema` is effectively planned up front. If you need to change filterable metadata fields, expect to create a new tenant or re-ingest under a new schema.
-- `POST /tenants` may return `409 TENANT_ALREADY_EXISTS` for duplicate tenant IDs and `403 FORBIDDEN` when the API key or plan cannot create more tenants.
+- `POST /databases` may return `409 TENANT_ALREADY_EXISTS` for duplicate tenant IDs and `403 FORBIDDEN` when the API key or plan cannot create more tenants.
 
 ### Check readiness
 
-`GET /tenants/status?database=...` · `client.tenants.status()`
+`GET /databases/status?database=...` · `client.tenants.status()`
 
 Ready when infrastructure reports usable status. Current docs show `infra.ready_for_ingestion`; SDK examples also check:
 
@@ -420,10 +420,10 @@ Use SDK autocomplete/returned object shape for the exact field spelling.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /tenants` | list tenant IDs |
-| `DELETE /tenants?database=...` | delete a tenant and all data |
-| `GET /tenants/sub-tenants?database=...` | list active sub-tenants |
-| `GET /tenants/stats?database=...` | collection counts and vector dimensions |
+| `GET /databases` | list tenant IDs |
+| `DELETE /databases?database=...` | delete a tenant and all data |
+| `GET /databases/collections?database=...` | list active sub-tenants |
+| `GET /databases/stats?database=...` | collection counts and vector dimensions |
 
 ---
 
@@ -920,7 +920,7 @@ Common mistakes:
 
 ### Tenant schema
 
-Declared at `POST /tenants`:
+Declared at `POST /databases`:
 
 ```json
 {
@@ -1192,12 +1192,12 @@ Common architecture across cookbooks:
 | `client.context.delete()` | `DELETE /context` | Delete sources or memories |
 | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
-| `client.tenants.create()` | `POST /tenants` | Create a new isolated workspace |
-| `client.tenants.list()` | `GET /tenants` | List all tenants registered for the organization |
-| `client.tenants.delete()` | `DELETE /tenants` | Permanently remove a tenant |
-| `client.tenants.status()` | `GET /tenants/status` | Check provisioning readiness of a tenant's infrastructure |
-| `client.tenants.subTenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
-| `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
+| `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
+| `client.tenants.list()` | `GET /databases` | List all tenants registered for the organization |
+| `client.tenants.delete()` | `DELETE /databases` | Permanently remove a tenant |
+| `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a tenant's infrastructure |
+| `client.tenants.subTenants()` | `GET /databases/collections` | List active sub-tenants |
+| `client.tenants.stats()` | `GET /databases/stats` | Get tenant usage stats |
 
 ### 15.2 Python SDK
 
@@ -1210,12 +1210,12 @@ Common architecture across cookbooks:
 | Context | `client.context.delete()` | `DELETE /context` | Delete sources or memories |
 | Context | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | Search | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
-| Tenants | `client.tenants.create()` | `POST /tenants` | Create a new isolated workspace |
-| Tenants | `client.tenants.list()` | `GET /tenants` | List all tenants registered for the organization |
-| Tenants | `client.tenants.delete()` | `DELETE /tenants` | Permanently remove a tenant |
-| Tenants | `client.tenants.status()` | `GET /tenants/status` | Check provisioning readiness of a tenant's infrastructure |
-| Tenants | `client.tenants.sub_tenants()` | `GET /tenants/sub-tenants` | List active sub-tenants |
-| Tenants | `client.tenants.stats()` | `GET /tenants/stats` | Get tenant usage stats |
+| Tenants | `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
+| Tenants | `client.tenants.list()` | `GET /databases` | List all tenants registered for the organization |
+| Tenants | `client.tenants.delete()` | `DELETE /databases` | Permanently remove a tenant |
+| Tenants | `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a tenant's infrastructure |
+| Tenants | `client.tenants.sub_tenants()` | `GET /databases/collections` | List active sub-tenants |
+| Tenants | `client.tenants.stats()` | `GET /databases/stats` | Get tenant usage stats |
 
 ### 15.3 Minimal cURL example
 
@@ -1227,14 +1227,14 @@ DATABASE="agent_docs_demo"
 COLLECTION="user_alex"
 
 # 1. Create a tenant.
-curl -s -X POST 'https://api.hydradb.com/tenants' \
+curl -s -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d "{\"database\":\"${DATABASE}\"}"
 
 # 2. Check readiness. Poll this until .data.infra.ready_for_ingestion is true.
-curl -s "https://api.hydradb.com/tenants/status?database=${DATABASE}" \
+curl -s "https://api.hydradb.com/databases/status?database=${DATABASE}" \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" | jq '.data.infra'
 

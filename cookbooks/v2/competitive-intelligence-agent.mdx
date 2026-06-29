@@ -67,7 +67,7 @@ graph LR
 One database for all competitive intelligence. Collections isolate by competitor and are created automatically on the first upload - no setup required.
 
 ```bash
-curl -X POST 'https://api.hydradb.com/tenants' \
+curl -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"database": "competitive-intel"}'
@@ -638,7 +638,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com` · Head
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| `POST` | `/tenants` | Create the competitive-intel database |
+| `POST` | `/databases` | Create the competitive-intel database |
 | `POST` | `/context/ingest` | Upload a signal file (multipart form-data) |
 | `GET` | `/context/status?database=...&ids=...` | Check indexing status |
 | `POST` | `/query` | Query indexed signals |

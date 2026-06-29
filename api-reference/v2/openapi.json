@@ -4625,7 +4625,7 @@
           "Query"
         ],
         "summary": "Query",
-        "description": "Unified query endpoint for all retrieval over documents, memories, or both.\n\n    Use `source` to choose what to query:\n    - \"knowledge\" (default): Query over indexed knowledge documents\n    - \"memory\": Query over user memories\n    - \"all\": Query both documents and memories, merge and rank results together\n\n    Use `query_by` to choose the query method:\n    - \"hybrid\" (default): Dense vector + BM25 sparse \u2014 best overall relevance\n    - \"text\": BM25 full-text search only \u2014 for exact keyword matching\n\n    Use `mode` to control retrieval quality (hybrid only):\n    - \"fast\" (default): Single query, faster response\n    - \"thinking\": Multi-query generation with reranking, higher quality\n\n    Use `operator` to control text matching (text only):\n    - \"or\" (default): Match any of the search terms\n    - \"and\": Match all search terms\n    - \"phrase\": Match the exact phrase",
+        "description": "Unified query endpoint for all retrieval over documents, memories, or both.\n\n    Use `source` to choose what to query:\n    - \"knowledge\" (default): Query over indexed knowledge documents\n    - \"memory\": Query over user memories\n    - \"all\": Query both documents and memories, merge and rank results together\n\n    Use `query_by` to choose the query method:\n    - \"hybrid\" (default): Dense vector + BM25 sparse — best overall relevance\n    - \"text\": BM25 full-text search only — for exact keyword matching\n\n    Use `mode` to control retrieval quality (hybrid only):\n    - \"fast\" (default): Single query, faster response\n    - \"thinking\": Multi-query generation with reranking, higher quality\n\n    Use `operator` to control text matching (text only):\n    - \"or\" (default): Match any of the search terms\n    - \"and\": Match all search terms\n    - \"phrase\": Match the exact phrase",
         "operationId": "query_query_post",
         "requestBody": {
           "content": {
@@ -4740,12 +4740,12 @@
         ]
       }
     },
-    "/tenants": {
+    "/databases": {
       "post": {
         "tags": [
           "Tenants"
         ],
-        "summary": "Create a tenant",
+        "summary": "Create a database",
         "description": "Create a new tenant and provision its infrastructure.",
         "operationId": "create_tenants_post",
         "security": [
@@ -4758,7 +4758,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TenantCreateRequest"
+                "$ref": "#/components/schemas/DatabaseCreateRequest"
               }
             }
           }
@@ -4855,7 +4855,7 @@
         "tags": [
           "Tenants"
         ],
-        "summary": "List tenants",
+        "summary": "List databases",
         "description": "List all tenant IDs registered for the authenticated organization.",
         "operationId": "list_tenants_tenants_get",
         "security": [
@@ -4955,7 +4955,7 @@
         "tags": [
           "Tenants"
         ],
-        "summary": "Delete a tenant",
+        "summary": "Delete a database",
         "description": "Delete a tenant and all its associated infrastructure and data. Irreversible.",
         "operationId": "delete_tenants_delete",
         "security": [
@@ -4965,15 +4965,15 @@
         ],
         "parameters": [
           {
-            "name": "tenant_id",
+            "name": "database",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "description": "Unique identifier for the tenant/organization",
-              "title": "Tenant Id"
+              "description": "Unique identifier for the database",
+              "title": "Database"
             },
-            "description": "Unique identifier for the tenant/organization"
+            "description": "Unique identifier for the database"
           }
         ],
         "responses": {
@@ -5065,12 +5065,12 @@
         ]
       }
     },
-    "/tenants/status": {
+    "/databases/status": {
       "get": {
         "tags": [
           "Tenants"
         ],
-        "summary": "Get tenant infrastructure status",
+        "summary": "Get database infrastructure status",
         "description": "Check the provisioning status of a tenant's infrastructure.",
         "operationId": "status_tenants_status_get",
         "security": [
@@ -5080,15 +5080,15 @@
         ],
         "parameters": [
           {
-            "name": "tenant_id",
+            "name": "database",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "description": "Unique identifier for the tenant/organization",
-              "title": "Tenant Id"
+              "description": "Unique identifier for the database",
+              "title": "Database"
             },
-            "description": "Unique identifier for the tenant/organization"
+            "description": "Unique identifier for the database"
           }
         ],
         "responses": {
@@ -5180,12 +5180,12 @@
         ]
       }
     },
-    "/tenants/sub-tenants": {
+    "/databases/collections": {
       "get": {
         "tags": [
           "Tenants"
         ],
-        "summary": "List sub-tenants",
+        "summary": "List collections",
         "description": "List unique sub-tenant IDs that have indexed data.",
         "operationId": "list_sub_tenants_tenants_sub_tenants_get",
         "security": [
@@ -5195,15 +5195,15 @@
         ],
         "parameters": [
           {
-            "name": "tenant_id",
+            "name": "database",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "description": "Unique identifier for the tenant/organization",
-              "title": "Tenant Id"
+              "description": "Unique identifier for the database",
+              "title": "Database"
             },
-            "description": "Unique identifier for the tenant/organization"
+            "description": "Unique identifier for the database"
           }
         ],
         "responses": {
@@ -5295,12 +5295,12 @@
         ]
       }
     },
-    "/tenants/stats": {
+    "/databases/stats": {
       "get": {
         "tags": [
           "Tenants"
         ],
-        "summary": "Get tenant stats",
+        "summary": "Get database stats",
         "description": "Retrieve usage statistics (object count, vector dimension) for a tenant.",
         "operationId": "stats_tenants_stats_get",
         "security": [
@@ -5310,15 +5310,15 @@
         ],
         "parameters": [
           {
-            "name": "tenant_id",
+            "name": "database",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "description": "Unique identifier for the tenant/organization",
-              "title": "Tenant Id"
+              "description": "Unique identifier for the database",
+              "title": "Database"
             },
-            "description": "Unique identifier for the tenant/organization"
+            "description": "Unique identifier for the database"
           }
         ],
         "responses": {
@@ -5696,7 +5696,7 @@
         },
         "type": "object",
         "title": "AppRelationInput",
-        "description": "A single explicit relation between two app sources.\n\n* ``source_id``  \u2014 the origin Cortex source ID (filled by the route when known).\n* ``predicate``  \u2014 relation type, e.g. ``\"reply_to\"``, ``\"linked_to\"``.\n* ``target``     \u2014 where the relation points (Cortex ID or external ID).\n* ``properties`` \u2014 optional bag of relation-level metadata."
+        "description": "A single explicit relation between two app sources.\n\n* ``source_id``  — the origin Cortex source ID (filled by the route when known).\n* ``predicate``  — relation type, e.g. ``\"reply_to\"``, ``\"linked_to\"``.\n* ``target``     — where the relation points (Cortex ID or external ID).\n* ``properties`` — optional bag of relation-level metadata."
       },
       "AppRelationTargetRef": {
         "properties": {
@@ -6977,7 +6977,7 @@
           "vectorstore_status"
         ],
         "title": "Infra",
-        "description": "V1 infra shape \u2014 ``vectorstore_status`` is a ``[bool, bool]`` tuple.\n\nKept for backward compatibility with v1 API consumers. v2 routes convert\nto :class:`InfraV2` before responding."
+        "description": "V1 infra shape — ``vectorstore_status`` is a ``[bool, bool]`` tuple.\n\nKept for backward compatibility with v1 API consumers. v2 routes convert\nto :class:`InfraV2` before responding."
       },
       "InfraStatusResponse": {
         "properties": {
@@ -9887,6 +9887,33 @@
         "title": "TenantCreateAcceptedResponse",
         "description": "Response when tenant creation is accepted and runs in the background."
       },
+      "DatabaseCreateAcceptedResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the request",
+            "default": "accepted"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database",
+            "description": "Database identifier that is being created"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Response message",
+            "default": "Database creation started in the background. Use GET /databases/status?database=... to check progress."
+          }
+        },
+        "type": "object",
+        "required": [
+          "database"
+        ],
+        "title": "DatabaseCreateAcceptedResponse",
+        "description": "Response when database creation is accepted and runs in the background."
+      },
       "TenantCreateApiResponse": {
         "properties": {
           "success": {
@@ -9897,7 +9924,7 @@
           "data": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/TenantCreateAcceptedResponse"
+                "$ref": "#/components/schemas/DatabaseCreateAcceptedResponse"
               },
               {
                 "type": "null"
@@ -9984,6 +10011,73 @@
         "type": "object",
         "required": [
           "tenant_id"
+        ],
+        "title": "TenantCreateRequest",
+        "description": "Request model for creating a tenant with optional metadata schema.\n\nThe tenant_metadata_schema allows you to define custom fields that will be indexed\nin Milvus with configurable search capabilities:"
+      },
+      "DatabaseCreateRequest": {
+        "properties": {
+          "database": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Database",
+            "description": "Unique database identifier"
+          },
+          "is_embeddings_tenant": {
+            "type": "boolean",
+            "title": "Is Embeddings Tenant",
+            "description": "True to create embeddings tenant",
+            "default": false
+          },
+          "embeddings_dimension": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embeddings Dimension",
+            "description": "Embedding dimensions for embeddings tenant. Not required for non-embeddings (is_embeddings_tenant=False) tenants",
+            "default": 1536
+          },
+          "tenant_metadata_schema": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CustomPropertyDefinition"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Metadata Schema",
+            "description": "Schema definition for tenant metadata fields. Each field can be configured for: filtering (enable_match), semantic search (enable_dense_embedding), and/or keyword search (enable_sparse_embedding). Fields with embeddings enabled must be VARCHAR type.",
+            "examples": [
+              [
+                {
+                  "data_type": "VARCHAR",
+                  "enable_match": true,
+                  "max_length": 256,
+                  "name": "category"
+                },
+                {
+                  "data_type": "VARCHAR",
+                  "enable_dense_embedding": true,
+                  "enable_sparse_embedding": true,
+                  "max_length": 4096,
+                  "name": "product_description"
+                }
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "database"
         ],
         "title": "TenantCreateRequest",
         "description": "Request model for creating a tenant with optional metadata schema.\n\nThe tenant_metadata_schema allows you to define custom fields that will be indexed\nin Milvus with configurable search capabilities:"
@@ -10868,7 +10962,7 @@
           "ids"
         ],
         "title": "V2SourceDeleteRequest",
-        "description": "v2 delete request \u2014 a flat body that carries the bucket selector inline.\n\nReplaces the legacy nested ``{\"request\": {...}, \"type\": ...}`` body so every\nfield (``tenant_id``, ``sub_tenant_id``, ``ids``, ``type``) lives at the top\nlevel of the request body."
+        "description": "v2 delete request — a flat body that carries the bucket selector inline.\n\nReplaces the legacy nested ``{\"request\": {...}, \"type\": ...}`` body so every\nfield (``tenant_id``, ``sub_tenant_id``, ``ids``, ``type``) lives at the top\nlevel of the request body."
       },
       "V2SourceFetchResponse": {
         "properties": {

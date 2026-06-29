@@ -62,7 +62,7 @@ graph LR
 One database for all company knowledge. Use `collection` to isolate by source type - `"slack"`, `"email"`, `"docs"`, `"github"`. All created automatically on first write, no setup required.
 
 ```bash
-curl -X POST 'https://api.hydradb.com/tenants' \
+curl -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"database": "company-knowledge"}'
@@ -1439,7 +1439,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com` · Head
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| `POST` | `/tenants` | Create the company-knowledge database |
+| `POST` | `/databases` | Create the company-knowledge database |
 | `POST` | `/context/ingest` | Upload a source file (multipart form-data) |
 | `GET` | `/context/status?database=...&ids=...` | Check indexing status |
 | `POST` | `/context/ingest` | Store a user profile memory |
