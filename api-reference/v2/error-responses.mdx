@@ -58,8 +58,8 @@ Use `error.code` for branching and log `meta.request_id` for every failed reques
 | `INVALID_PARAMETERS` | `400` | A required parameter is missing, malformed, or mutually incompatible with another parameter. |
 | `UNAUTHORIZED` | `401` | The `Authorization: Bearer <your_api_key>` header is missing or invalid. |
 | `FORBIDDEN` | `403` | The API key is valid but does not have access to the requested resource, or the account/plan limit prevents the operation. |
-| `TENANT_ALREADY_EXISTS` | `409` | `POST /databases` received a `database` (formerly `tenant_id`) that is already in use. |
-| `TENANT_NOT_FOUND` | `404` | The requested database does not exist or is not visible to the current API key. |
+| `DATABASE_ALREADY_EXISTS` | `409` | `POST /databases` received a `database` (formerly `tenant_id`) that is already in use. |
+| `DATABASE_NOT_FOUND` | `404` | The requested database does not exist or is not visible to the current API key. |
 | `SOURCE_NOT_FOUND` | `404` | The requested source or memory ID does not exist in the selected database/collection. |
 | `VALIDATION_ERROR` | `422` | The request shape was valid JSON/form data, but one or more fields failed semantic validation. |
 | `RATE_LIMITED` | `429` | The API key exceeded its current rate limit. |
@@ -168,7 +168,7 @@ try {
     const code = error.body?.error?.code;
     const requestId = error.body?.meta?.request_id;
 
-    if (code === "TENANT_NOT_FOUND") {
+    if (code === "DATABASE_NOT_FOUND") {
       // Create or select a valid database before ingesting.
     } else if (error.statusCode === 429) {
       // Retry with backoff.
@@ -191,7 +191,7 @@ try:
         documents=[("policy.pdf", open("policy.pdf", "rb"), "application/pdf")],
     )
 except HydraDBError as exc:
-    if exc.error_code == "TENANT_NOT_FOUND":
+    if exc.error_code == "DATABASE_NOT_FOUND":
         # Create or select a valid database before ingesting.
         pass
     elif exc.status_code == 429:
@@ -225,7 +225,7 @@ Common causes:
 - `document_metadata` length does not match the `documents` array length.
 - `app_knowledge`, `memories`, or `document_metadata` was sent as an object instead of a JSON-stringified multipart field.
 - A memory item has neither `text` nor `user_assistant_pairs`.
-- A typed `tenant_metadata` value does not match the tenant metadata schema.
+- A typed `tenant_metadata` value does not match the database metadata schema.
 
 ### Empty query results
 

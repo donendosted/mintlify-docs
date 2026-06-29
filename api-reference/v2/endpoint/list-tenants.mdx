@@ -1,10 +1,10 @@
 ---
-title: "List Tenants"
-description: "List all tenants created. "
+title: "List Databases"
+description: "List all databases created. "
 openapi: "api-reference/v2/openapi.json GET /databases"
 ---
 
-The response separates active or provisioning databases (in `data.databases`) from databases whose provisioning failed (in `data.failed_databases`). Use [Tenant Status](https://docs.hydradb.com/api-reference/v2/endpoint/tenant-status) to confirm readiness before ingestion.
+The response separates active or provisioning databases (in `data.databases`) from databases whose provisioning failed (in `data.failed_databases`). Use [Database Status](https://docs.hydradb.com/api-reference/v2/endpoint/tenant-status) to confirm readiness before ingestion.
 
 <RequestExample>
 
@@ -32,7 +32,7 @@ curl -X GET 'https://api.hydradb.com/databases' \
   "data": {
     "databases": ["acme_corp", "my_first_tenant"],
     "failed_databases": null,
-    "message": "Successfully retrieved tenant IDs"
+    "message": "Successfully retrieved database IDs"
   },
   "error": null,
   "meta": {
@@ -50,10 +50,10 @@ curl -X GET 'https://api.hydradb.com/databases' \
     "failed_databases": [
       {
         "database": "staging_import",
-        "error": "Provisioning failed. Re-create the tenant to retry."
+        "error": "Provisioning failed. Re-create the database to retry."
       }
     ],
-    "message": "Successfully retrieved tenant IDs"
+    "message": "Successfully retrieved database IDs"
   },
   "error": null,
   "meta": {
@@ -90,9 +90,9 @@ curl -X GET 'https://api.hydradb.com/databases' \
 <Tip>
   **Related Resources**
 
-  - **Create:** [Create Tenant](/api-reference/v2/endpoint/create-tenant)
-  - **Inspect:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)
-  - **Inspect:** [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
-  - **Delete:** [Delete Tenant](/api-reference/v2/endpoint/delete-tenant)
+  - **Create:** [Create Database](/api-reference/v2/endpoint/create-tenant)
+  - **Inspect:** [Database Status](/api-reference/v2/endpoint/tenant-status)
+  - **Inspect:** [Database Stats](/api-reference/v2/endpoint/tenant-stats)
+  - **Delete:** [Delete Database](/api-reference/v2/endpoint/delete-tenant)
   - **Read more:** [Concepts → Multi-Tenant Support](/essentials/v2/multi-tenant)
 </Tip>

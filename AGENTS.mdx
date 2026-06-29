@@ -9,7 +9,7 @@ This document is a self-contained reference designed for AI coding agents. It co
 
 ### TL;DR: Critical endpoints
 
-1. **`POST /databases`** (`client.tenants.create()`): Provision an isolated tenant workspace.
+1. **`POST /databases`** (`client.tenants.create()`): Provision an isolated database workspace.
 2. **`GET /databases/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
 3. **`POST /context/ingest`** (`client.context.ingest()`): Ingest documents, app records, or memories under `type="knowledge"` or `type="memory"`.
 4. **`GET /context/status`** (`client.context.status()`): Poll status using `ids` until `indexing_status` is `completed` or `graph_creation`.
@@ -54,11 +54,11 @@ Core raw HTTP responses (`/databases`, `/context/*`, and `/query`) are wrapped:
 
 | Task | Use this endpoint / SDK method |
 |---|---|
-| Create tenant | `POST /databases` · `client.tenants.create()` |
-| Check tenant readiness | `GET /databases/status` · `client.tenants.status()` |
-| List tenants | `GET /databases` · `client.tenants.list()` |
-| List sub-tenants | `GET /databases/collections` · TS `client.tenants.subTenants()` / Python `client.tenants.sub_tenants()` |
-| Tenant stats | `GET /databases/stats` · `client.tenants.stats()` |
+| Create database | `POST /databases` · `client.tenants.create()` |
+| Check database readiness | `GET /databases/status` · `client.tenants.status()` |
+| List databases | `GET /databases` · `client.tenants.list()` |
+| List collections | `GET /databases/collections` · TS `client.tenants.subTenants()` / Python `client.tenants.sub_tenants()` |
+| Database stats | `GET /databases/stats` · `client.tenants.stats()` |
 | Ingest documents, app sources, memories | `POST /context/ingest` · `client.context.ingest()` |
 | Check indexing | `GET /context/status` · `client.context.status()` |
 | Search knowledge/memories/both | `POST /query` · `client.query()` |
@@ -72,7 +72,7 @@ Core raw HTTP responses (`/databases`, `/context/*`, and `/query`) are wrapped:
 
 Two operations are asynchronous:
 
-1. **Tenant creation**: after `POST /databases`, poll `GET /databases/status` until infrastructure is ready.
+1. **Database creation**: after `POST /databases`, poll `GET /databases/status` until infrastructure is ready.
 2. **Ingestion**: after `POST /context/ingest`, poll `GET /context/status` until the content is searchable or fully complete.
 
 Searchable status:
@@ -96,7 +96,7 @@ Use the same `type` enum across context lifecycle APIs and search. Search additi
 
 ### Metadata naming
 
-- `tenant_metadata`: schema-aligned, declared at tenant creation, fast filter path.
+- `tenant_metadata`: schema-aligned, declared at database creation, fast filter path.
 - `additional_metadata`: canonical free-form per-document metadata.
 - `document_metadata`: multipart field carrying per-document metadata for file uploads; use `additional_metadata` inside each item for free-form metadata.
 - `metadata_filters` top-level keys match `tenant_metadata`.
@@ -256,10 +256,10 @@ from hydra_db import HydraDB
 client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 database = "my_first_tenant"
 
-# 1. Create tenant.
+# 1. Create database.
 client.tenants.create(database=database)
 
-# 2. Wait until the tenant can accept data.
+# 2. Wait until the database can accept data.
 while True:
     status = client.tenants.status(database=database)
     if status.data.infra.ready_for_ingestion:
@@ -374,9 +374,9 @@ console.log(result.data.chunks);
 
 ---
 
-## 5. Tenants API
+## 5. Databases API
 
-### Create tenant
+### Create database
 
 `POST /databases` · `client.tenants.create()`
 
@@ -398,10 +398,10 @@ console.log(result.data.chunks);
 
 Notes:
 
-- Tenant creation is async.
+- Database creation is async.
 - `database` should be stable; docs recommend lowercase letters, numbers, and underscores for portability.
-- `tenant_metadata_schema` is effectively planned up front. If you need to change filterable metadata fields, expect to create a new tenant or re-ingest under a new schema.
-- `POST /databases` may return `409 TENANT_ALREADY_EXISTS` for duplicate tenant IDs and `403 FORBIDDEN` when the API key or plan cannot create more tenants.
+- `tenant_metadata_schema` is effectively planned up front. If you need to change filterable metadata fields, expect to create a new database or re-ingest under a new schema.
+- `POST /databases` may return `409 DATABASE_ALREADY_EXISTS` for duplicate database IDs and `403 FORBIDDEN` when the API key or plan cannot create more databases.
 
 ### Check readiness
 
@@ -416,13 +416,13 @@ Ready when infrastructure reports usable status. Current docs show `infra.ready_
 
 Use SDK autocomplete/returned object shape for the exact field spelling.
 
-### Other tenant endpoints
+### Other database endpoints
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /databases` | list tenant IDs |
-| `DELETE /databases?database=...` | delete a tenant and all data |
-| `GET /databases/collections?database=...` | list active sub-tenants |
+| `GET /databases` | list database IDs |
+| `DELETE /databases?database=...` | delete a database and all data |
+| `GET /databases/collections?database=...` | list active collections |
 | `GET /databases/stats?database=...` | collection counts and vector dimensions |
 
 ---
@@ -436,7 +436,7 @@ Use SDK autocomplete/returned object shape for the exact field spelling.
 | Field | Description |
 |---|---|
 | `type` | `"knowledge"` or `"memory"`; default is `"knowledge"` |
-| `database` | target tenant |
+| `database` | target database |
 | `collection` | optional logical partition; default collection if omitted |
 | `upsert` | default `true`; replaces existing sources with same ID |
 | `documents` | binary uploads for knowledge |
@@ -918,7 +918,7 @@ Common mistakes:
 
 ## 10. Metadata guide
 
-### Tenant schema
+### Database schema
 
 Declared at `POST /databases`:
 
@@ -1061,8 +1061,8 @@ Use `type: "memory"` to delete memory IDs.
 | `400` | invalid parameters / malformed request | No |
 | `401` | missing/invalid API key | No |
 | `403` | authenticated but not permitted | No |
-| `404` | tenant/context item/memory not found | No |
-| `409` | conflict, e.g. existing tenant or context item ID | Usually no |
+| `404` | database/context item/memory not found | No |
+| `409` | conflict, e.g. existing database or context item ID | Usually no |
 | `422` | semantic validation failure | No |
 | `429` | rate limited | Yes with backoff |
 | `500` | internal error | Yes with backoff |
@@ -1075,8 +1075,8 @@ Use `type: "memory"` to delete memory IDs.
 | `INVALID_PARAMETERS` | required, malformed, or conflicting parameter |
 | `UNAUTHORIZED` | missing/invalid bearer token |
 | `FORBIDDEN` | key lacks access |
-| `TENANT_ALREADY_EXISTS` | duplicate tenant ID |
-| `TENANT_NOT_FOUND` | tenant missing/not visible |
+| `DATABASE_ALREADY_EXISTS` | duplicate database ID |
+| `DATABASE_NOT_FOUND` | database missing/not visible |
 | `SOURCE_NOT_FOUND` | context item or memory missing in selected scope |
 | `VALIDATION_ERROR` | request shape valid but failed validation |
 | `RATE_LIMITED` | rate limit exceeded |
@@ -1146,7 +1146,7 @@ The cookbooks show production patterns. Click the links below to read the raw Ma
 
 Common architecture across cookbooks:
 
-1. Create tenant and schema for hot filters.
+1. Create database and schema for hot filters.
 2. Ingest shared knowledge/app sources with stable IDs.
 3. Ingest user/session memories with `collection`.
 4. Poll status or use webhooks.
@@ -1161,7 +1161,7 @@ Common architecture across cookbooks:
 - [ ] Forgetting `API-Version: 2` in raw HTTP calls.
 - [ ] Parsing raw HTTP response from the top level instead of `data`.
 - [ ] Assuming SDK responses include the raw envelope; SDKs unwrap `data`.
-- [ ] Searching immediately after tenant creation without polling readiness.
+- [ ] Searching immediately after database creation without polling readiness.
 - [ ] Searching immediately after ingestion without polling `context.status` or using webhooks.
 - [ ] Treating `processing`/`queued` content as searchable.
 - [ ] Not handling both `errored` and `failed` as failure statuses.
@@ -1169,7 +1169,7 @@ Common architecture across cookbooks:
 - [ ] Writing with one `collection` and reading with another.
 - [ ] Using metadata filters for user partitioning instead of `collection`.
 - [ ] Using undeclared `tenant_metadata` keys in `metadata_filters`.
-- [ ] Putting hot filters in free-form metadata instead of tenant schema.
+- [ ] Putting hot filters in free-form metadata instead of database schema.
 - [ ] Expecting `query_forceful_relations` to work in `mode: "fast"`.
 - [ ] Setting `graph_context: false` and expecting graph fields.
 - [ ] Re-sorting chunks before prompting without a deliberate reranker.
@@ -1193,11 +1193,11 @@ Common architecture across cookbooks:
 | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
 | `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
-| `client.tenants.list()` | `GET /databases` | List all tenants registered for the organization |
-| `client.tenants.delete()` | `DELETE /databases` | Permanently remove a tenant |
-| `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a tenant's infrastructure |
-| `client.tenants.subTenants()` | `GET /databases/collections` | List active sub-tenants |
-| `client.tenants.stats()` | `GET /databases/stats` | Get tenant usage stats |
+| `client.tenants.list()` | `GET /databases` | List all databases registered for the organization |
+| `client.tenants.delete()` | `DELETE /databases` | Permanently remove a database |
+| `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
+| `client.tenants.subTenants()` | `GET /databases/collections` | List active collections |
+| `client.tenants.stats()` | `GET /databases/stats` | Get database usage stats |
 
 ### 15.2 Python SDK
 
@@ -1210,12 +1210,12 @@ Common architecture across cookbooks:
 | Context | `client.context.delete()` | `DELETE /context` | Delete sources or memories |
 | Context | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | Search | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
-| Tenants | `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
-| Tenants | `client.tenants.list()` | `GET /databases` | List all tenants registered for the organization |
-| Tenants | `client.tenants.delete()` | `DELETE /databases` | Permanently remove a tenant |
-| Tenants | `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a tenant's infrastructure |
-| Tenants | `client.tenants.sub_tenants()` | `GET /databases/collections` | List active sub-tenants |
-| Tenants | `client.tenants.stats()` | `GET /databases/stats` | Get tenant usage stats |
+| Databases | `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
+| Databases | `client.tenants.list()` | `GET /databases` | List all databases registered for the organization |
+| Databases | `client.tenants.delete()` | `DELETE /databases` | Permanently remove a database |
+| Databases | `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
+| Databases | `client.tenants.sub_tenants()` | `GET /databases/collections` | List active collections |
+| Databases | `client.tenants.stats()` | `GET /databases/stats` | Get database usage stats |
 
 ### 15.3 Minimal cURL example
 
@@ -1226,7 +1226,7 @@ export HYDRA_DB_API_KEY="your_api_key"
 DATABASE="agent_docs_demo"
 COLLECTION="user_alex"
 
-# 1. Create a tenant.
+# 1. Create a database.
 curl -s -X POST 'https://api.hydradb.com/databases' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \

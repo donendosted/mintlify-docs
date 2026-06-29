@@ -12,9 +12,9 @@ description: "How HydraDB scopes data using databases and collections, and how s
 HydraDB scopes data using two identifiers:
 
 - **`database`** - the top-level scoping identifier. Use it for customers, environments, or other primary data boundaries.
-- **`collection`** - an optional scoping identifier within a tenant. Use it for users, workspaces, teams, or other logical partitions.
+- **`collection`** - an optional scoping identifier within a database. Use it for users, workspaces, teams, or other logical partitions.
 
-HydraDB write and query operations are scoped by `database`. When `collection` is provided, it further narrows the scope for that operation. If you omit `collection`, HydraDB uses the tenant's default sub-tenant.
+HydraDB write and query operations are scoped by `database`. When `collection` is provided, it further narrows the scope for that operation. If you omit `collection`, HydraDB uses the database's default collection.
 
 Use the same scoping values consistently across writes and reads. If you write data with one `collection` and later query with a different one, that data may not appear in the query results.
 
@@ -28,14 +28,14 @@ Use the same scoping values consistently across writes and reads. If you write d
 | Separate environments (`prod` vs `staging`) | A different `database` per environment |
 | Separate per-user state within one customer | One `database`, `collection = user_id` |
 | Separate per-workspace data within one customer | One `database`, `collection = workspace_id` |
-| Store broadly shared Knowledge | Omit `collection` to use the tenant's default sub-tenant |
+| Store broadly shared Knowledge | Omit `collection` to use the database's default collection |
 
 Two practical rules:
 
-- Use a separate **tenant** whenever data must not mix across customers or environments.
-- Use a **sub-tenant** for logical partitions inside a tenant, such as users, workspaces, teams, or projects.
+- Use a separate **database** whenever data must not mix across customers or environments.
+- Use a **collection** for logical partitions inside a database, such as users, workspaces, teams, or projects.
 
-Do not use `collection` as a substitute for separate production and staging tenants. Environments should usually be separated at the `database` level.
+Do not use `collection` as a substitute for separate production and staging databases. Environments should usually be separated at the `database` level.
 
 ---
 
@@ -43,7 +43,7 @@ Do not use `collection` as a substitute for separate production and staging tena
 
 ### B2C application
 
-Use one tenant for the application or customer account, and use each end-user as a sub-tenant.
+Use one database for the application or customer account, and use each end-user as a collection.
 
 ```text
 database      = "acme_app"
@@ -60,7 +60,7 @@ Typical flow:
 
 ### B2B SaaS
 
-Use one tenant per customer organization. Use `collection` for the workspace, team, project, or user scope inside that customer.
+Use one database per customer organization. Use `collection` for the workspace, team, project, or user scope inside that customer.
 
 ```text
 database      = "acme_corp"
@@ -91,7 +91,7 @@ When you need different formatting for shared vs personal context in the LLM pro
 
 Writes include `database`, and may include `collection`.
 
-Use `collection` when the data belongs to a specific user, workspace, team, or other logical partition. Omit it when you intentionally want the data written to the tenant's default sub-tenant.
+Use `collection` when the data belongs to a specific user, workspace, team, or other logical partition. Omit it when you intentionally want the data written to the database's default collection.
 
 Examples:
 
@@ -101,7 +101,7 @@ Examples:
 
 ### Reads
 
-Query requests include `database`, and may include `collection`. If `collection` is omitted, query uses the tenant's default sub-tenant.
+Query requests include `database`, and may include `collection`. If `collection` is omitted, query uses the database's default collection.
 
 Use the same scoping values on query that you used when writing the data. A query request with one `collection` should not be expected to retrieve data written under a different `collection`.
 
@@ -121,7 +121,7 @@ For a personalized answer, the common pattern is one `POST /query` with `type: "
 
 <Warning>
   <strong>Use the same <code>collection</code> on writes and reads for the same logical scope.</strong>
-  <p>Data written under one sub-tenant should not be expected to appear when querying from another. Keep scope identifiers stable and consistent in your application.</p>
+  <p>Data written under one collection should not be expected to appear when querying from another. Keep scope identifiers stable and consistent in your application.</p>
 </Warning>
 
 ---
@@ -237,13 +237,13 @@ result = client.query(
 ## 6. Common mistakes
 
 **Mismatched `collection` between write and read.**
-Data written under one sub-tenant should not be expected to surface when queried under another. Use the same `collection` consistently for the same logical scope.
+Data written under one collection should not be expected to surface when queried under another. Use the same `collection` consistently for the same logical scope.
 
 **Sharing a `database` across environments.**
-Do not use one tenant for both production and staging. Create separate tenants for separate environments.
+Do not use one database for both production and staging. Create separate databases for separate environments.
 
 **Confusing `database` with `collection`.**
-Use `database` for primary boundaries such as customers or environments. Use `collection` for partitions inside a tenant, such as users or workspaces.
+Use `database` for primary boundaries such as customers or environments. Use `collection` for partitions inside a database, such as users or workspaces.
 
 **Assuming query automatically merges scopes.**
 A query call uses the scope you provide. If your application needs data from multiple scopes, make multiple calls and merge the results yourself.
@@ -251,7 +251,7 @@ A query call uses the scope you provide. If your application needs data from mul
 **Writing shared Knowledge under a user scope by accident.**
 If broadly shared Knowledge is written with a user-specific `collection`, it may not appear where other users expect it. Choose the write scope based on where the content should be queried later.
 
-**Using metadata filters as a substitute for sub-tenants.**
+**Using metadata filters as a substitute for collections.**
 Metadata filters narrow results inside a scope. They are not a replacement for choosing the right `database` and `collection`.
 
 **Using unstable identifiers.**
@@ -265,4 +265,4 @@ Avoid display names, emails that may change, or user-provided labels as long-ter
 - [Knowledge](/essentials/v2/knowledge) - shared document context
 - [Query](/essentials/v2/query) - how scoping is applied at query time
 - [How to Use API Results](/essentials/v2/api-results) - merging query results into a prompt
-- [Create Tenant](/api-reference/v2/endpoint/tenants-overview) - defining tenants and their metadata schema
+- [Create Database](/api-reference/v2/endpoint/tenants-overview) - defining databases and their metadata schema

@@ -89,7 +89,7 @@ DATABASE_ID = os.environ.get("HYDRADB_TENANT_ID", "onboarding")
 
 ---
 
-### Step 1 - Create a Tenant
+### Step 1 - Create a Database
 
 One database holds all onboarding content. The free plan supports one database - if you already have one, skip creation and reuse it.
 
@@ -105,10 +105,10 @@ client = HydraDB(token=API_KEY)
 def create_tenant():
     try:
         result = client.tenants.create(database=DATABASE_ID)
-        print(f"Tenant created: {result}")
+        print(f"Database created: {result}")
     except Exception as e:
         if "already exists" in str(e).lower() or "limit" in str(e).lower():
-            print(f"Tenant already exists - reusing '{DATABASE_ID}'")
+            print(f"Database already exists - reusing '{DATABASE_ID}'")
         else:
             raise
 
@@ -129,8 +129,8 @@ python phase0/create_tenant.py
 
 Output:
 ```
-Tenant created: {'database': 'onboarding', 'status': 'created'}
-Status: Tenant infrastructure is ready
+Database created: {'database': 'onboarding', 'status': 'created'}
+Status: Database infrastructure is ready
   scheduler=running
   graph=running
   vectorstore=running
@@ -138,7 +138,7 @@ Status: Tenant infrastructure is ready
 
 **Expected output:**
 ```
-Tenant created: ...
+Database created: ...
 Status: Deployed infrastructure status
   scheduler=True
   graph=True

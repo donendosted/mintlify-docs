@@ -106,7 +106,7 @@ A single method covers all retrieval. Pick `type` (`"knowledge"`, `"memory"`, `"
 |---|---|
 | `client.query()` | `POST /query` |
 
-### Tenants
+### Databases
 
 | Method | Endpoint |
 |---|---|
@@ -539,7 +539,7 @@ try {
   if (error instanceof HydraDBError) {
     const code = error.body?.error?.code;
 
-    if (code === "TENANT_NOT_FOUND") {
+    if (code === "DATABASE_NOT_FOUND") {
       // Handle missing database
     } else if (error.statusCode === 429) {
       // Rate limit — retry with backoff

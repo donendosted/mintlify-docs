@@ -62,7 +62,7 @@ graph LR
 
 ---
 
-## Step 1 - Create Tenant
+## Step 1 - Create Database
 
 One database for all competitive intelligence. Collections isolate by competitor and are created automatically on the first upload - no setup required.
 
@@ -82,7 +82,7 @@ client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 DATABASE_ID = "competitive-intel"
 
 client.tenants.create(database=DATABASE_ID)
-print(f"✓ Tenant '{DATABASE_ID}' ready.")
+print(f"✓ Database '{DATABASE_ID}' ready.")
 
 def collection_for(competitor: str) -> str:
     """Normalise competitor name to a valid collection."""
@@ -93,7 +93,7 @@ def collection_for(competitor: str) -> str:
 
 Output:
 ```
-✓ Tenant 'competitive-intel' ready.
+✓ Database 'competitive-intel' ready.
 ```
 
 > **Collection pattern**: Use `collection: "acme-corp"`, `collection: "betacorp"` on every upload. This lets you query a single competitor (`collection: "acme-corp"`) or all competitors at once (omit `collection`). Collections are created automatically on first write.
@@ -643,7 +643,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com` · Head
 | `GET` | `/context/status?database=...&ids=...` | Check indexing status |
 | `POST` | `/query` | Query indexed signals |
 
-### Create Tenant
+### Create Database
 ```json
 { "database": "competitive-intel" }
 ```

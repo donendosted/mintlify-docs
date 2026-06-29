@@ -70,7 +70,7 @@ graph LR
 
 ---
 
-## Step 1 - Create Tenant
+## Step 1 - Create Database
 
 One database for your support system. Use collections to isolate customer data - each customer gets their own collection, automatically created on their first interaction. This is the B2C pattern from HydraDB's docs.
 
@@ -1019,7 +1019,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com` · Head
 | `POST` | `/query` | Search knowledge base |
 | `POST` | `/query` | Retrieve customer personal memory |
 
-### Create Tenant
+### Create Database
 
 ```json
 { "database": "customer-support" }

@@ -57,7 +57,7 @@ graph LR
 
 ---
 
-## Step 1 - Create Tenant
+## Step 1 - Create Database
 
 One database for all company knowledge. Use `collection` to isolate by source type - `"slack"`, `"email"`, `"docs"`, `"github"`. All created automatically on first write, no setup required.
 
@@ -1446,7 +1446,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com` · Head
 | `POST` | `/query` | Retrieve user profile for personalization |
 | `POST` | `/query` | Query all indexed knowledge |
 
-### Create Tenant
+### Create Database
 ```json
 { "database": "company-knowledge" }
 ```
@@ -1598,5 +1598,5 @@ The search quality improves as more sources are indexed - each new Slack channel
 
 | Version | Date | Notes |
 |---|---|---|
-| 1.1 | 2026-05-14 | Added TypeScript SDK tabs (CodeGroup) for all HydraDB API call blocks: tenant creation, all four connector uploads (Slack, Gmail, Confluence, GitHub), verify processing, add memory, full search (factual + provenance), and search preferences. |
+| 1.1 | 2026-05-14 | Added TypeScript SDK tabs (CodeGroup) for all HydraDB API call blocks: database creation, all four connector uploads (Slack, Gmail, Confluence, GitHub), verify processing, add memory, full search (factual + provenance), and search preferences. |
 | 1.0 | 2026-05-09 | Initial release. Python SDK + curl examples for all six source connectors. |

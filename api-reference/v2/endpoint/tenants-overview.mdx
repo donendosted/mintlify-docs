@@ -1,6 +1,6 @@
 ---
-title: "Tenants - Overview"
-description: "Quick reference for all tenants endpoints, their lifecycle, and when to call each."
+title: "Databases - Overview"
+description: "Quick reference for all databases endpoints, their lifecycle, and when to call each."
 ---
 
 Databases are physically isolated spaces for storing context. In most integrations you create a database once, wait for provisioning, then ingest and query inside it.
@@ -40,4 +40,4 @@ GET /databases/stats       -> check database health & growth
 
 - **Database** - A top-level isolated space. For example - you can dedicate one database to one enterprise customer. 
 - **Collection** - Partitions within a database for per-user separation. The first collection is created implicitly at ingestion. Collections are useful when you need to scope data per user, team, or customer within a single database.
-- **Tenant Metadata & Schema** - Structured fields defined at database creation to enable query-time filtering.
+- **Database Metadata & Schema** - Structured fields defined at database creation to enable query-time filtering.

@@ -80,7 +80,7 @@ RECALL_ALPHA       = 0.75
 
 ---
 
-### Step 1 - Create a Tenant
+### Step 1 - Create a Database
 
 **What:** Registers your top-level namespace. Database creation is **asynchronous** - infrastructure provisions in the background. Do not upload files until polling confirms it is ready.
 
@@ -103,10 +103,10 @@ def _poll_until_ready(timeout=180, interval=4):
         status = client.tenants.status(database=DATABASE_ID).data
         infra = status.infra
         if infra.scheduler_status and infra.graph_status and infra.vectorstore_status.knowledge and infra.vectorstore_status.memories:
-            print("✓ Tenant ready."); return
+            print("✓ Database ready."); return
         print(f"  scheduler={infra.scheduler_status} graph={infra.graph_status} vectorstore={infra.vectorstore_status} - retrying in {interval}s")
         time.sleep(interval)
-    raise TimeoutError("Tenant not ready within 180s")
+    raise TimeoutError("Database not ready within 180s")
 
 if __name__ == "__main__": create_tenant()
 ```
@@ -118,10 +118,10 @@ python3 phase0/create_tenant.py
 **Expected output:**
 
 ```
-Accepted: {'database': 'engineering-docs', 'status': 'accepted', 'message': 'Tenant accepted. Poll /databases/status for readiness.'}
+Accepted: {'database': 'engineering-docs', 'status': 'accepted', 'message': 'Database accepted. Poll /databases/status for readiness.'}
 Polling for readiness...
   scheduler=False graph=False vectorstore=[False, False] - retrying in 4s
-✓ Tenant ready.
+✓ Database ready.
 ```
 
 **If it fails:** `401` - API key wrong or missing `Bearer ` prefix. Confirm `.env` has `HYDRA_DB_API_KEY=hdb_abc123` with no surrounding quotes.
@@ -190,7 +190,7 @@ Copy your id for use in verify.py: {'results': [{'id': 'YOUR_ID_HERE', 'filename
 The exact value of `id` depends on HydraDB's internal file registration. Copy the value returned and use it in Step 3.
 
 **If it fails:**
-- `404 Tenant does not exist` - Step 1 not complete, or `database` mismatch.
+- `404 Database does not exist` - Step 1 not complete, or `database` mismatch.
 - `400 / missing files` - Confirm the field name is `documents` (not `file`), and that `Content-Type` is NOT manually set in headers.
 
 ---
@@ -1273,11 +1273,11 @@ A good progression: Phase 0 search in the terminal → FastAPI `/ask` in Postman
 
 **Fix:** Run `python3 -c "from config import HYDRA_DB_API_KEY; print(repr(HYDRA_DB_API_KEY))"`. The output should be `'hdb_abc123'` - no surrounding spaces. Your header must be exactly `Authorization: Bearer hdb_abc123`.
 
-### 404 - Tenant Does Not Exist
+### 404 - Database Does Not Exist
 
 **Cause:** You are attempting to upload or query before the database was created, or the `database` in your request does not match the one you created. Database IDs are case-sensitive.
 
-**Fix:** Run `python3 phase0/create_tenant.py` and wait for "✓ Tenant ready." before proceeding. Confirm `DATABASE_ID` in `config.py` exactly matches what you passed to `create_tenant`.
+**Fix:** Run `python3 phase0/create_tenant.py` and wait for "✓ Database ready." before proceeding. Confirm `DATABASE_ID` in `config.py` exactly matches what you passed to `create_tenant`.
 
 ### 404 - Not Found (on search or ingestion endpoint)
 
@@ -1333,7 +1333,7 @@ def stream_answer(question: str, context: str):
 
 All endpoints used in this cookbook. Base URL: `https://api.hydradb.com`. Header: `Authorization: Bearer YOUR_API_KEY`
 
-### Create Tenant
+### Create Database
 
 **POST** `/databases` - Async, poll `/databases/status` before ingesting
 
@@ -1344,7 +1344,7 @@ Response:
 {
   "database": "engineering-docs",
   "status":    "accepted",
-  "message":   "Tenant accepted. Poll /databases/status for readiness."
+  "message":   "Database accepted. Poll /databases/status for readiness."
 }
 
 GET /databases/status?database=engineering-docs

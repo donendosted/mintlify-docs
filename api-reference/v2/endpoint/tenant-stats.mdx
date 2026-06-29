@@ -1,7 +1,7 @@
 ---
 
-title: "Tenant Stats"
-description: "Retrieve usage statistics for a tenant."
+title: "Database Stats"
+description: "Retrieve usage statistics for a database."
 openapi: "api-reference/v2/openapi.json GET /databases/stats"
 ---
 
@@ -76,8 +76,8 @@ curl -X GET 'https://api.hydradb.com/databases/stats?database=my_first_tenant' \
   "success": false,
   "data": null,
   "error": {
-    "code": "TENANT_NOT_FOUND",
-    "message": "Tenant not found"
+    "code": "DATABASE_NOT_FOUND",
+    "message": "Database not found"
   },
   "meta": {
     "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
@@ -103,7 +103,7 @@ curl -X GET 'https://api.hydradb.com/databases/stats?database=my_first_tenant' \
   **Related Resources**
 
   - **List sources/memories:** [List Documents](/api-reference/v2/endpoint/list-documents)
-  - **List collections:** [List Sub-Tenants](/api-reference/v2/endpoint/list-sub-tenants)
-  - **Check provisioning:** [Tenant Status](/api-reference/v2/endpoint/tenant-status)
+  - **List collections:** [List Collections](/api-reference/v2/endpoint/list-sub-tenants)
+  - **Check provisioning:** [Database Status](/api-reference/v2/endpoint/tenant-status)
   - **Read more:** [Concepts → Multi-Tenant Support](/essentials/v2/multi-tenant)
 </Tip>

@@ -91,7 +91,7 @@ A **collection** is a logical partition within a database - a user, team, projec
 - **B2C** - one database for the organization; each end user is a collection
 
 <Note>
-  In API requests, a tenant is set with the **`database`** field (formerly `tenant_id`) and a sub-tenant with the **`collection`** field (formerly `sub_tenant_id`). The old names still work as deprecated aliases, so existing code keeps running unchanged.
+  In API requests, a database is set with the **`database`** field (formerly `tenant_id`) and a collection with the **`collection`** field (formerly `sub_tenant_id`). The old names still work as deprecated aliases, so existing code keeps running unchanged.
 </Note>
 
 Read More: [Concepts → Multi-Tenant Support](/essentials/v2/multi-tenant)
@@ -104,7 +104,7 @@ Metadata makes querying deterministic. Sometimes production systems need hard fi
 
 Two tiers:
 
-- `metadata` - filterable fields defined in the tenant schema. Plan these fields before ingestion and pass them through `metadata_filters` at query time.
+- `metadata` - filterable fields defined in the database schema. Plan these fields before ingestion and pass them through `metadata_filters` at query time.
 - `additional_metadata` - free-form fields attached per document at ingestion. Flexible. Useful for passing additional context to your agents if needed.
 
 At ingestion:

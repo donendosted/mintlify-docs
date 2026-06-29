@@ -16,7 +16,7 @@ description: "Single reference to all HydraDB endpoints"
 
 | Group | Purpose | When to reach for it |
 |---|---|---|
-| [Tenants](/api-reference/v2/endpoint/tenants-overview) | Create, monitor, and manage isolated workspaces | First step in any integration  -  and any time you need usage stats, provisioning status, or to tear down a workspace |
+| [Databases](/api-reference/v2/endpoint/tenants-overview) | Create, monitor, and manage isolated workspaces | First step in any integration  -  and any time you need usage stats, provisioning status, or to tear down a workspace |
 | [Context](/api-reference/v2/endpoint/sources-overview) | Ingest, list, fetch, delete, and inspect knowledge or memories | Every time data flows into HydraDB  -  document uploads, app sources, user memories, and lifecycle ops |
 | [Query](/api-reference/v2/endpoint/query-overview) | Retrieve context with hybrid or text query | At query time  -  the only endpoint you call to feed an LLM |
 
@@ -37,9 +37,9 @@ description: "Single reference to all HydraDB endpoints"
 ```mermaid
 flowchart LR
 
-    subgraph Tenant Lifecycle [" "]
+    subgraph Database Lifecycle [" "]
       direction LR
-      A([Create Tenant])-->B([Wait for Provisioning])
+      A([Create Database])-->B([Wait for Provisioning])
       B-->C([Ingest Knowledge / Memories])
       C-->D([Verify Processing])
       D-->E([Query Context])
@@ -93,12 +93,12 @@ SDK methods mirror the API: `client.<group>.<method>()` maps to the correspondin
 
 | Endpoint | Method | SDK method | Purpose | Use when |
 |---|---|---|---|---|
-| [`/databases`](/api-reference/v2/endpoint/create-tenant) | `POST` | `tenants.create` | Create a tenant | You are setting up a new isolated workspace and optional metadata schema. |
-| [`/databases`](/api-reference/v2/endpoint/list-tenants) | `GET` | `tenants.list` | List tenants | You need to discover tenant IDs available to the current API key. |
-| [`/databases`](/api-reference/v2/endpoint/delete-tenant) | `DELETE` | `tenants.delete` | Delete a tenant | You need to permanently remove a workspace and its data. |
-| [`/databases/status`](/api-reference/v2/endpoint/tenant-status) | `GET` | `tenants.status` | Check provisioning readiness | You just created a tenant and need to wait before ingesting data. |
-| [`/databases/collections`](/api-reference/v2/endpoint/list-sub-tenants) | `GET` | `tenants.subTenants` / `tenants.sub_tenants` | List active sub-tenants | You partition data by user, team, customer, or account and need to inspect those partitions. |
-| [`/databases/stats`](/api-reference/v2/endpoint/tenant-stats) | `GET` | `tenants.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a tenant. |
+| [`/databases`](/api-reference/v2/endpoint/create-tenant) | `POST` | `tenants.create` | Create a database | You are setting up a new isolated workspace and optional metadata schema. |
+| [`/databases`](/api-reference/v2/endpoint/list-tenants) | `GET` | `tenants.list` | List databases | You need to discover database IDs available to the current API key. |
+| [`/databases`](/api-reference/v2/endpoint/delete-tenant) | `DELETE` | `tenants.delete` | Delete a database | You need to permanently remove a workspace and its data. |
+| [`/databases/status`](/api-reference/v2/endpoint/tenant-status) | `GET` | `tenants.status` | Check provisioning readiness | You just created a database and need to wait before ingesting data. |
+| [`/databases/collections`](/api-reference/v2/endpoint/list-sub-tenants) | `GET` | `tenants.subTenants` / `tenants.sub_tenants` | List active collections | You partition data by user, team, customer, or account and need to inspect those partitions. |
+| [`/databases/stats`](/api-reference/v2/endpoint/tenant-stats) | `GET` | `tenants.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a database. |
 | [`/context/ingest`](/api-reference/v2/endpoint/ingest-context) | `POST` | `context.ingest` | Ingest knowledge or memories | You are uploading documents, app sources, or user memories. |
 | [`/context/status`](/api-reference/v2/endpoint/source-status) | `GET` | `context.status` | Check processing status | You have IDs from ingestion and need to know when they are queryable. |
 | [`/context/inspect`](/api-reference/v2/endpoint/fetch-content) | `GET` | `context.inspect` | Inspect original source content or presigned URL | You need to display or inspect the original ingested content. |

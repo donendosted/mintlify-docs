@@ -1,6 +1,6 @@
 ---
 title: "Scoping using metadata"
-description: "How HydraDB uses metadata to scope and rank query results deterministically — schema-aligned tenant fields, free-form per-document fields, and how they combine at query time."
+description: "How HydraDB uses metadata to scope and rank query results deterministically — schema-aligned database fields, free-form per-document fields, and how they combine at query time."
 ---
 
 Metadata is structured data attached to [Knowledge](/essentials/v2/knowledge) and [Memories](/essentials/v2/memories) so you can scope query to a known set **before** semantic retrieval runs. It bridges the gap between vector similarity (great for "things like X") and exact scoping (essential for "must be in environment=production, must be customer=acme, must be a runbook"). HydraDB exposes two metadata layers  -  one declared up front and fast, one free-form and slower  -  and lets you combine them in a single [`POST /query`](/api-reference/v2/endpoint/query) call.
@@ -22,7 +22,7 @@ Pick the row that matches your goal and use the parameters as a starting point:
 | Combine deterministic scoping with semantic search | Both metadata kinds | `metadata_filters` + your query | Scope runs before ranking  -  keeps query predictable. |
 | Keep draft / archived / region-specific content out of user answers | `metadata.status` (or similar) | `metadata_filters: { status: "published" }` | Classic published/unpublished pattern. |
 
-If a field will be scoped on **every** query, it belongs in `metadata` and the [tenant schema](/api-reference/v2/endpoint/create-tenant). If it's ad-hoc or unique to one document, use `additional_metadata` instead.
+If a field will be scoped on **every** query, it belongs in `metadata` and the [database schema](/api-reference/v2/endpoint/create-tenant). If it's ad-hoc or unique to one document, use `additional_metadata` instead.
 
 ---
 
@@ -32,7 +32,7 @@ If a field will be scoped on **every** query, it belongs in `metadata` and the [
 
 The `database` field was formerly `tenant_id` and `collection` was formerly `sub_tenant_id`; the old names still work as deprecated aliases.
 
-### Schema declaration (set at tenant creation)
+### Schema declaration (set at database creation)
 
 Defined once in `tenant_metadata_schema` on [`POST /databases`](/api-reference/v2/endpoint/create-tenant). Immutable after creation  -  plan your scope fields up front.
 
@@ -53,7 +53,7 @@ Sent on each item in `app_knowledge[]`, `document_metadata[]`, or `memories[]` o
 
 | Field | Type | Purpose |
 | --- | --- | --- |
-| `metadata` | object for knowledge; JSON-encoded string for memory items | Tenant-schema fields. Keys must match `tenant_metadata_schema`. The fast scoping path. |
+| `metadata` | object for knowledge; JSON-encoded string for memory items | Database-schema fields. Keys must match `tenant_metadata_schema`. The fast scoping path. |
 | `additional_metadata` | object | Free-form per-document or per-memory fields. No schema. The flexible, slower path. |
 
 <Warning>
@@ -76,7 +76,7 @@ Sent on [`POST /query`](/api-reference/v2/endpoint/query). Two scopes in the sam
 Most of the time the defaults are right. When they aren't, here's where to start:
 
 - **Plan scoping fields before first ingest.** Schema is immutable, and undeclared scope keys are silently ignored at query time. If you'll scope on it more than once, declare it.
-- **Pick `metadata` for hot paths, `additional_metadata` for cold ones.** Tenant-level scopes are pre-applied in the vector store; document-level scopes force a post-retrieval pass with over-fetch.
+- **Pick `metadata` for hot paths, `additional_metadata` for cold ones.** Database-level scopes are pre-applied in the vector store; document-level scopes force a post-retrieval pass with over-fetch.
 - **Use exact-equality only.** `metadata_filters` are equality constraints across all categories. Range, contains, or fuzzy matching belong in the query, query mode, or downstream reranking  -  not here.
 - **Keep keys stable.** Renaming a metadata key requires re-ingesting affected sources. Same goes for changing `enable_match` flags.
 - **Ingested metadata is immutable.** Once a source is indexed, its `metadata` and `additional_metadata` values are locked. To change them, re-ingest the source with the new values (use `upsert: true` and the same `id`).
@@ -90,9 +90,9 @@ Two phases: **set up metadata** (declare the schema, then attach values at inges
 
 ### Step 1  -  Create metadata
 
-The schema lives at the tenant level; values land on each source at ingest time. Both happen before any query.
+The schema lives at the database level; values land on each source at ingest time. Both happen before any query.
 
-#### Step 1a  -  Declare the schema at tenant creation
+#### Step 1a  -  Declare the schema at database creation
 
 <CodeGroup>
 ```bash cURL
@@ -213,7 +213,7 @@ client.context.ingest(
 
 ### Step 2  -  Scope at query
 
-Mix tenant-level (top-level) and document-level (nested) scopes in the same `metadata_filters` object:
+Mix database-level (top-level) and document-level (nested) scopes in the same `metadata_filters` object:
 
 <CodeGroup>
 ```bash cURL
@@ -266,9 +266,9 @@ Top-level `compliance_framework` is the fast scope, applied in the vector store 
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `metadata_filters` doesn't scope results | Key isn't declared in `tenant_metadata_schema`, or `enable_match` is `false` | Re-create the tenant with the field declared (`enable_match: true`), or move the field to `additional_metadata` and nest the scope under `additional_metadata`. |
+| `metadata_filters` doesn't scope results | Key isn't declared in `tenant_metadata_schema`, or `enable_match` is `false` | Re-create the database with the field declared (`enable_match: true`), or move the field to `additional_metadata` and nest the scope under `additional_metadata`. |
 | Scope on an `additional_metadata` key silently ignored | Scope passed as top-level key | Nest it: `metadata_filters: { additional_metadata: { author: "alice" } }`. |
-| Schema field changes don't take effect | Schema is immutable after tenant creation | Create a new tenant with the corrected schema. There's no in-place schema migration. |
+| Schema field changes don't take effect | Schema is immutable after database creation | Create a new database with the corrected schema. There's no in-place schema migration. |
 | Metadata values on a source don't update | Ingested metadata is immutable | Re-ingest the source with `upsert: true` and the same `id`. |
 | Query returns 0 results after adding a scope | Over-scoping  -  combined constraints exclude everything | Start with the minimum hard constraints; add scopes one at a time and re-check counts. |
 | Range / contains / fuzzy scope doesn't work | `metadata_filters` is equality-only | Move that constraint into the `query` text, use a different `query_by`, or apply it in your own post-scoping. |
@@ -295,5 +295,5 @@ Top-level `compliance_framework` is the fast scope, applied in the vector store 
 - [Memories](/essentials/v2/memories)  -  metadata fields on memory items
 - [Multi-Tenant Support](/essentials/v2/multi-tenant)  -  partitioning vs scoping
 - [Query](/essentials/v2/query)  -  how `metadata_filters` interact with ranking
-- [Create Tenant  -  API Reference](/api-reference/v2/endpoint/create-tenant)  -  full `tenant_metadata_schema` reference
+- [Create Database  -  API Reference](/api-reference/v2/endpoint/create-tenant)  -  full `tenant_metadata_schema` reference
 - [Query  -  API Reference](/api-reference/v2/endpoint/query)  -  full `metadata_filters` reference

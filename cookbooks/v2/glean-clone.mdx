@@ -1259,7 +1259,7 @@ class TenantManager {
 
   async createSubTenant(database, collection, config) {
     const tenant = this.tenants.get(database);
-    if (!tenant) throw new Error('Tenant not found');
+    if (!tenant) throw new Error('Database not found');
 
     const subTenant = {
       id: collection,
@@ -1274,7 +1274,7 @@ class TenantManager {
 
   async searchWithTenantContext(query, database, collection = null, userId = null) {
     const tenant = this.tenants.get(database);
-    if (!tenant) throw new Error('Tenant not found');
+    if (!tenant) throw new Error('Database not found');
 
     // Check user permissions
     if (userId && !this.hasPermission(tenant, collection, userId)) {

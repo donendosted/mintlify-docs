@@ -53,7 +53,7 @@ Before writing code, understand the three primitives you'll use throughout this 
 
 ---
 
-## Step 01 - Create a Tenant
+## Step 01 - Create a Database
 
 Every HydraDB workspace starts with a database. Create one for your knowledge base - it provides complete data isolation and multi-tenant support out of the box.
 
@@ -81,7 +81,7 @@ client = HydraDB(token=API_KEY)
 
 # Create database - idempotent, safe to re-run
 resp = client.tenants.create(database=DATABASE_ID)
-print("Tenant:", resp)
+print("Database:", resp)
 ```
 
 > **Collections for teams:** Use `collection` to isolate data by department. Engineering, Sales, HR each get their own namespace within your database - no configuration needed, just pass the ID on upload.
@@ -479,7 +479,7 @@ if __name__ == "__main__":
 
 All endpoints used in this cookbook. Base URL: `https://api.hydradb.com`. Header: `Authorization: Bearer YOUR_API_KEY`
 
-### Tenant management
+### Database management
 
 **POST** `/databases` - Create workspace - idempotent
 

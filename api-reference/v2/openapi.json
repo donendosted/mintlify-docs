@@ -8291,7 +8291,7 @@
               }
             ],
             "title": "Metadata Filters",
-            "description": "Optional key-value pairs to filter search results by metadata fields. Top-level keys are matched against tenant_metadata and must correspond to fields defined in tenant_metadata_schema during tenant creation. To filter on document-level fields you sent as 'additional_metadata' at ingestion, nest filters under an 'additional_metadata' key: {'additional_metadata': {'source': 'account_plan'}}. 'document_metadata' is also accepted as a legacy alias for the nested key. Both filter types support exact match filtering and can be combined.",
+            "description": "Optional key-value pairs to filter search results by metadata fields. Top-level keys are matched against tenant_metadata and must correspond to fields defined in tenant_metadata_schema during database creation. To filter on document-level fields you sent as 'additional_metadata' at ingestion, nest filters under an 'additional_metadata' key: {'additional_metadata': {'source': 'account_plan'}}. 'document_metadata' is also accepted as a legacy alias for the nested key. Both filter types support exact match filtering and can be combined.",
             "examples": [
               {
                 "category": "engineering",
@@ -8553,7 +8553,7 @@
               }
             ],
             "title": "Metadata Filters",
-            "description": "Optional key-value pairs to filter search results by metadata fields. Top-level keys are matched against tenant_metadata and must correspond to fields defined in tenant_metadata_schema during tenant creation. To filter on document-level fields you sent as 'additional_metadata' at ingestion, nest filters under an 'additional_metadata' key: {'additional_metadata': {'source': 'account_plan'}}. 'document_metadata' is also accepted as a legacy alias for the nested key. Both filter types support exact match filtering and can be combined.",
+            "description": "Optional key-value pairs to filter search results by metadata fields. Top-level keys are matched against tenant_metadata and must correspond to fields defined in tenant_metadata_schema during database creation. To filter on document-level fields you sent as 'additional_metadata' at ingestion, nest filters under an 'additional_metadata' key: {'additional_metadata': {'source': 'account_plan'}}. 'document_metadata' is also accepted as a legacy alias for the nested key. Both filter types support exact match filtering and can be combined.",
             "examples": [
               {
                 "category": "engineering",

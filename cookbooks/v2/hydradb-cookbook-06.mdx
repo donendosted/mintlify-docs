@@ -111,7 +111,7 @@ The flow: a user or agent sends a natural-language task to the Action Orchestrat
  STEP 1 
 
 
-## Create Tenant
+## Create Database
 
 
 One database for the whole Chief of Staff system. All functions, all user memories, and all execution history live under this database. Collections scope function access per team or department - the sales team's agent only sees sales functions, the engineering team's agent only sees deployment and monitoring functions.
@@ -1509,7 +1509,7 @@ All endpoints used in this cookbook. Base URL: `https://api.hydradb.com`
 Header: `Authorization: Bearer YOUR_API_KEY`
 
 
-### Create tenant
+### Create database
 
 
 **`POST /databases`** - One database for the full Chief of Staff system

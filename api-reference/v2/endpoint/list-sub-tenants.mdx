@@ -1,6 +1,6 @@
 ---
-title: "List Sub-Tenants"
-description: "List sub-tenant IDs inside a tenant."
+title: "List Collections"
+description: "List collection IDs inside a database."
 openapi: "api-reference/v2/openapi.json GET /databases/collections"
 ---
 
@@ -64,8 +64,8 @@ curl -X GET 'https://api.hydradb.com/databases/collections?database=my_first_ten
   "success": false,
   "data": null,
   "error": {
-    "code": "TENANT_NOT_FOUND",
-    "message": "Tenant not found"
+    "code": "DATABASE_NOT_FOUND",
+    "message": "Database not found"
   },
   "meta": {
     "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
@@ -82,5 +82,5 @@ curl -X GET 'https://api.hydradb.com/databases/collections?database=my_first_ten
   **Related Resources**
 
   - **Inspect content:** [List Documents](/api-reference/v2/endpoint/list-documents) - scoped to a `collection`
-  - **Inspect usage:** [Tenant Stats](/api-reference/v2/endpoint/tenant-stats)
+  - **Inspect usage:** [Database Stats](/api-reference/v2/endpoint/tenant-stats)
 </Tip>
