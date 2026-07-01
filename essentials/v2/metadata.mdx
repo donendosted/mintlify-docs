@@ -96,7 +96,7 @@ Two phases: **set up metadata** (declare the schema, then attach values at inges
 
 The schema lives at the database level; values land on each source at ingest time. Both happen before any query.
 
-#### Step 1a  -  Declare the schema at database creation
+#### Step 1a: Declare the schema at database creation
 
 <CodeGroup>
 ```bash cURL
@@ -359,8 +359,8 @@ Use [`PATCH /context/sources/{source_id}/metadata`](/api-reference/v2/endpoint/u
 
 ```json
 {
-  "tenant_id": "acme_corp",
-  "sub_tenant_id": "default",
+  "database": "acme_corp",
+  "collection": "default",
   "tenant_metadata": {
     "department": "legal"
   },
@@ -373,7 +373,7 @@ Use [`PATCH /context/sources/{source_id}/metadata`](/api-reference/v2/endpoint/u
 Behavior:
 
 - The source must already exist.
-- `sub_tenant_id` is required.
+- `collection` is required.
 - At least one of `tenant_metadata` or `additional_metadata` is required.
 - The update is a merge/upsert: sent keys are inserted or overwritten; omitted keys are preserved.
 - `document_metadata` is not accepted on this endpoint; use `additional_metadata`.
@@ -390,8 +390,8 @@ Use [`POST /context/list`](/api-reference/v2/endpoint/list-documents) when you w
 
 ```json
 {
-  "tenant_id": "acme_corp",
-  "sub_tenant_id": "default",
+  "database": "acme_corp",
+  "collection": "default",
   "type": "knowledge",
   "filters": {
     "metadata": { "department": "legal" },
@@ -417,7 +417,7 @@ Use [`POST /context/list`](/api-reference/v2/endpoint/list-documents) when you w
 | Range / contains / fuzzy scope doesn't work | `metadata_filters` is equality-only | Move that constraint into the `query` text, use a different `query_by`, or apply it in your own post-scoping. |
 | Fields used in `metadata` but missing from response objects | Field declared as embedding-only without `enable_match` | Embedding-enabled doesn't imply scoping-enabled. Add `enable_match: true` to use it in `metadata_filters`. |
 | `additional_metadata` scope feels slow | It is  -  over-fetches ~3× to compensate for post-retrieval matching | Move the hot field into `metadata` and declare it in the schema. |
-| Metadata edit returns 400 | Unknown key, wrong type, over-size value, too-deep nesting, reserved key, or missing `sub_tenant_id` | Check schema and validation limits; send only `tenant_metadata` / `additional_metadata`. |
+| Metadata edit returns 400 | Unknown key, wrong type, over-size value, too-deep nesting, reserved key, or missing `collection` | Check schema and validation limits; send only `tenant_metadata` / `additional_metadata`. |
 | Dense/sparse metadata edit rejects `null` | Null would leave stale semantic metadata vectors | Set a non-null value or re-ingest with the desired metadata. |
 | New schema field does not participate in semantic metadata search | Additive schema update does not alter/backfill existing Milvus fields yet | Create the desired schema before ingesting, or migrate/re-ingest into a database with the final schema. |
 

@@ -4,7 +4,7 @@ description: "How HydraDB scopes data using databases and collections, and how s
 ---
 
 <Note>
-  The request fields are now named **`database`** (formerly `tenant_id`) and **`collection`** (formerly `sub_tenant_id`). The old names and the old `/tenants` routes remain fully supported as deprecated aliases, so existing integrations keep working without any changes -- however, we recommend using the latest conventions. See [Migrating from `tenant_id` / `sub_tenant_id`](#7-migrating-from-tenant_id-sub_tenant_id) for the full compatibility contract.
+  The request fields are now named **`database`** (formerly `tenant_id`) and **`collection`** (formerly `sub_tenant_id`). The old names and the old `/tenants` routes remain fully supported as deprecated aliases, so existing integrations keep working without any changes -- however, we recommend using the latest conventions. See [Migrating from `tenant_id` and `sub_tenant_id`](#7-migrating-from-tenant_id-and-sub_tenant_id) for the full compatibility contract.
 </Note>
 
 ## 1. What it is
@@ -259,7 +259,7 @@ Avoid display names, emails that may change, or user-provided labels as long-ter
 
 ---
 
-## 7. Migrating from `tenant_id` / `sub_tenant_id`
+## 7. Migrating from `tenant_id` and `sub_tenant_id`
 
 `database`/`collection` are the canonical v2 names for what were historically called `tenant_id`/`sub_tenant_id`. The rename is **user-facing only** — internally HydraDB still uses the historical names, so nothing about your data changes. **The old names remain accepted forever; migration is optional and non-breaking.**
 
@@ -281,7 +281,7 @@ On `/query`, `collections` is the canonical way to scope to one or more collecti
 When a request uses a legacy route **or** a legacy field, HydraDB adds a non-breaking migration nudge — never an error, and the status code is unchanged:
 
 - **`Deprecation: true`** response header, plus a `Warning` header carrying the migration message.
-- **`meta.deprecation`** — a list of structured notices in the response envelope's `meta` object (for endpoints that return the envelope). Each entry carries `deprecated`, the `deprecated_field` and `preferred_field`, a human-readable `message`, and `deprecated_since` (e.g. `"2.0.1"`). Fully-migrated requests omit it.
+- **`meta.deprecation`** — a list of structured notices in the response envelope's `meta` object (for endpoints that return the envelope). Each entry carries `deprecated`, a human-readable `message`, and `deprecated_since` (e.g. `"2.0.1"`); field-level notices (such as `sub_tenant_ids` → `collections`) also include `deprecated_field` and `preferred_field`, while route-level notices omit them. Fully-migrated requests omit the list entirely.
 
 ```json
 {
