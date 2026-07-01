@@ -109,7 +109,7 @@ Each resource accepts the following optional fields:
 | Field | Purpose |
 |---|---|
 | `sub_tenant_id` | Routes objects from this resource into a specific sub-tenant partition (overrides the connector-level `sub_tenant_id`) |
-| `metadata` | Key-value pairs merged into tenant metadata on every synced object from this resource |
+| `metadata` | Key-value pairs merged into tenant metadata on every synced object from this resource. Undeclared keys are accepted but only keys in `tenant_metadata_schema` are indexed for filtering. |
 | `additional_metadata` | Key-value pairs merged into document metadata on every synced object from this resource |
 
 See [Metadata on synced objects](#metadata-on-synced-objects) for how these merge with system-generated fields.
