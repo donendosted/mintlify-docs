@@ -43,7 +43,7 @@ API-Version: 2
 
 ## Key concepts
 
-- **Connector** — An authenticated connection to one external provider account. A single connector manages all resources synced from that account.
-- **Resource** — A syncable unit within a provider: a Slack channel, GitHub repo, Linear team/project, Notion database/page, or Gmail label. You activate resources individually via `/configure`.
-- **Cursor** — A per-resource bookmark of the last synced position. Sync is incremental: only content newer than the cursor is fetched on each run.
-- **provider_account_scope** — An identifier for the external account (e.g. Slack workspace ID, GitHub org). Used as part of the deduplication key — two connectors for the same provider must have distinct `provider_account_scope` values.
+- **Connector**  -  An authenticated connection to one external provider account. A single connector manages all resources synced from that account.
+- **Resource**  -  A syncable unit within a provider: a Slack channel, GitHub repo, Linear team/project, Notion database/page, or Gmail label. You activate resources individually via `/configure`.
+- **Cursor**  -  A per-resource bookmark of the last synced position. Sync is incremental: only content newer than the cursor is fetched on each run.
+- **provider_account_scope**  -  An identifier for the external account (e.g. Slack workspace ID, GitHub org). Used as part of the deduplication key  -  two connectors for the same provider must have distinct `provider_account_scope` values.

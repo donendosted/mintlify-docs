@@ -37,7 +37,7 @@ curl -X POST 'https://api.hydradb.com/connectors' \
 | <Field name="name" type="string" required /> | Human-readable label for this connector. |
 | <Field name="tenant_id" type="string" required /> | Which tenant receives the synced data. |
 | <Field name="sub_tenant_id" type="string" /> | Default sub-tenant partition for synced objects. Individual resources can override this. (default: `""`) |
-| <Field name="provider_account_scope" type="string" /> | Identifier for the external account (e.g. Slack workspace ID, GitHub org name). Used in deduplication — must be distinct across connectors for the same provider. |
+| <Field name="provider_account_scope" type="string" /> | Identifier for the external account (e.g. Slack workspace ID, GitHub org name). Used in deduplication  -  must be distinct across connectors for the same provider. |
 | <Field name="credentials" type="object" required /> | Provider-specific credentials. Typically `{ "api_token": "..." }` or `{ "access_token": "..." }`. |
 
 ## Response
@@ -60,7 +60,7 @@ curl -X POST 'https://api.hydradb.com/connectors' \
 
 ## Related Resources
 
-- **Next:** [Discover Resources](/api-reference/v2/endpoint/discover-connector-resources) — inspect what's available before activating
-- **Next:** [Configure Connector](/api-reference/v2/endpoint/configure-connector) — activate resources for sync
+- **Next:** [Discover Resources](/api-reference/v2/endpoint/discover-connector-resources)  -  inspect what's available before activating
+- **Next:** [Configure Connector](/api-reference/v2/endpoint/configure-connector)  -  activate resources for sync
 - **Teardown:** [Delete Connector](/api-reference/v2/endpoint/delete-connector)
 - **Read more:** [Connectors guide](/essentials/v2/connectors)
