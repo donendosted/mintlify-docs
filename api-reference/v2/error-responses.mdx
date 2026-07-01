@@ -70,6 +70,10 @@ Use `error.code` for branching and log `meta.request_id` for every failed reques
 Endpoint pages list the most common codes for that operation. New codes may be added over time, so clients should handle unknown `error.code` values gracefully.
 </Note>
 
+<Note>
+**Legacy routes preserve their original codes.** The deprecated `/tenants` routes keep the pre-rename error contract for backward compatibility: a missing database returns the generic `NOT_FOUND` (not `DATABASE_NOT_FOUND`) and a duplicate on `POST /tenants` returns `INVALID_INPUT` (not `DATABASE_ALREADY_EXISTS`). The canonical `/databases` routes return the specific `DATABASE_NOT_FOUND` / `DATABASE_ALREADY_EXISTS` codes shown above. The HTTP status is identical on both. See [Migrating from `tenant_id` / `sub_tenant_id`](/essentials/v2/multi-tenant#7-migrating-from-tenant_id-sub_tenant_id).
+</Note>
+
 ## Retry pattern
 
 Retry only transient failures: `429`, `500`, and `503`. Use exponential backoff with jitter and keep retries bounded.
