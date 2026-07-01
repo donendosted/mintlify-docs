@@ -73,10 +73,10 @@ curl -X POST 'https://api.hydradb.com/context/list' \
 | <Field name="ids" type="string[] or null" /> | When provided and non-empty, only items with these IDs are returned (pagination \+ filters still apply). (default=`null`) |
 | <Field name="page" type="integer" /> | Page number (1-indexed). (default=`1`) |
 | <Field name="page_size" type="integer" /> | Items per page, from `1` to `100`. (default=`50`) |
-| <Field name="filters" type="object" /> | Structured exact-match filters. See [Filters](#filters). (default=`null`) |
+| <Field name="filters" type="object" /> | Structured exact-match filters. See [Filters](#1-filters). (default=`null`) |
 | <Field name="include_fields" type="string[] or null" /> | Field projection. Only the listed fields plus `id`, `database`, `collection` are populated. Only applies to `type=knowledge`. (default=`null`  -  all fields) |
 
-# Filters
+### 1. Filters
 
 - `filters` is a structured object with three optional categories. Filters are exact-match constraints i.e. filtered values are matched against stored values as exact values. There are no range, contains, or OR operators on this endpoint; run multiple calls and merge client-side for OR behavior.
 - **AND/OR:** All filter pairs combine with a logical AND. To express OR semantics, run multiple calls and union them client-side.
