@@ -127,6 +127,35 @@ curl -X POST 'https://api.hydradb.com/query' \
 
 </RequestExample>
 
+### Querying multiple collections
+
+Use `collections` when one query should fan out across multiple user, workspace, or team scopes. The field accepts either a list or a weighted object:
+
+```json Equal weighting
+{
+  "database": "acme_corp",
+  "collections": ["workspace_42", "user_alex"],
+  "query": "What renewal risks should I know about?",
+  "type": "all"
+}
+```
+
+```json Weighted ranking
+{
+  "database": "acme_corp",
+  "collections": {
+    "workspace_42": 2,
+    "user_alex": 1
+  },
+  "query": "What renewal risks should I know about?",
+  "type": "all"
+}
+```
+
+A list gives every collection equal normalized weight. An object treats values as positive relative ranking weights with at most one decimal place and normalizes them server-side. You can send at most 100 collections. When `max_results` is omitted, HydraDB uses up to 10 results per collection, capped at 1000 fanout candidates before the final ranked response is shaped. When `max_results` is set, it is the final global response cap across the merged fanout result set.
+
+> **Caching tip:** `collections` list order is not semantically significant for fanout selection. Sort list values before constructing cache keys; for weighted objects, sort keys and keep weights at the documented one-decimal precision so equivalent calls share the same cache entry.
+
 ### Transforming the response into LLM context
 
 Use `build_string` / `buildString` from the SDK. It takes any `POST /query` result and returns a formatted plain string.

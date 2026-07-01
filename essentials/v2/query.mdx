@@ -28,6 +28,13 @@ Pick the row that matches your goal and use the parameters as a starting point:
 
 The `database` field was formerly `tenant_id` and `collection` was formerly `sub_tenant_id`; the old names remain accepted as deprecated aliases.
 
+### Scope
+
+| Parameter | Type / values | Purpose |
+| --- | --- | --- |
+| `collections` | `string[]` or `{ [collection]: positive number (max one decimal place) }` | Preferred query-time scope selector. Use a single-item list for one user/workspace, a longer list to fan out with equal normalized weights, or an object to provide relative ranking weights with at most one decimal place. Maximum 100 collections. |
+| `collection` | string | Single-scope query selector; also used at ingest. Send one collection ID to scope the query to it. |
+
 ### Graph
 
 | Parameter | Type / values | Purpose |
@@ -153,11 +160,25 @@ const completion = await openai.chat.completions.create({
 });
 ```
 
-If you need to keep the two streams separate  -  for instance to format user preferences differently from documents in the prompt  -  call `/query` twice in parallel with `type: "knowledge"` and `type: "memory"`, then merge client-side.
+If you need to query several users, teams, or workspaces at once, pass `collections`. A list gives every scope equal normalized weight; an object applies relative ranking weights with at most one decimal place before the final merged ranking. When `max_results` is set, it caps the final merged response across all selected collections:
+
+```json
+{
+  "database": "acme_corp",
+  "collections": {
+    "workspace_42": 2,
+    "user_john_123": 1
+  },
+  "query": "What context matters for this renewal?",
+  "type": "all"
+}
+```
+
+If you need to keep Knowledge and Memories formatted differently in the prompt, call `/query` twice in parallel with `type: "knowledge"` and `type: "memory"`, then merge client-side.
 
 ### Production checklist
 
-- **Default to** `type: "all"` for personalized answers  -  one call instead of two.
+- **Default to** `type: "all"` for personalized answers  -  one call instead of two, scoped with `collections`.
 - **Set per-call timeouts.** Generous for `thinking` (3–5 s), tight for `fast` (≤500 ms).
 - **Enable `query_apps: true`** when querying app sources to activate app-aware retrieval and thread/relation traversal.
 - **Pass** `additional_context` with known session state (page, feature, role). It sharpens retrieval without extra calls.

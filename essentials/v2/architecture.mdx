@@ -178,7 +178,8 @@ A short cheat sheet for the parameters you'll touch most often, and where each o
 | Field | Used in | What it does |
 |---|---|---|
 | `database` | Every call | Selects the isolated workspace. Required on every request. |
-| `collection` | Ingest + query | Narrows data to a user, team, or workspace inside the database. |
+| `collection` | Ingest + query | Narrows data to a user, team, or workspace inside the database. Use a single collection for writes and single-scope queries. |
+| `collections` | Query | Preferred query-time collection selector. Use a single-item list, a multi-scope list with equal weights, or a weighted object for fanout ranking. |
 | `metadata` | [Ingest](/api-reference/v2/endpoint/ingest-context) | Schema-aligned metadata indexed at ingest. Must match the [database metadata schema](/essentials/v2/metadata) declared at database creation. |
 | `additional_metadata` | [Ingest](/api-reference/v2/endpoint/ingest-context) | Free-form per-document metadata. Stored alongside the source; filterable at query via `metadata_filters.additional_metadata`. |
 | `metadata_filters` | [Query](/api-reference/v2/endpoint/query) | Deterministic narrowing before ranking. Top-level keys match `metadata`; nested `additional_metadata` filters free-form fields. |
