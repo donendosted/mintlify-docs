@@ -9,7 +9,7 @@ Deletes the connector and all its configured resources. Synced objects already i
 <RequestExample>
 
 ```bash cURL
-curl -X DELETE 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978' \
+curl -X DELETE 'https://api.hydradb.com/connectors/{connector_id}' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
@@ -27,7 +27,7 @@ curl -X DELETE 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d
 ```json 200
 {
   "deleted": true,
-  "connector_id": "2438363e-bea9-4044-bda0-7a90d9437978"
+  "connector_id": "{connector_id}"
 }
 ```
 

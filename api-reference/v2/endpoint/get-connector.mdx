@@ -7,7 +7,7 @@ openapi: "api-reference/v2/openapi.json GET /connectors/{id}"
 <RequestExample>
 
 ```bash cURL
-curl 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978' \
+curl 'https://api.hydradb.com/connectors/{connector_id}' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
@@ -24,7 +24,7 @@ curl 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978' \
 
 ```json 200
 {
-  "connector_id": "2438363e-bea9-4044-bda0-7a90d9437978",
+  "connector_id": "{connector_id}",
   "provider": "slack",
   "name": "acme-engineering",
   "tenant_id": "acme_corp",

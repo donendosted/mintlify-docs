@@ -16,7 +16,7 @@ curl -X POST 'https://api.hydradb.com/connectors/{id}/resources' \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d '{
-    "resource_id": "C04AKFHN78S",
+    "resource_id": "{resource_id}",
     "resource_type": "channel",
     "display_name": "general",
     "sub_tenant_id_override": "all-hands"
@@ -44,7 +44,7 @@ curl -X POST 'https://api.hydradb.com/connectors/{id}/resources' \
 
 ```json 201
 {
-  "resource_id": "C04AKFHN78S"
+  "resource_id": "{resource_id}"
 }
 ```
 

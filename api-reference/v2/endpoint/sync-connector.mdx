@@ -9,7 +9,7 @@ Starts an immediate sync for all configured resources. Syncs also run on a sched
 <RequestExample>
 
 ```bash cURL
-curl -X POST 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978/sync' \
+curl -X POST 'https://api.hydradb.com/connectors/{connector_id}/sync' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
@@ -26,9 +26,9 @@ curl -X POST 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d94
 
 ```json 202
 {
-  "connector_id": "2438363e-bea9-4044-bda0-7a90d9437978",
-  "workflow_id": "sync-workflow-abc123",
-  "run_id": "run-xyz789"
+  "connector_id": "{connector_id}",
+  "workflow_id": "{workflow_id}",
+  "run_id": "{run_id}"
 }
 ```
 

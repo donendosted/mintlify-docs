@@ -11,7 +11,7 @@ Queries the provider (Slack, GitHub, Linear, Notion, or Gmail) and returns every
 <RequestExample>
 
 ```bash cURL
-curl 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978/discover' \
+curl 'https://api.hydradb.com/connectors/{connector_id}/discover' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
@@ -29,15 +29,15 @@ curl 'https://api.hydradb.com/connectors/2438363e-bea9-4044-bda0-7a90d9437978/di
 ```json 200
 {
   "provider": "slack",
-  "connector_id": "2438363e-bea9-4044-bda0-7a90d9437978",
+  "connector_id": "{connector_id}",
   "resources": [
     {
-      "id": "C04AKFHN78S",
+      "id": "{resource_id}",
       "name": "general",
       "resource_type": "channel"
     },
     {
-      "id": "C05BKGHN99T",
+      "id": "{resource_id_2}",
       "name": "engineering",
       "resource_type": "channel"
     }
