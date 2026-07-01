@@ -70,6 +70,7 @@ curl -X POST 'https://api.hydradb.com/v2/connectors/:id/configure' \
         "resource_id": "C_GENERAL",
         "resource_type": "channel",
         "name": "general",
+        "sub_tenant_id": "all-hands",
         "metadata": { "department": "all-hands" },
         "additional_metadata": { "internal_label": "general-slack" }
       },
@@ -77,6 +78,7 @@ curl -X POST 'https://api.hydradb.com/v2/connectors/:id/configure' \
         "resource_id": "C_ENG",
         "resource_type": "channel",
         "name": "engineering",
+        "sub_tenant_id": "engineering",
         "metadata": { "department": "engineering" },
         "additional_metadata": { "internal_label": "eng-slack" }
       }
@@ -86,7 +88,15 @@ curl -X POST 'https://api.hydradb.com/v2/connectors/:id/configure' \
 
 `lookback_days` controls how far back in time the first sync fetches historical data (default: `30`). After the initial sync, only new content since the last cursor is fetched.
 
-Each resource accepts optional `metadata` and `additional_metadata` fields that are merged into every object synced from that resource. See [Metadata on synced objects](#metadata-on-synced-objects) for how these merge with system-generated fields.
+Each resource accepts the following optional fields:
+
+| Field | Purpose |
+|---|---|
+| `sub_tenant_id` | Routes objects from this resource into a specific sub-tenant partition (overrides the connector-level `sub_tenant_id`) |
+| `metadata` | Key-value pairs merged into tenant metadata on every synced object from this resource |
+| `additional_metadata` | Key-value pairs merged into document metadata on every synced object from this resource |
+
+See [Metadata on synced objects](#metadata-on-synced-objects) for how these merge with system-generated fields.
 
 ---
 
@@ -98,7 +108,7 @@ Every object synced by a connector lands in HydraDB with two metadata layers:
 
 Tenant metadata is the **schema-declared** layer. Fields here are defined once per tenant via `tenant_metadata_schema` and are indexed for fast, exact-match filtering. This is what you use for stable high-cardinality fields you filter on often  -  `department`, `region`, `status`, `priority`.
 
-HydraDB always writes `connector_id` and `provider` into tenant metadata for every synced object. You can extend this with your own fields by passing `metadata` on each resource in `POST /connectors/:id/configure`. User-supplied fields are merged first; system fields (`connector_id`, `provider`) always take precedence.
+HydraDB always writes `provider` into tenant metadata for every synced object. You can extend this with your own fields by passing `metadata` on each resource in `POST /connectors/:id/configure`. User-supplied fields are merged first; `provider` always takes precedence.
 
 ### Document metadata (`additional_metadata`)
 
@@ -265,7 +275,7 @@ This is what you filter on when you want to scope a query to a specific connecto
 **Syncs:** Emails (with thread relations linking replies to parent messages)
 
 <Warning>
-  Gmail does not populate `provider_account_scope` in `additional_metadata`. Use `account_email` instead to scope queries to a specific Gmail account. `thread_id` appears in both `fields` (for full-text search) and `additional_metadata` (for exact-match filtering) — this is intentional and specific to Gmail.
+  Gmail does not populate `provider_account_scope` in `additional_metadata`. Use `account_email` instead to scope queries to a specific Gmail account. `thread_id` appears in both `fields` (for full-text search) and `additional_metadata` (for exact-match filtering)  -  this is intentional and specific to Gmail.
 </Warning>
 
 **`fields`**:
@@ -288,7 +298,7 @@ This is what you filter on when you want to scope a query to a specific connecto
 |---|---|
 | `connector_id` | Connector UUID |
 | `resource_id` | Gmail label ID (e.g. `INBOX`) |
-| `account_email` | Gmail account address — use this to scope by account (replaces `provider_account_scope` for Gmail) |
+| `account_email` | Gmail account address  -  use this to scope by account (replaces `provider_account_scope` for Gmail) |
 | `imap_uid` | IMAP UID |
 | `thread_id` | Gmail thread ID (also exposed in `fields` for search) |
 
