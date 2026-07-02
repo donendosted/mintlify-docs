@@ -4,45 +4,59 @@
       "connectors.Connector": {
         "properties": {
           "auth_type": {
+            "example": "api_token",
             "type": "string"
           },
           "connector_id": {
+            "example": "conn_abc123",
             "type": "string"
           },
           "credential_ref": {
+            "example": "cred_1a2b3c",
             "type": "string"
           },
           "deployment_id": {
+            "example": "deploy_1234",
             "type": "string"
           },
           "last_attempted_sync_at": {
+            "example": "2026-07-02T17:00:00Z",
             "type": "string"
           },
           "last_error": {
+            "example": "",
             "type": "string"
           },
           "last_successful_sync_at": {
+            "example": "2026-07-02T17:00:00Z",
             "type": "string"
           },
           "name": {
+            "example": "general",
             "type": "string"
           },
           "next_sync_at": {
+            "example": "2026-07-02T18:00:00Z",
             "type": "string"
           },
           "org_id": {
+            "example": "org_1a2b3c",
             "type": "string"
           },
           "plan": {
+            "example": "pro",
             "type": "string"
           },
           "provider": {
+            "example": "slack",
             "type": "string"
           },
           "provider_account_scope": {
+            "example": "T12345ACME",
             "type": "string"
           },
           "status": {
+            "example": "completed",
             "type": "string"
           },
           "sub_tenant_id": {
@@ -50,9 +64,11 @@
             "type": "string"
           },
           "sync_interval_seconds": {
+            "example": 3600,
             "type": "integer"
           },
           "sync_status": {
+            "example": "idle",
             "type": "string"
           },
           "tenant_id": {
@@ -60,6 +76,7 @@
             "type": "string"
           },
           "user_id": {
+            "example": "user_alex",
             "type": "string"
           }
         },
@@ -70,41 +87,62 @@
           "additional_metadata": {
             "additionalProperties": {},
             "description": "AdditionalMetadata is merged into the additional_metadata (document\nmetadata) layer of every object synced from this resource. User-supplied\nkeys are shallow-merged as the base; provider-generated fields are\napplied on top and always win on conflict.",
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "backfill_oldest": {
             "description": "BackfillOldest is an RFC3339 timestamp marking the oldest boundary remaining\nfor async historical backfill. Empty means backfill is complete or not needed.",
+            "example": "2026-06-01T00:00:00Z",
             "type": "string"
           },
           "connector_id": {
+            "example": "conn_abc123",
             "type": "string"
           },
           "display_name": {
+            "example": "general",
             "type": "string"
           },
           "filters": {
             "additionalProperties": {},
+            "example": {
+              "channel": "general"
+            },
             "type": "object"
           },
           "metadata": {
             "additionalProperties": {},
             "description": "Metadata is merged into the tenant metadata layer of every object synced\nfrom this resource. User-supplied keys are shallow-merged as the base;\nsystem defaults (connector_id, provider) are applied on top so they\nalways win on conflict — user keys extend the map but cannot override\nsystem-set fields.",
+            "example": {
+              "department": "finance",
+              "priority": 7
+            },
             "type": "object"
           },
           "provider_cursor": {
+            "example": "1699999999.000100",
             "type": "string"
           },
           "provider_metadata": {
             "additionalProperties": {},
+            "example": {
+              "workspace_id": "T12345ACME"
+            },
             "type": "object"
           },
           "resource_id": {
+            "example": "C0123456789",
             "type": "string"
           },
           "resource_type": {
+            "example": "channel",
             "type": "string"
           },
           "status": {
+            "example": "completed",
             "type": "string"
           },
           "sub_tenant_id_override": {
@@ -119,21 +157,27 @@
       "dashboard.PaginationMeta": {
         "properties": {
           "has_next": {
+            "example": true,
             "type": "boolean"
           },
           "has_previous": {
+            "example": false,
             "type": "boolean"
           },
           "page": {
+            "example": 1,
             "type": "integer"
           },
           "page_size": {
+            "example": 50,
             "type": "integer"
           },
           "total": {
+            "example": 128,
             "type": "integer"
           },
           "total_pages": {
+            "example": 3,
             "type": "integer"
           }
         },
@@ -142,33 +186,42 @@
       "fetch.V2SourceFetchResponse": {
         "properties": {
           "content": {
+            "example": "# Q4 Report\n\nRevenue grew 23% quarter over quarter.",
             "type": "string"
           },
           "content_base64": {
             "type": "string"
           },
           "content_type": {
+            "example": "application/pdf",
             "type": "string"
           },
           "error": {
+            "example": "",
             "type": "string"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "inferred_content": {
+            "example": "Summary: Q4 revenue rose 23% QoQ, driven by enterprise expansion.",
             "type": "string"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "presigned_url": {
+            "example": "https://storage.hydradb.com/sources/HydraDoc1234?sig=...",
             "type": "string"
           },
           "size_bytes": {
+            "example": 20480,
             "type": "integer"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -184,21 +237,27 @@
             "uniqueItems": false
           },
           "chunk_rows_matched": {
+            "example": 1,
             "type": "integer"
           },
           "chunk_rows_modified": {
+            "example": 1,
             "type": "integer"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "milvus_rows_synced": {
+            "example": 1,
             "type": "integer"
           },
           "milvus_sync_required": {
+            "example": true,
             "type": "boolean"
           },
           "milvus_synced": {
+            "example": true,
             "type": "boolean"
           },
           "sub_tenant_id": {
@@ -217,6 +276,7 @@
             "uniqueItems": false
           },
           "updated": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -225,19 +285,24 @@
       "graph.Entity": {
         "properties": {
           "entity_id": {
+            "example": "entity_1a2b",
             "type": "string"
           },
           "identifier": {
             "description": "NO omitempty — serialize as null",
+            "example": "Acme Corp",
             "type": "string"
           },
           "name": {
+            "example": "general",
             "type": "string"
           },
           "namespace": {
+            "example": "organization",
             "type": "string"
           },
           "type": {
+            "example": "knowledge",
             "type": "string"
           }
         },
@@ -246,13 +311,16 @@
       "graph.GraphRelationsResponse": {
         "properties": {
           "is_truncated": {
+            "example": false,
             "type": "boolean"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "next_cursor": {
             "description": "NO omitempty",
+            "example": 0.5,
             "type": "number"
           },
           "relations": {
@@ -263,6 +331,7 @@
             "uniqueItems": false
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -271,37 +340,47 @@
       "graph.RelationEvidence": {
         "properties": {
           "canonical_predicate": {
+            "example": "works_at",
             "type": "string"
           },
           "chunk_id": {
             "description": "NO omitempty",
+            "example": "HydraEmbeddings123_0",
             "type": "string"
           },
           "confidence": {
+            "example": 0.92,
             "type": "number"
           },
           "context": {
+            "example": "Ada joined Acme Corp in 2024 as a staff engineer.",
             "type": "string"
           },
           "raw_predicate": {
+            "example": "is employed by",
             "type": "string"
           },
           "relationship_id": {
+            "example": "rel_1234",
             "type": "string"
           },
           "source_entity_id": {
             "description": "NO omitempty",
+            "example": "entity_1a2b",
             "type": "string"
           },
           "target_entity_id": {
             "description": "NO omitempty",
+            "example": "entity_3c4d",
             "type": "string"
           },
           "temporal_details": {
             "description": "NO omitempty",
+            "example": "since 2024",
             "type": "string"
           },
           "timestamp": {
+            "example": "2026-07-02T10:00:00Z",
             "type": "string"
           }
         },
@@ -310,6 +389,7 @@
       "graph.TripletWithEvidence": {
         "properties": {
           "chunk_id": {
+            "example": "HydraEmbeddings123_0",
             "type": "string"
           },
           "relations": {
@@ -340,6 +420,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -357,6 +438,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -374,6 +456,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -391,6 +474,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -408,6 +492,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -425,6 +510,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -442,6 +528,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -459,6 +546,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -476,6 +564,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -493,6 +582,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -510,6 +600,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -527,6 +618,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -544,6 +636,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -561,6 +654,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -578,6 +672,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -595,6 +690,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -612,6 +708,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -629,6 +726,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -646,6 +744,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -663,6 +762,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -680,6 +780,7 @@
             "$ref": "#/components/schemas/handler.responseMeta"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -688,21 +789,27 @@
       "handler.ErrorDetail": {
         "properties": {
           "deprecated": {
+            "example": true,
             "type": "boolean"
           },
           "deprecated_field": {
+            "example": "tenant_id",
             "type": "string"
           },
           "error_code": {
+            "example": "VALIDATION_ERROR",
             "type": "string"
           },
           "message": {
+            "example": "Request validation failed",
             "type": "string"
           },
           "preferred_field": {
+            "example": "database",
             "type": "string"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -719,9 +826,11 @@
       "handler.apiError": {
         "properties": {
           "code": {
+            "example": "DATABASE_NOT_FOUND",
             "type": "string"
           },
           "message": {
+            "example": "Database not found",
             "type": "string"
           }
         },
@@ -730,9 +839,11 @@
       "handler.configureReq": {
         "properties": {
           "backfill_chunk_interval_seconds": {
+            "example": 86400,
             "type": "integer"
           },
           "lookback_days": {
+            "example": 30,
             "type": "integer"
           },
           "resources": {
@@ -751,6 +862,7 @@
       "handler.connectorCreateReq": {
         "properties": {
           "auth_type": {
+            "example": "api_token",
             "type": "string"
           },
           "collection": {
@@ -759,6 +871,9 @@
           },
           "credentials": {
             "additionalProperties": {},
+            "example": {
+              "api_token": "xoxb-..."
+            },
             "type": "object"
           },
           "database": {
@@ -767,18 +882,23 @@
             "type": "string"
           },
           "deployment_id": {
+            "example": "deploy_1234",
             "type": "string"
           },
           "name": {
+            "example": "general",
             "type": "string"
           },
           "plan": {
+            "example": "pro",
             "type": "string"
           },
           "provider": {
+            "example": "slack",
             "type": "string"
           },
           "provider_account_scope": {
+            "example": "T12345ACME",
             "type": "string"
           },
           "sub_tenant_id": {
@@ -787,6 +907,7 @@
             "type": "string"
           },
           "sync_interval_seconds": {
+            "example": 3600,
             "type": "integer"
           },
           "tenant_id": {
@@ -804,6 +925,10 @@
         "properties": {
           "additional_metadata": {
             "additionalProperties": {},
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "collection": {
@@ -817,6 +942,9 @@
           },
           "document_metadata": {
             "additionalProperties": {},
+            "example": {
+              "department": "legal"
+            },
             "type": "object"
           },
           "sub_tenant_id": {
@@ -831,6 +959,10 @@
           },
           "tenant_metadata": {
             "additionalProperties": {},
+            "example": {
+              "department": "legal",
+              "priority": 7
+            },
             "type": "object"
           }
         },
@@ -839,18 +971,23 @@
       "handler.deprecationNotice": {
         "properties": {
           "deprecated": {
+            "example": true,
             "type": "boolean"
           },
           "deprecated_field": {
+            "example": "tenant_id",
             "type": "string"
           },
           "deprecated_since": {
+            "example": "2.0.1",
             "type": "string"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "preferred_field": {
+            "example": "database",
             "type": "string"
           }
         },
@@ -859,13 +996,18 @@
       "handler.discoverPreviewReq": {
         "properties": {
           "auth_type": {
+            "example": "api_token",
             "type": "string"
           },
           "credentials": {
             "additionalProperties": {},
+            "example": {
+              "api_token": "xoxb-..."
+            },
             "type": "object"
           },
           "provider": {
+            "example": "slack",
             "type": "string"
           }
         },
@@ -879,27 +1021,44 @@
         "properties": {
           "additional_metadata": {
             "additionalProperties": {},
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "display_name": {
+            "example": "general",
             "type": "string"
           },
           "filters": {
             "additionalProperties": {},
+            "example": {
+              "channel": "general"
+            },
             "type": "object"
           },
           "metadata": {
             "additionalProperties": {},
+            "example": {
+              "department": "finance",
+              "priority": 7
+            },
             "type": "object"
           },
           "provider_metadata": {
             "additionalProperties": {},
+            "example": {
+              "workspace_id": "T12345ACME"
+            },
             "type": "object"
           },
           "resource_id": {
+            "example": "C0123456789",
             "type": "string"
           },
           "resource_type": {
+            "example": "channel",
             "type": "string"
           },
           "sub_tenant_id_override": {
@@ -919,20 +1078,31 @@
           "additional_metadata": {
             "additionalProperties": {},
             "description": "AdditionalMetadata is merged into the additional_metadata layer of every\nobject synced from this resource. Provider-generated fields take precedence.",
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "metadata": {
             "additionalProperties": {},
             "description": "Metadata is merged into the tenant metadata layer of every object synced\nfrom this resource. System fields (connector_id, provider) take precedence.",
+            "example": {
+              "department": "finance",
+              "priority": 7
+            },
             "type": "object"
           },
           "name": {
+            "example": "general",
             "type": "string"
           },
           "resource_id": {
+            "example": "C0123456789",
             "type": "string"
           },
           "resource_type": {
+            "example": "channel",
             "type": "string"
           },
           "sub_tenant_id": {
@@ -969,12 +1139,15 @@
             "uniqueItems": false
           },
           "latency_ms": {
+            "example": 12.3,
             "type": "number"
           },
           "request_id": {
+            "example": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
             "type": "string"
           },
           "source_type": {
+            "example": "file",
             "type": "string"
           },
           "sub_tenant_id": {
@@ -1018,21 +1191,27 @@
       "ingestion.V2ProcessingStatus": {
         "properties": {
           "error_code": {
+            "example": "",
             "type": "string"
           },
           "error_message": {
+            "example": "",
             "type": "string"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "indexing_status": {
+            "example": "completed",
             "type": "string"
           },
           "message": {
+            "example": "Source processed successfully.",
             "type": "string"
           },
           "success": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -1041,9 +1220,11 @@
       "ingestion.V2SourceUploadResponse": {
         "properties": {
           "failed_count": {
+            "example": 0,
             "type": "integer"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "results": {
@@ -1054,9 +1235,11 @@
             "uniqueItems": false
           },
           "success": {
+            "example": true,
             "type": "boolean"
           },
           "success_count": {
+            "example": 2,
             "type": "integer"
           }
         },
@@ -1065,18 +1248,22 @@
       "ingestion.V2SourceUploadResultItem": {
         "properties": {
           "error": {
+            "example": "",
             "type": "string"
           },
           "error_code": {
             "type": "string"
           },
           "filename": {
+            "example": "policy.pdf",
             "type": "string"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "relations_created": {
+            "example": 5,
             "type": "integer"
           },
           "relations_error": {
@@ -1117,6 +1304,7 @@
       "list.SourceListResponse": {
         "properties": {
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "pagination": {
@@ -1131,9 +1319,11 @@
             "uniqueItems": false
           },
           "success": {
+            "example": true,
             "type": "boolean"
           },
           "total": {
+            "example": 128,
             "type": "integer"
           }
         },
@@ -1165,6 +1355,11 @@
             "uniqueItems": false
           },
           "include_fields": {
+            "example": [
+              "id",
+              "title",
+              "type"
+            ],
             "items": {
               "type": "string"
             },
@@ -1172,9 +1367,11 @@
             "uniqueItems": false
           },
           "page": {
+            "example": 1,
             "type": "integer"
           },
           "page_size": {
+            "example": 50,
             "type": "integer"
           },
           "sub_tenant_id": {
@@ -1188,6 +1385,7 @@
             "type": "string"
           },
           "type": {
+            "example": "knowledge",
             "type": "string"
           }
         },
@@ -1211,6 +1409,11 @@
               },
               "type": "array"
             },
+            "example": {
+              "HydraEmbeddings123_0": [
+                "grp_1234"
+              ]
+            },
             "type": "object"
           },
           "chunk_relations": {
@@ -1228,6 +1431,7 @@
             "uniqueItems": false
           },
           "synthesis_context": {
+            "example": "Related entities: Acme Corp, HydraDB, production deployment.",
             "type": "string"
           }
         },
@@ -1267,14 +1471,28 @@
         "properties": {
           "relation": {
             "additionalProperties": {},
+            "example": {
+              "confidence": 0.92,
+              "predicate": "works_at"
+            },
             "type": "object"
           },
           "source": {
             "additionalProperties": {},
+            "example": {
+              "entity_id": "entity_1a2b",
+              "name": "Ada",
+              "type": "person"
+            },
             "type": "object"
           },
           "target": {
             "additionalProperties": {},
+            "example": {
+              "entity_id": "entity_3c4d",
+              "name": "Acme Corp",
+              "type": "organization"
+            },
             "type": "object"
           }
         },
@@ -1294,6 +1512,7 @@
       "search.QueryRequest": {
         "properties": {
           "additional_context": {
+            "example": "The user is a senior engineer onboarding to the platform.",
             "type": "string"
           },
           "alpha": {},
@@ -1303,6 +1522,10 @@
           },
           "collections": {
             "description": "Preferred /query scope selector. Send either a list of collection IDs for equal normalized weighting, or an object mapping collection ID to a positive relative ranking weight with at most one decimal place. Do not send together with the deprecated sub_tenant_ids or sub_tenant_id.",
+            "example": [
+              "team_docs",
+              "engineering"
+            ],
             "oneOf": [
               {
                 "example": [
@@ -1340,6 +1563,7 @@
           },
           "graph_context": {
             "description": "Whether to include graph context in the response. Defaults to true for /query when omitted.",
+            "example": true,
             "type": "boolean"
           },
           "ids": {
@@ -1355,6 +1579,7 @@
             "uniqueItems": false
           },
           "max_results": {
+            "example": 10,
             "type": "integer"
           },
           "metadata_filters": {
@@ -1364,17 +1589,19 @@
             "$ref": "#/components/schemas/search.RecallMode"
           },
           "num_related_chunks": {
+            "example": 3,
             "type": "integer"
           },
           "operator": {
             "$ref": "#/components/schemas/search.Operator"
           },
           "query": {
-            "example": "Which mode does user prefer",
+            "example": "Which mode does the user prefer?",
             "type": "string"
           },
           "query_apps": {
             "description": "Whether to include app-aware knowledge retrieval. Applies to knowledge hybrid queries.",
+            "example": true,
             "type": "boolean"
           },
           "query_by": {
@@ -1383,9 +1610,11 @@
           },
           "query_forceful_relations": {
             "description": "Whether to force relation expansion for graph-aware query retrieval. Defaults to true when omitted.",
+            "example": true,
             "type": "boolean"
           },
           "recency_bias": {
+            "example": 0.2,
             "type": "number"
           },
           "sub_tenant_id": {
@@ -1456,15 +1685,22 @@
       "search.ScoredPathResponse": {
         "properties": {
           "combined_context": {
+            "example": "Acme Corp deploys HydraDB in production for context retrieval.",
             "type": "string"
           },
           "group_id": {
+            "example": "grp_1234",
             "type": "string"
           },
           "relevancy_score": {
+            "example": 0.87,
             "type": "number"
           },
           "source_chunk_ids": {
+            "example": [
+              "HydraEmbeddings123_0",
+              "HydraEmbeddings123_1"
+            ],
             "items": {
               "type": "string"
             },
@@ -1485,27 +1721,40 @@
         "properties": {
           "additional_metadata": {
             "additionalProperties": {},
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "app_external_id": {
+            "example": "C0123456789",
             "type": "string"
           },
           "app_kind": {
             "description": "App-source fields (populated when the source comes from an app integration).\nDefault null on the wire when absent.",
+            "example": "slack",
             "type": "string"
           },
           "app_provider": {
+            "example": "slack",
             "type": "string"
           },
           "description": {
+            "example": "Internal overview of the Project Phoenix rollout.",
             "type": "string"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "metadata": {
             "additionalProperties": {},
             "description": "Pydantic aliases (see VectorStoreChunk). Source metadata defaults to {} on\nthe wire (Python default_factory=dict), unlike chunk metadata which is null.",
+            "example": {
+              "department": "finance",
+              "priority": 7
+            },
             "type": "object"
           },
           "sub_tenant_id": {
@@ -1513,15 +1762,19 @@
             "type": "string"
           },
           "timestamp": {
+            "example": "2026-07-02T10:00:00Z",
             "type": "string"
           },
           "title": {
+            "example": "Project Phoenix Overview",
             "type": "string"
           },
           "type": {
+            "example": "knowledge",
             "type": "string"
           },
           "url": {
+            "example": "https://docs.hydradb.com/phoenix",
             "type": "string"
           }
         },
@@ -1546,15 +1799,25 @@
           "additional_metadata": {
             "additionalProperties": {},
             "description": "Pydantic aliases (see VectorStoreChunk): document_metadata→additional_metadata,\ntenant_metadata→metadata. FastAPI serializes by_alias, so the wire uses the aliases.",
+            "example": {
+              "author": "ada",
+              "doc_version": 3
+            },
             "type": "object"
           },
           "chunk_content": {
+            "example": "HydraDB supports hybrid retrieval across knowledge and memories.",
             "type": "string"
           },
           "chunk_uuid": {
+            "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
             "type": "string"
           },
           "extra_context_ids": {
+            "example": [
+              "HydraEmbeddings123_2",
+              "HydraEmbeddings123_3"
+            ],
             "items": {
               "type": "string"
             },
@@ -1562,28 +1825,39 @@
             "uniqueItems": false
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "layout": {
+            "example": "text",
             "type": "string"
           },
           "metadata": {
             "additionalProperties": {},
+            "example": {
+              "department": "finance",
+              "priority": 7
+            },
             "type": "object"
           },
           "relevancy_score": {
+            "example": 0.87,
             "type": "number"
           },
           "source_last_updated_time": {
+            "example": "2026-07-02T12:30:00Z",
             "type": "string"
           },
           "source_title": {
+            "example": "Project Phoenix Overview",
             "type": "string"
           },
           "source_type": {
+            "example": "file",
             "type": "string"
           },
           "source_upload_time": {
+            "example": "2026-07-02T10:00:00Z",
             "type": "string"
           },
           "sub_tenant_id": {
@@ -1599,6 +1873,7 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/search.V2Chunk"
             },
+            "example": "The user is a senior engineer onboarding to the platform.",
             "type": "object"
           },
           "chunks": {
@@ -1624,9 +1899,11 @@
       "sources.MemoryDeleteResponse": {
         "properties": {
           "deleted_count": {
+            "example": 1,
             "type": "integer"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "results": {
@@ -1637,9 +1914,11 @@
             "uniqueItems": false
           },
           "success": {
+            "example": true,
             "type": "boolean"
           },
           "user_memory_deleted": {
+            "example": 1,
             "type": "integer"
           }
         },
@@ -1648,12 +1927,15 @@
       "sources.SourceDeleteResultItem": {
         "properties": {
           "deleted": {
+            "example": true,
             "type": "boolean"
           },
           "error": {
+            "example": "",
             "type": "string"
           },
           "id": {
+            "example": "HydraDoc1234",
             "type": "string"
           }
         },
@@ -1692,6 +1974,7 @@
             "type": "string"
           },
           "type": {
+            "example": "knowledge",
             "type": "string"
           }
         },
@@ -1700,9 +1983,11 @@
       "tenants.CollectionStats": {
         "properties": {
           "dimensions": {
+            "example": 1536,
             "type": "integer"
           },
           "row_count": {
+            "example": 1280,
             "type": "integer"
           }
         },
@@ -1714,21 +1999,27 @@
             "$ref": "#/components/schemas/tenants.MilvusDataType"
           },
           "enable_analyzer": {
+            "example": false,
             "type": "boolean"
           },
           "enable_dense_embedding": {
+            "example": true,
             "type": "boolean"
           },
           "enable_match": {
+            "example": true,
             "type": "boolean"
           },
           "enable_sparse_embedding": {
+            "example": false,
             "type": "boolean"
           },
           "max_length": {
+            "example": 256,
             "type": "integer"
           },
           "name": {
+            "example": "general",
             "type": "string"
           }
         },
@@ -1741,6 +2032,7 @@
             "type": "string"
           },
           "error": {
+            "example": "",
             "type": "string"
           },
           "tenant_id": {
@@ -1760,9 +2052,11 @@
             "$ref": "#/components/schemas/tenants.InfraV2"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "org_id": {
+            "example": "org_1a2b3c",
             "type": "string"
           },
           "tenant_id": {
@@ -1775,9 +2069,11 @@
       "tenants.InfraV2": {
         "properties": {
           "graph_status": {
+            "example": true,
             "type": "boolean"
           },
           "scheduler_status": {
+            "example": true,
             "type": "boolean"
           },
           "vectorstore_status": {
@@ -1816,6 +2112,10 @@
       "tenants.SubTenantIdsResponse": {
         "properties": {
           "collections": {
+            "example": [
+              "team_docs",
+              "engineering"
+            ],
             "items": {
               "type": "string"
             },
@@ -1823,6 +2123,7 @@
             "uniqueItems": false
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "sub_tenant_ids": {
@@ -1842,9 +2143,11 @@
             "type": "string"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "status": {
+            "example": "completed",
             "type": "string"
           },
           "tenant_id": {
@@ -1862,9 +2165,11 @@
             "type": "string"
           },
           "embeddings_dimension": {
+            "example": 1536,
             "type": "integer"
           },
           "is_embeddings_tenant": {
+            "example": false,
             "type": "boolean"
           },
           "tenant_id": {
@@ -1889,9 +2194,11 @@
             "type": "string"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "status": {
+            "example": "completed",
             "type": "string"
           },
           "tenant_id": {
@@ -1904,6 +2211,10 @@
       "tenants.TenantIdsResponse": {
         "properties": {
           "databases": {
+            "example": [
+              "acme_corp",
+              "research_kb"
+            ],
             "items": {
               "type": "string"
             },
@@ -1925,9 +2236,14 @@
             "uniqueItems": false
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "tenant_ids": {
+            "example": [
+              "tenant_1234",
+              "tenant_5678"
+            ],
             "items": {
               "type": "string"
             },
@@ -1950,6 +2266,7 @@
             "$ref": "#/components/schemas/tenants.CollectionStats"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "tenant_id": {
@@ -1962,9 +2279,11 @@
       "tenants.VectorstoreStatusV2": {
         "properties": {
           "knowledge": {
+            "example": true,
             "type": "boolean"
           },
           "memories": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -1973,33 +2292,43 @@
       "webhooks.DeliveryItem": {
         "properties": {
           "attempts": {
+            "example": 1,
             "type": "integer"
           },
           "created_at": {
+            "example": "2026-07-02T10:00:00Z",
             "type": "string"
           },
           "delivery_id": {
+            "example": "dlv_9f8e7d6c",
             "type": "string"
           },
           "doc_id": {
+            "example": "HydraDoc1234",
             "type": "string"
           },
           "error_code": {
+            "example": "",
             "type": "string"
           },
           "error_message": {
+            "example": "",
             "type": "string"
           },
           "event_type": {
+            "example": "indexing.status_changed",
             "type": "string"
           },
           "indexing_status": {
+            "example": "completed",
             "type": "string"
           },
           "status": {
+            "example": "completed",
             "type": "string"
           },
           "updated_at": {
+            "example": "2026-07-02T10:00:05Z",
             "type": "string"
           }
         },
@@ -2008,6 +2337,7 @@
       "webhooks.DeliveryListResponse": {
         "properties": {
           "count": {
+            "example": 12,
             "type": "integer"
           },
           "deliveries": {
@@ -2018,6 +2348,7 @@
             "uniqueItems": false
           },
           "next_cursor": {
+            "example": "eyJvZmZzZXQiOjUwfQ==",
             "type": "string"
           }
         },
@@ -2026,12 +2357,15 @@
       "webhooks.RetryResponse": {
         "properties": {
           "delivery_id": {
+            "example": "dlv_9f8e7d6c",
             "type": "string"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "queued": {
+            "example": true,
             "type": "boolean"
           }
         },
@@ -2040,9 +2374,11 @@
       "webhooks.WebhookDeleteResponse": {
         "properties": {
           "deleted": {
+            "example": true,
             "type": "boolean"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           }
         },
@@ -2051,6 +2387,9 @@
       "webhooks.WebhookGetResponse": {
         "properties": {
           "event_types": {
+            "example": [
+              "indexing.status_changed"
+            ],
             "items": {
               "type": "string"
             },
@@ -2058,12 +2397,15 @@
             "uniqueItems": false
           },
           "registered": {
+            "example": true,
             "type": "boolean"
           },
           "signing_secret_configured": {
+            "example": true,
             "type": "boolean"
           },
           "url": {
+            "example": "https://docs.hydradb.com/phoenix",
             "type": "string"
           }
         },
@@ -2072,6 +2414,9 @@
       "webhooks.WebhookRegisterRequest": {
         "properties": {
           "event_types": {
+            "example": [
+              "indexing.status_changed"
+            ],
             "items": {
               "type": "string"
             },
@@ -2079,9 +2424,11 @@
             "uniqueItems": false
           },
           "signing_secret": {
+            "example": "whsec_8f3a2b1c9d0e",
             "type": "string"
           },
           "url": {
+            "example": "https://docs.hydradb.com/phoenix",
             "type": "string"
           }
         },
@@ -2090,6 +2437,9 @@
       "webhooks.WebhookRegisterResponse": {
         "properties": {
           "event_types": {
+            "example": [
+              "indexing.status_changed"
+            ],
             "items": {
               "type": "string"
             },
@@ -2097,15 +2447,19 @@
             "uniqueItems": false
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "registered": {
+            "example": true,
             "type": "boolean"
           },
           "signing_secret_configured": {
+            "example": true,
             "type": "boolean"
           },
           "url": {
+            "example": "https://docs.hydradb.com/phoenix",
             "type": "string"
           }
         },
@@ -2114,12 +2468,15 @@
       "webhooks.WebhookTestResponse": {
         "properties": {
           "delivered": {
+            "example": true,
             "type": "boolean"
           },
           "message": {
+            "example": "Success",
             "type": "string"
           },
           "status_code": {
+            "example": 200,
             "type": "integer"
           }
         },
@@ -2224,6 +2581,7 @@
             "in": "query",
             "name": "provider",
             "schema": {
+              "example": "slack",
               "type": "string"
             }
           }
@@ -2343,6 +2701,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2401,6 +2760,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2460,6 +2820,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2543,6 +2904,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2623,6 +2985,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2681,6 +3044,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -2763,6 +3127,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           },
@@ -2772,6 +3137,7 @@
             "name": "resource_id",
             "required": true,
             "schema": {
+              "example": "C0123456789",
               "type": "string"
             }
           }
@@ -2842,6 +3208,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           }
@@ -3074,6 +3441,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           },
@@ -3128,6 +3496,7 @@
             "in": "query",
             "name": "mode",
             "schema": {
+              "example": "thinking",
               "type": "string"
             }
           }
@@ -3274,6 +3643,7 @@
             "in": "query",
             "name": "id",
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           },
@@ -3429,6 +3799,7 @@
             "in": "query",
             "name": "id",
             "schema": {
+              "example": "HydraDoc1234",
               "type": "string"
             }
           },
@@ -4158,6 +4529,7 @@
             "name": "delivery_id",
             "required": true,
             "schema": {
+              "example": "dlv_9f8e7d6c",
               "type": "string"
             }
           }
@@ -4206,6 +4578,7 @@
             "name": "delivery_id",
             "required": true,
             "schema": {
+              "example": "dlv_9f8e7d6c",
               "type": "string"
             }
           }
