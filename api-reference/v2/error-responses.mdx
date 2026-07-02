@@ -71,7 +71,7 @@ Endpoint pages list the most common codes for that operation. New codes may be a
 </Note>
 
 <Note>
-**Legacy routes preserve their original codes.** The deprecated `/tenants` routes keep the pre-rename error contract for backward compatibility: a missing database returns the generic `NOT_FOUND` (not `DATABASE_NOT_FOUND`) and a duplicate on `POST /tenants` returns `INVALID_INPUT` (not `DATABASE_ALREADY_EXISTS`). The canonical `/databases` routes return the specific `DATABASE_NOT_FOUND` / `DATABASE_ALREADY_EXISTS` codes shown above. The HTTP status is identical on both. See [Migrating from `tenant_id` and `sub_tenant_id`](/essentials/v2/multi-tenant#7-migrating-from-tenant_id-and-sub_tenant_id).
+**Legacy routes preserve their original codes.** The deprecated `/tenants` routes keep the pre-rename error contract for backward compatibility: a missing database returns the generic `NOT_FOUND` (not `DATABASE_NOT_FOUND`) and a duplicate on `POST /tenants` returns `INVALID_INPUT` (not `DATABASE_ALREADY_EXISTS`). The canonical `/databases` routes return the specific `DATABASE_NOT_FOUND` / `DATABASE_ALREADY_EXISTS` codes shown above. The HTTP status is identical on both. See [Migrating from `tenant_id` and `sub_tenant_id`](/essentials/v2/multi-tenant#7-migrating-from-the-legacy-tenant-and-sub-tenant-fields).
 </Note>
 
 ## Retry pattern
