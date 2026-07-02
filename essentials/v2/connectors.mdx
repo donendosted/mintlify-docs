@@ -38,8 +38,8 @@ curl -X POST 'https://api.hydradb.com/connectors' \
   -d '{
     "provider": "slack",
     "name": "acme-engineering",
-    "tenant_id": "acme_corp",
-    "sub_tenant_id": "engineering",
+    "database": "acme_corp",
+    "collection": "engineering",
     "provider_account_scope": "T12345ACME",
     "credentials": { "api_token": "xoxp-..." }
   }'
@@ -136,7 +136,7 @@ This is what you filter on when you want to scope a query to a specific connecto
 
 ```json Querying with document metadata filter
 {
-  "tenant_id": "acme_corp",
+  "database": "acme_corp",
   "query": "deployment checklist",
   "query_apps": true,
   "metadata_filters": {
