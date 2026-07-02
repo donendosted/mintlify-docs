@@ -49,11 +49,11 @@ import json, time
 database = "my_first_database"
 
 # 1. Create a database.
-client.tenants.create(database=database)
+client.databases.create(database=database)
 
 # 2. Wait until the database can accept data.
 while True:
-    infra = client.tenants.status(database=database).data.infra
+    infra = client.databases.status(database=database).data.infra
     if infra.ready_for_ingestion:
         break
     time.sleep(5)
@@ -96,11 +96,11 @@ print(results.data.chunks)
 const database = "my_first_database";
 
 // 1. Create a database.
-await client.tenants.create({ database: database });
+await client.databases.create({ database: database });
 
 // 2. Wait until the database can accept data.
 while (true) {
-  const { data } = await client.tenants.status({ database: database });
+  const { data } = await client.databases.status({ database: database });
   if (data?.infra.readyForIngestion) break;
   await new Promise((resolve) => setTimeout(resolve, 5_000));
 }

@@ -9,8 +9,8 @@ This document is a self-contained reference designed for AI coding agents. It co
 
 ### TL;DR: Critical endpoints
 
-1. **`POST /databases`** (`client.tenants.create()`): Provision an isolated database workspace.
-2. **`GET /databases/status`** (`client.tenants.status()`): Poll until `infra.ready_for_ingestion` is true.
+1. **`POST /databases`** (`client.databases.create()`): Provision an isolated database workspace.
+2. **`GET /databases/status`** (`client.databases.status()`): Poll until `infra.ready_for_ingestion` is true.
 3. **`POST /context/ingest`** (`client.context.ingest()`): Ingest documents, app records, or memories under `type="knowledge"` or `type="memory"`.
 4. **`GET /context/status`** (`client.context.status()`): Poll status using `ids` until `indexing_status` is `completed` or `graph_creation`.
 5. **`POST /query`** (`client.query()`): Retrieve context via `type: "knowledge"`, `"memory"`, or `"all"`.
@@ -55,11 +55,11 @@ Core raw HTTP responses (`/databases`, `/context/*`, and `/query`) are wrapped:
 
 | Task | Use this endpoint / SDK method |
 |---|---|
-| Create database | `POST /databases` · `client.tenants.create()` |
-| Check database readiness | `GET /databases/status` · `client.tenants.status()` |
-| List databases | `GET /databases` · `client.tenants.list()` |
-| List collections | `GET /databases/collections` · TS `client.tenants.subTenants()` / Python `client.tenants.sub_tenants()` |
-| Database stats | `GET /databases/stats` · `client.tenants.stats()` |
+| Create database | `POST /databases` · `client.databases.create()` |
+| Check database readiness | `GET /databases/status` · `client.databases.status()` |
+| List databases | `GET /databases` · `client.databases.list()` |
+| List collections | `GET /databases/collections` · TS `client.databases.collections()` / Python `client.databases.collections()` |
+| Database stats | `GET /databases/stats` · `client.databases.stats()` |
 | Ingest documents, app sources, memories | `POST /context/ingest` · `client.context.ingest()` |
 | Check indexing | `GET /context/status` · `client.context.status()` |
 | Search knowledge/memories/both | `POST /query` · `client.query()` |
@@ -237,8 +237,8 @@ const client = new HydraDBClient({
 
 SDK naming:
 
-- Python methods and fields: snake_case, e.g. `client.tenants.sub_tenants()`, `database`, `collection`, `page_size`, `query_by`.
-- TypeScript methods and fields: camelCase, e.g. `client.tenants.subTenants()`, `database`, `collection`, `pageSize`, `queryBy`.
+- Python methods and fields: snake_case, e.g. `client.databases.collections()`, `database`, `collection`, `page_size`, `query_by`.
+- TypeScript methods and fields: camelCase, e.g. `client.databases.collections()`, `database`, `collection`, `pageSize`, `queryBy`.
 - Both SDKs return a `{ success, data, error, meta }` envelope; the payload is under `.data` (e.g. `response.data.infra`, `response.data.statuses`, `response.data.results`).
 - Values that are passed as JSON strings (`memories`, `app_knowledge`, `document_metadata`) keep snake_case keys inside the stringified payload in both SDKs, since that is raw wire data.
 
@@ -255,14 +255,14 @@ import time
 from hydra_db import HydraDB
 
 client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
-database = "my_first_tenant"
+database = "my_first_database"
 
 # 1. Create database.
-client.tenants.create(database=database)
+client.databases.create(database=database)
 
 # 2. Wait until the database can accept data.
 while True:
-    status = client.tenants.status(database=database)
+    status = client.databases.status(database=database)
     if status.data.infra.ready_for_ingestion:
         break
     time.sleep(5)
@@ -320,12 +320,12 @@ const client = new HydraDBClient({
   token: process.env.HYDRA_DB_API_KEY,
 });
 
-const database = "my_first_tenant";
+const database = "my_first_database";
 
-await client.tenants.create({ database: database });
+await client.databases.create({ database: database });
 
 while (true) {
-  const status = await client.tenants.status({ database: database });
+  const status = await client.databases.status({ database: database });
   if (status.data.infra.readyForIngestion) break;
   await new Promise((resolve) => setTimeout(resolve, 5_000));
 }
@@ -379,7 +379,7 @@ console.log(result.data.chunks);
 
 ### Create database
 
-`POST /databases` · `client.tenants.create()`
+`POST /databases` · `client.databases.create()`
 
 ```json
 {
@@ -406,7 +406,7 @@ Notes:
 
 ### Check readiness
 
-`GET /databases/status?database=...` · `client.tenants.status()`
+`GET /databases/status?database=...` · `client.databases.status()`
 
 Ready when infrastructure reports usable status. Current docs show `infra.ready_for_ingestion`; SDK examples also check:
 
@@ -1193,12 +1193,12 @@ Common architecture across cookbooks:
 | `client.context.delete()` | `DELETE /context` | Delete sources or memories |
 | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
-| `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
-| `client.tenants.list()` | `GET /databases` | List all databases registered for the organization |
-| `client.tenants.delete()` | `DELETE /databases` | Permanently remove a database |
-| `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
-| `client.tenants.subTenants()` | `GET /databases/collections` | List active collections |
-| `client.tenants.stats()` | `GET /databases/stats` | Get database usage stats |
+| `client.databases.create()` | `POST /databases` | Create a new isolated workspace |
+| `client.databases.list()` | `GET /databases` | List all databases registered for the organization |
+| `client.databases.delete()` | `DELETE /databases` | Permanently remove a database |
+| `client.databases.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
+| `client.databases.collections()` | `GET /databases/collections` | List active collections |
+| `client.databases.stats()` | `GET /databases/stats` | Get database usage stats |
 
 ### 15.2 Python SDK
 
@@ -1211,12 +1211,12 @@ Common architecture across cookbooks:
 | Context | `client.context.delete()` | `DELETE /context` | Delete sources or memories |
 | Context | `client.context.relations()` | `GET /context/relations` | Inspect graph relationships |
 | Search | `client.query()` | `POST /query` | Unified search over knowledge, memories, or both |
-| Databases | `client.tenants.create()` | `POST /databases` | Create a new isolated workspace |
-| Databases | `client.tenants.list()` | `GET /databases` | List all databases registered for the organization |
-| Databases | `client.tenants.delete()` | `DELETE /databases` | Permanently remove a database |
-| Databases | `client.tenants.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
-| Databases | `client.tenants.sub_tenants()` | `GET /databases/collections` | List active collections |
-| Databases | `client.tenants.stats()` | `GET /databases/stats` | Get database usage stats |
+| Databases | `client.databases.create()` | `POST /databases` | Create a new isolated workspace |
+| Databases | `client.databases.list()` | `GET /databases` | List all databases registered for the organization |
+| Databases | `client.databases.delete()` | `DELETE /databases` | Permanently remove a database |
+| Databases | `client.databases.status()` | `GET /databases/status` | Check provisioning readiness of a database's infrastructure |
+| Databases | `client.databases.collections()` | `GET /databases/collections` | List active collections |
+| Databases | `client.databases.stats()` | `GET /databases/stats` | Get database usage stats |
 
 ### 15.3 Minimal cURL example
 

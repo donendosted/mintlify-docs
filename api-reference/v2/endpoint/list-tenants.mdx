@@ -9,11 +9,11 @@ The response separates active or provisioning databases (in `data.databases`) fr
 <RequestExample>
 
 ```python Python SDK
-response = client.tenants.list()
+response = client.databases.list()
 ```
 
 ```typescript TypeScript SDK
-const response = await client.tenants.list();
+const response = await client.databases.list();
 ```
 
 ```bash cURL
@@ -30,7 +30,7 @@ curl -X GET 'https://api.hydradb.com/databases' \
 {
   "success": true,
   "data": {
-    "databases": ["acme_corp", "my_first_tenant"],
+    "databases": ["acme_corp", "my_first_database"],
     "failed_databases": null,
     "message": "Successfully retrieved database IDs"
   },

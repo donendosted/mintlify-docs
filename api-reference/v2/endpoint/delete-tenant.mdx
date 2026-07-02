@@ -10,15 +10,15 @@ This action is irreversible. Deleting a database removes all of its associated d
 
 <RequestExample>
 ```python Python SDK
-response = client.tenants.delete(database="my_first_tenant")
+response = client.databases.delete(database="my_first_database")
 ```
 ```typescript TypeScript SDK
-const response = await client.tenants.delete({
-  database: "my_first_tenant",
+const response = await client.databases.delete({
+  database: "my_first_database",
 });
 ```
 ```bash cURL
-curl -X DELETE 'https://api.hydradb.com/databases?database=my_first_tenant' \
+curl -X DELETE 'https://api.hydradb.com/databases?database=my_first_database' \
   -H "Authorization: Bearer <your_api_key>" \
   -H "API-Version: 2"
 ```
@@ -35,7 +35,7 @@ curl -X DELETE 'https://api.hydradb.com/databases?database=my_first_tenant' \
 {
   "success": true,
   "data": {
-    "database": "my_first_tenant",
+    "database": "my_first_database",
     "status": "deletion_scheduled",
     "message": "Database deregistered. Background cleanup is in progress."
   },

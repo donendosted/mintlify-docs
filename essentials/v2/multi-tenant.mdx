@@ -105,7 +105,7 @@ Query requests include `database`, and may include `collection`. If `collection`
 
 Use the same scoping values on query that you used when writing the data. A query request with one `collection` should not be expected to retrieve data written under a different `collection`.
 
-If your application needs to combine data from multiple scopes, prefer one query call with `sub_tenant_ids` unless you need separate response formatting or client-side treatment per scope.
+If your application needs to combine data from multiple scopes, prefer one query call with `collections` unless you need separate response formatting or client-side treatment per scope.
 
 Use `collection` for partitioning data. Use `metadata_filters` for narrowing results within that scope.
 
@@ -128,7 +128,7 @@ For a personalized answer, the common pattern is one `POST /query` with `type: "
 
 ## 5. Minimal working example
 
-The example below shows a common personalized-answer flow: write a user Memory with singular `sub_tenant_id`, then query Knowledge and Memories together with `sub_tenant_ids`.
+The example below shows a common personalized-answer flow: write a user Memory with a single `collection`, then query Knowledge and Memories together with `collections`.
 
 <CodeGroup>
 
@@ -245,8 +245,8 @@ Do not use one database for both production and staging. Create separate databas
 **Confusing `database` with `collection`.**
 Use `database` for primary boundaries such as customers or environments. Use `collection` for partitions inside a database, such as users or workspaces.
 
-**Assuming query automatically searches every sub-tenant.**
-A query call uses the scope you provide. If your application needs data from multiple scopes, pass `sub_tenant_ids` as a list or weighted object.
+**Assuming query automatically searches every collection.**
+A query call uses the scope you provide. If your application needs data from multiple scopes, pass `collections` as a list or weighted object.
 
 **Writing shared Knowledge under a user scope by accident.**
 If broadly shared Knowledge is written with a user-specific `collection`, it may not appear where other users expect it. Choose the write scope based on where the content should be queried later.

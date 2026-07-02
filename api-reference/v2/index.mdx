@@ -93,13 +93,13 @@ SDK methods mirror the API: `client.<group>.<method>()` maps to the correspondin
 
 | Endpoint | Method | SDK method | Purpose | Use when |
 |---|---|---|---|---|
-| [`/databases`](/api-reference/v2/endpoint/create-tenant) | `POST` | `tenants.create` | Create a database | You are setting up a new isolated workspace and optional metadata schema. |
+| [`/databases`](/api-reference/v2/endpoint/create-tenant) | `POST` | `databases.create` | Create a database | You are setting up a new isolated workspace and optional metadata schema. |
 | [`/databases/{database}/metadata-schema`](/api-reference/v2/endpoint/update-metadata-schema) | `PATCH` | REST | Add metadata schema fields | You need to add filterable metadata fields after database creation. |
-| [`/databases`](/api-reference/v2/endpoint/list-tenants) | `GET` | `tenants.list` | List databases | You need to discover database IDs available to the current API key. |
-| [`/databases`](/api-reference/v2/endpoint/delete-tenant) | `DELETE` | `tenants.delete` | Delete a database | You need to permanently remove a workspace and its data. |
-| [`/databases/status`](/api-reference/v2/endpoint/tenant-status) | `GET` | `tenants.status` | Check provisioning readiness | You just created a database and need to wait before ingesting data. |
-| [`/databases/collections`](/api-reference/v2/endpoint/list-sub-tenants) | `GET` | `tenants.subTenants` / `tenants.sub_tenants` | List active collections | You partition data by user, team, customer, or account and need to inspect those partitions. |
-| [`/databases/stats`](/api-reference/v2/endpoint/tenant-stats) | `GET` | `tenants.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a database. |
+| [`/databases`](/api-reference/v2/endpoint/list-tenants) | `GET` | `databases.list` | List databases | You need to discover database IDs available to the current API key. |
+| [`/databases`](/api-reference/v2/endpoint/delete-tenant) | `DELETE` | `databases.delete` | Delete a database | You need to permanently remove a workspace and its data. |
+| [`/databases/status`](/api-reference/v2/endpoint/tenant-status) | `GET` | `databases.status` | Check provisioning readiness | You just created a database and need to wait before ingesting data. |
+| [`/databases/collections`](/api-reference/v2/endpoint/list-sub-tenants) | `GET` | `databases.collections` / `databases.collections` | List active collections | You partition data by user, team, customer, or account and need to inspect those partitions. |
+| [`/databases/stats`](/api-reference/v2/endpoint/tenant-stats) | `GET` | `databases.stats` | Get usage statistics | You want to monitor object counts and vector dimensions for a database. |
 | [`/context/ingest`](/api-reference/v2/endpoint/ingest-context) | `POST` | `context.ingest` | Ingest knowledge or memories | You are uploading documents, app sources, or user memories. |
 | [`/context/status`](/api-reference/v2/endpoint/source-status) | `GET` | `context.status` | Check processing status | You have IDs from ingestion and need to know when they are queryable. |
 | [`/context/inspect`](/api-reference/v2/endpoint/fetch-content) | `GET` | `context.inspect` | Inspect original source content or presigned URL | You need to display or inspect the original ingested content. |
@@ -121,7 +121,7 @@ curl -X POST 'https://api.hydradb.com/query' \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d '{
-    "database": "my_first_tenant",
+    "database": "my_first_database",
     "query": "What are the pricing tiers?",
     "type": "knowledge",
     "query_by": "hybrid"

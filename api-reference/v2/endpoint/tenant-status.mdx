@@ -17,15 +17,15 @@ The response includes `infra.ready_for_ingestion`, a convenience flag derived fr
 <RequestExample>
 
 ```python Python SDK
-response = client.tenants.status(database="my_first_tenant")
+response = client.databases.status(database="my_first_database")
 
 if response.data.infra.ready_for_ingestion:
     print("Database is ready.")
 ```
 
 ```typescript TypeScript SDK
-const response = await client.tenants.status({
-  database: "my_first_tenant",
+const response = await client.databases.status({
+  database: "my_first_database",
 });
 
 if (response.data?.infra.readyForIngestion) {
@@ -34,7 +34,7 @@ if (response.data?.infra.readyForIngestion) {
 ```
 
 ```bash cURL
-curl -X GET 'https://api.hydradb.com/databases/status?database=my_first_tenant' \
+curl -X GET 'https://api.hydradb.com/databases/status?database=my_first_database' \
   -H "Authorization: Bearer <your_api_key>" \
   -H "API-Version: 2"
 ```
@@ -47,7 +47,7 @@ curl -X GET 'https://api.hydradb.com/databases/status?database=my_first_tenant' 
 {
   "success": true,
   "data": {
-    "database": "my_first_tenant",
+    "database": "my_first_database",
     "org_id": "org_abc123",
     "infra": {
       "scheduler_status": true,

@@ -127,7 +127,7 @@ curl -X POST 'https://api.hydradb.com/databases' \
   }'
 ```
 ```python Python SDK
-client.tenants.create(
+client.databases.create(
     database="acme_corp",
     tenant_metadata_schema=[
         {"name": "department", "data_type": "VARCHAR", "enable_match": True},
@@ -142,7 +142,7 @@ client.tenants.create(
 )
 ```
 ```typescript TypeScript SDK
-await client.tenants.create({
+await client.databases.create({
   database: "acme_corp",
   tenantMetadataSchema: [
     { name: "department", dataType: "VARCHAR", enableMatch: true },

@@ -9,8 +9,8 @@ import { Field } from "/snippets/field.jsx";
 <RequestExample>
 
 ```python Python SDK
-response = client.tenants.create(
-    database="my_first_tenant",
+response = client.databases.create(
+    database="my_first_database",
     tenant_metadata_schema=[
         {
             "name": "category",
@@ -30,8 +30,8 @@ response = client.tenants.create(
 ```
 
 ```typescript TypeScript SDK
-const response = await client.tenants.create({
-  database: "my_first_tenant",
+const response = await client.databases.create({
+  database: "my_first_database",
   tenantMetadataSchema: [
     {
       name: "category",
@@ -56,7 +56,7 @@ curl -X POST 'https://api.hydradb.com/databases' \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d '{
-    "database": "my_first_tenant",
+    "database": "my_first_database",
     "tenant_metadata_schema": [
       {
         "name": "category",
@@ -99,7 +99,7 @@ Always check if a database is ready before using it. Use [Database Status](/api-
   "success": true,
   "data": {
     "status": "accepted",
-    "database": "my_first_tenant",
+    "database": "my_first_database",
     "message": "Database creation started in the background. Use GET /databases/status?database=... to check progress."
   },
   "error": null,

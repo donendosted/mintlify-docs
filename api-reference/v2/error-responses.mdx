@@ -106,7 +106,7 @@ async function withRetry<T>(
 
 const result = await withRetry(() =>
   client.query({
-        database: "my_first_tenant",
+        database: "my_first_database",
         query: "What are the pricing tiers?",
         type: "knowledge",
   })
@@ -131,7 +131,7 @@ def with_retry(operation, max_retries=3):
             time.sleep(delay)
 
 result = with_retry(lambda: client.query(
-    database="my_first_tenant",
+    database="my_first_database",
     query="What are the pricing tiers?",
     type="knowledge",
 ))
@@ -164,7 +164,7 @@ import { HydraDBError } from "@hydradb/sdk";
 try {
   await client.context.ingest({
     type: "knowledge",
-    database: "my_first_tenant",
+    database: "my_first_database",
     documents: [{ path: "policy.pdf", filename: "policy.pdf" }],
   });
 } catch (error) {
@@ -191,7 +191,7 @@ from hydra_db import HydraDBError
 try:
     client.context.ingest(
     type="knowledge",
-        database="my_first_tenant",
+        database="my_first_database",
         documents=[("policy.pdf", open("policy.pdf", "rb"), "application/pdf")],
     )
 except HydraDBError as exc:
