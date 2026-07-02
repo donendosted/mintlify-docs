@@ -832,7 +832,72 @@
                   "sub_tenant_id": "sub_tenant_4567"
                 }
               ],
-              "graph_context": true,
+              "graph_context": {
+                "chunk_id_to_group_ids": {
+                  "HydraEmbeddings123_0": [
+                    "grp_1234"
+                  ]
+                },
+                "chunk_relations": [
+                  {
+                    "combined_context": "Acme Corp deploys HydraDB in production for context retrieval.",
+                    "group_id": "grp_1234",
+                    "relevancy_score": 0.87,
+                    "source_chunk_ids": [
+                      "HydraEmbeddings123_0",
+                      "HydraEmbeddings123_1"
+                    ],
+                    "triplets": [
+                      {
+                        "relation": {
+                          "confidence": 0.92,
+                          "predicate": "works_at"
+                        },
+                        "source": {
+                          "entity_id": "entity_1a2b",
+                          "name": "Ada",
+                          "type": "person"
+                        },
+                        "target": {
+                          "entity_id": "entity_3c4d",
+                          "name": "Acme Corp",
+                          "type": "organization"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "query_paths": [
+                  {
+                    "combined_context": "Acme Corp deploys HydraDB in production for context retrieval.",
+                    "group_id": "grp_1234",
+                    "relevancy_score": 0.87,
+                    "source_chunk_ids": [
+                      "HydraEmbeddings123_0",
+                      "HydraEmbeddings123_1"
+                    ],
+                    "triplets": [
+                      {
+                        "relation": {
+                          "confidence": 0.92,
+                          "predicate": "works_at"
+                        },
+                        "source": {
+                          "entity_id": "entity_1a2b",
+                          "name": "Ada",
+                          "type": "person"
+                        },
+                        "target": {
+                          "entity_id": "entity_3c4d",
+                          "name": "Acme Corp",
+                          "type": "organization"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "synthesis_context": "Related entities: Acme Corp, HydraDB, production deployment."
+              },
               "sources": [
                 {
                   "additional_metadata": {
@@ -1833,6 +1898,10 @@
           "database": {
             "example": "acme_corp",
             "type": "string"
+          },
+          "tenant_id": {
+            "deprecated": true,
+            "type": "string"
           }
         },
         "type": "object"
@@ -2118,8 +2187,7 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/ingestion.SourceStatus",
-            "example": "queued"
+            "$ref": "#/components/schemas/ingestion.SourceStatus"
           }
         },
         "type": "object"
@@ -2200,7 +2268,12 @@
           "filters": {
             "$ref": "#/components/schemas/list.ContentFilter",
             "example": {
-              "channel": "general"
+              "additional_metadata": {
+                "author": "ada"
+              },
+              "metadata": {
+                "department": "finance"
+              }
             }
           },
           "ids": {
@@ -2598,8 +2671,7 @@
           },
           "type": {
             "$ref": "#/components/schemas/search.SourceType",
-            "description": "Corpus to query: knowledge, memory, or all.",
-            "example": "knowledge"
+            "description": "Corpus to query: knowledge, memory, or all."
           }
         },
         "type": "object"
@@ -2864,7 +2936,72 @@
           },
           "graph_context": {
             "$ref": "#/components/schemas/search.GraphContext",
-            "example": true
+            "example": {
+              "chunk_id_to_group_ids": {
+                "HydraEmbeddings123_0": [
+                  "grp_1234"
+                ]
+              },
+              "chunk_relations": [
+                {
+                  "combined_context": "Acme Corp deploys HydraDB in production for context retrieval.",
+                  "group_id": "grp_1234",
+                  "relevancy_score": 0.87,
+                  "source_chunk_ids": [
+                    "HydraEmbeddings123_0",
+                    "HydraEmbeddings123_1"
+                  ],
+                  "triplets": [
+                    {
+                      "relation": {
+                        "confidence": 0.92,
+                        "predicate": "works_at"
+                      },
+                      "source": {
+                        "entity_id": "entity_1a2b",
+                        "name": "Ada",
+                        "type": "person"
+                      },
+                      "target": {
+                        "entity_id": "entity_3c4d",
+                        "name": "Acme Corp",
+                        "type": "organization"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "query_paths": [
+                {
+                  "combined_context": "Acme Corp deploys HydraDB in production for context retrieval.",
+                  "group_id": "grp_1234",
+                  "relevancy_score": 0.87,
+                  "source_chunk_ids": [
+                    "HydraEmbeddings123_0",
+                    "HydraEmbeddings123_1"
+                  ],
+                  "triplets": [
+                    {
+                      "relation": {
+                        "confidence": 0.92,
+                        "predicate": "works_at"
+                      },
+                      "source": {
+                        "entity_id": "entity_1a2b",
+                        "name": "Ada",
+                        "type": "person"
+                      },
+                      "target": {
+                        "entity_id": "entity_3c4d",
+                        "name": "Acme Corp",
+                        "type": "organization"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "synthesis_context": "Related entities: Acme Corp, HydraDB, production deployment."
+            }
           },
           "sources": {
             "example": [
