@@ -157,36 +157,46 @@ This is what you filter on when you want to scope a query to a specific connecto
 
 ## Inspect what a connector stores
 
-Connector schemas are provider-owned and available through the API for every supported connector. Use the provider identifier from `GET /connector-catalog`:
+Connector schemas are provider-owned and available through the API for every supported connector. Pass the provider identifier (from `GET /connector-catalog`) as the `id` query parameter:
 
 ```bash
-curl 'https://api.hydradb.com/connector-catalog/linear/info' \
+curl 'https://api.hydradb.com/connectors/providers?id=linear' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2"
 ```
 
-The response describes the resources you can select, the object types HydraDB syncs, and the normalized fields and metadata it stores:
+The response returns the provider identity, the source streams HydraDB turns into app sources (`source_object_types`), the streams it loads only to enrich them (`enrichment_object_types`), and every normalized field it stores. Metadata is not a separate list — each entry in `fields` carries a `location` that says where the value lives:
 
 ```json
 {
-  "resources": ["teams", "projects"],
-  "syncs": ["issues", "comments", "attachments", "parent relations"],
+  "provider": "linear",
+  "connector_type": "linear",
+  "source_object_types": ["Issues"],
+  "enrichment_object_types": [],
   "fields": [
+    {
+      "name": "title",
+      "data_type": "string",
+      "location": "top_level",
+      "filterable": false,
+      "searchable": true,
+      "description": "Human-readable object title."
+    },
     {
       "name": "body",
       "data_type": "string",
+      "location": "fields",
       "filterable": false,
       "searchable": true,
-      "description": "Issue description"
-    }
-  ],
-  "metadata": [
+      "description": "Primary text indexed for semantic and full-text search."
+    },
     {
       "name": "linear_identifier",
       "data_type": "string",
+      "location": "additional_metadata",
       "filterable": true,
       "searchable": false,
-      "description": "Human-readable issue identifier"
+      "description": "Human-readable issue identifier."
     }
   ]
 }
@@ -197,7 +207,8 @@ Each field entry includes:
 | Property | Meaning |
 |---|---|
 | `name` | The normalized field or metadata key stored by HydraDB |
-| `data_type` | Its JSON type: `string`, `integer`, `number`, `boolean`, `array`, or `object` |
+| `data_type` | Its JSON type: `string`, `number`, `boolean`, `array`, `object`, or `null` |
+| `location` | Where the value lives: `top_level` (identity fields like `title` and `timestamp`), `fields` (app content), or `additional_metadata` (exact-match filter keys) |
 | `searchable` | Whether its content participates in app-source text search |
 | `filterable` | Whether it supports exact-match metadata filtering |
 | `description` | Optional provider-specific context |
@@ -206,7 +217,7 @@ Each field entry includes:
   Connector contracts come from the same normalizers that prepare synced data. Query this endpoint instead of relying on a static field list: it covers the complete connector catalog and stays current as connector normalization changes.
 </Note>
 
-For Gmail, use `account_email` rather than `provider_account_scope` when filtering to a connected account. The Gmail provider response calls out this exception in its description.
+For Gmail, use `account_email` (a field with `location: "additional_metadata"`) rather than `provider_account_scope` when filtering to a connected account. The Gmail provider response calls out this exception in its field description.
 
 ## Multiple connectors per provider
 
