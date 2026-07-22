@@ -1344,9 +1344,11 @@
             "example": {
               "database": "acme_corp",
               "knowledge_collection": {
+                "dimensions": 1536,
                 "row_count": 1280
               },
               "memory_collection": {
+                "dimensions": 1536,
                 "row_count": 1280
               },
               "message": "Success",
@@ -3392,6 +3394,11 @@
       },
       "tenants.CollectionStats": {
         "properties": {
+          "dimensions": {
+            "description": "Embedding vector dimension for this collection.",
+            "example": 1536,
+            "type": "integer"
+          },
           "row_count": {
             "description": "Total number of indexed rows in this collection.",
             "example": 1280,
@@ -3793,12 +3800,14 @@
           "knowledge_collection": {
             "$ref": "#/components/schemas/tenants.CollectionStats",
             "example": {
+              "dimensions": 1536,
               "row_count": 1280
             }
           },
           "memory_collection": {
             "$ref": "#/components/schemas/tenants.CollectionStats",
             "example": {
+              "dimensions": 1536,
               "row_count": 1280
             }
           },

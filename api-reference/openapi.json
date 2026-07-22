@@ -3184,11 +3184,18 @@
             "title": "Row Count",
             "description": "Number of rows in the collection",
             "example": 1
+          },
+          "dimensions": {
+            "type": "integer",
+            "title": "Dimensions",
+            "description": "Number of dimensions in the collection",
+            "example": 1
           }
         },
         "type": "object",
         "required": [
-          "row_count"
+          "row_count",
+          "dimensions"
         ],
         "title": "CollectionStats"
       },
