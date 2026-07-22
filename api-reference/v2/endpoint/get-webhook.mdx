@@ -1,0 +1,38 @@
+---
+title: "Get Webhook"
+description: "Retrieve your registered webhook configuration."
+openapi: "api-reference/v2/openapi.json GET /webhooks/indexing"
+---
+
+Get the registered indexing webhook configuration for your API key. Returns the URL, subscribed event types, and whether a signing secret is configured.
+
+<RequestExample>
+
+```bash cURL
+curl -X GET 'https://api.hydradb.com/webhooks/indexing' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "registered": true,
+  "url": "https://your-service.com/webhooks/hydra",
+  "event_types": ["indexing.status_changed"],
+  "signing_secret_configured": true
+}
+```
+
+</ResponseExample>
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [Register Webhook](/api-reference/v2/endpoint/register-webhook) — create or update your webhook
+- [Delete Webhook](/api-reference/v2/endpoint/delete-webhook) — unregister
+- [Webhook Deliveries](/api-reference/v2/endpoint/webhook-deliveries) — inspect delivery history

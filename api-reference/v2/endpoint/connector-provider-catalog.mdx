@@ -1,0 +1,144 @@
+---
+title: "Connector Provider Catalog"
+description: "List all supported connector providers and their configuration details."
+openapi: "api-reference/v2/openapi.json GET /connector-catalog"
+---
+
+The connector catalog lists every provider HydraDB can sync — Slack, GitHub, Linear, Notion, Gmail, and more. Use it to discover what providers are available, their readiness level, and the exact credential and configuration schema each one expects.
+
+The endpoint has two modes:
+
+- **Without `id`** — returns the full catalog: every provider with its availability, maturity, category, and sync engine.
+- **With `id=<provider>`** — returns detailed configuration for that specific provider: indexed object types, searchable fields, filterable fields, and the credential schema.
+
+---
+
+## List the full catalog
+
+<RequestExample>
+
+```bash cURL
+curl 'https://api.hydradb.com/connector-catalog' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "providers": {
+    "slack": {
+      "availability": "ga",
+      "maturity": "stable",
+      "category": "messaging",
+      "sync_engine": "classic"
+    },
+    "github": {
+      "availability": "ga",
+      "maturity": "stable",
+      "category": "development",
+      "sync_engine": "classic"
+    },
+    "linear": {
+      "availability": "ga",
+      "maturity": "stable",
+      "category": "project_management",
+      "sync_engine": "classic"
+    },
+    "notion": {
+      "availability": "beta",
+      "maturity": "evolving",
+      "category": "documentation",
+      "sync_engine": "moveit"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+---
+
+## Get provider details
+
+<RequestExample>
+
+```bash cURL
+curl 'https://api.hydradb.com/connector-catalog?id=slack' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "availability": "ga",
+  "maturity": "stable",
+  "category": "messaging",
+  "sync_engine": "classic",
+  "indexed_object_types": [
+    {
+      "type": "channel",
+      "display_name": "Channel Messages",
+      "description": "Messages posted in public channels"
+    }
+  ],
+  "searchable_fields": [
+    { "name": "text", "type": "string", "description": "Message body" },
+    { "name": "author", "type": "string", "description": "Message author display name" }
+  ],
+  "filterable_fields": [
+    {
+      "filter_key": "channel",
+      "display_name": "Channel",
+      "type": "string",
+      "description": "Filter by channel name"
+    }
+  ],
+  "credential_schema": {
+    "type": "object",
+    "properties": {
+      "access_token": {
+        "type": "string",
+        "description": "Slack Bot User OAuth token",
+        "format": "credential"
+      }
+    },
+    "required": ["access_token"]
+  }
+}
+```
+
+</ResponseExample>
+
+---
+
+## Query parameters
+
+| Name | Description |
+| --- | --- |
+| `id` | Optional provider name (e.g. `slack`, `github`, `notion`). When omitted, returns the full catalog. When set, returns that provider's detailed configuration including indexed object types, searchable fields, and credential schema. |
+
+---
+
+## Using the catalog
+
+Use the catalog to drive a dynamic connector setup flow:
+
+1. **List the catalog** to show available providers in your UI, grouped by category and filtered by availability (`ga`, `beta`, `alpha`).
+2. **Get provider details** when a user selects a provider — render the `credential_schema` as a dynamic form and display the `indexed_object_types` so the user knows what will be synced.
+3. Pass the collected credentials to [`POST /connectors`](/api-reference/v2/endpoint/create-connector) and the selected resources to [`POST /connectors/{id}/configure`](/api-reference/v2/endpoint/configure-connector).
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [Connectors Overview](/api-reference/v2/endpoint/connectors-overview) — full connector lifecycle
+- [Create Connector](/api-reference/v2/endpoint/create-connector) — create a new connector with credentials
+- [Discover Resources](/api-reference/v2/endpoint/discover-connector-resources) — list available resources from a connected provider

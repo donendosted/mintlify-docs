@@ -1,0 +1,33 @@
+---
+title: "Delete Webhook"
+description: "Unregister your webhook endpoint."
+openapi: "api-reference/v2/openapi.json DELETE /webhooks/indexing"
+---
+
+Unregister the indexing webhook for your API key. No further events will be delivered to the endpoint.
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE 'https://api.hydradb.com/webhooks/indexing' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "deleted": true
+}
+```
+
+</ResponseExample>
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [Register Webhook](/api-reference/v2/endpoint/register-webhook) — set up a new webhook after deletion

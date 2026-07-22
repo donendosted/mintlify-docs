@@ -1,0 +1,36 @@
+---
+title: "Connector Providers"
+description: "List supported providers or inspect one in detail."
+openapi: "api-reference/v2/openapi.json GET /connectors/providers"
+---
+
+Returns every supported connector provider with its availability, maturity, category, and sync engine type. Optionally pass `?id=<provider>` for detailed information about a single provider — including indexed object types, searchable and filterable fields, and the exact credential schema required to connect it.
+
+<RequestExample>
+
+```bash cURL
+# List all providers
+curl -X GET 'https://api.hydradb.com/connectors/providers' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+
+# Inspect a single provider
+curl -X GET 'https://api.hydradb.com/connectors/providers?id=slack' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+## Query parameters
+
+| Name | Description |
+| --- | --- |
+| `id` | Provider name (e.g. `slack`, `gmail`). Omit to list all. |
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- **Before this:** [Connector Catalog](/api-reference/v2/endpoint/connector-provider-catalog) — lightweight catalog for the dashboard
+- **After this:** [Create Connector](/api-reference/v2/endpoint/create-connector) — set up a new connector with credentials

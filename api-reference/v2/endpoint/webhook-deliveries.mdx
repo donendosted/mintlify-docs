@@ -1,0 +1,73 @@
+---
+title: "List Webhook Deliveries"
+description: "View recent webhook delivery attempts with optional cursor-based pagination."
+openapi: "api-reference/v2/openapi.json GET /webhooks/indexing/deliveries"
+---
+
+List recent webhook delivery attempts for your registered webhook. Supports cursor-based pagination to page through historical deliveries.
+
+<RequestExample>
+
+```bash cURL
+curl -X GET 'https://api.hydradb.com/webhooks/indexing/deliveries' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+
+# With pagination
+curl -X GET 'https://api.hydradb.com/webhooks/indexing/deliveries?cursor=eyJvZmZzZXQiOjUwfQ==&limit=20' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+## Query parameters
+
+| Name | Description |
+| --- | --- |
+| `cursor` | Opaque pagination cursor from a previous response to fetch the next page. |
+| `limit` | Maximum number of items to return per page. |
+
+<ResponseExample>
+
+```json 200
+{
+  "count": 12,
+  "next_cursor": "eyJvZmZzZXQiOjUwfQ==",
+  "deliveries": [
+    {
+      "delivery_id": "dlv_9f8e7d6c",
+      "doc_id": "HydraDoc1234",
+      "event_type": "indexing.status_changed",
+      "indexing_status": "completed",
+      "status": "completed",
+      "attempts": 1,
+      "error_code": "",
+      "error_message": "",
+      "created_at": "2026-07-02T10:00:00Z",
+      "updated_at": "2026-07-02T10:00:05Z"
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+| Field | Description |
+| --- | --- |
+| `delivery_id` | Unique identifier for this delivery attempt. |
+| `doc_id` | Source ID that triggered the delivery. |
+| `event_type` | Event that triggered this delivery (e.g. `indexing.status_changed`). |
+| `indexing_status` | Processing state: `queued`, `processing`, `completed`, or `failed`. |
+| `status` | Delivery status: `completed`, `failed`, `permanently_failed`. |
+| `attempts` | Number of delivery attempts made. |
+| `error_code` | Machine-readable error code; empty string on success. |
+| `error_message` | Human-readable error description; empty string on success. |
+| `next_cursor` | Cursor for the next page; null or absent when no more pages. |
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [Get Delivery Detail](/api-reference/v2/endpoint/webhook-delivery-detail) — inspect a specific attempt
+- [Retry Delivery](/api-reference/v2/endpoint/retry-webhook-delivery) — retry a failed delivery

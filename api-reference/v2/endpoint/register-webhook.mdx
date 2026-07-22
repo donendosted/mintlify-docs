@@ -1,0 +1,53 @@
+---
+title: "Register Webhook"
+description: "Register a webhook endpoint to receive indexing events."
+openapi: "api-reference/v2/openapi.json POST /webhooks/indexing"
+---
+
+Register the indexing webhook for your API key's organization. Once registered, HydraDB will deliver events (e.g. `indexing.status_changed`) to the specified URL.
+
+<RequestExample>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/webhooks/indexing' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-service.com/webhooks/hydra",
+    "event_types": ["indexing.status_changed"],
+    "signing_secret": "whsec_8f3a2b1c9d0e"
+  }'
+```
+
+</RequestExample>
+
+## Request body
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `url` | string | yes | Endpoint URL to deliver webhook events to. |
+| `event_types` | string[] | no | Events to subscribe to (e.g. `["indexing.status_changed"]`). |
+| `signing_secret` | string | no | Secret used to sign payloads for verification. Minimum 32 characters. |
+
+<ResponseExample>
+
+```json 200
+{
+  "registered": true,
+  "url": "https://your-service.com/webhooks/hydra",
+  "event_types": ["indexing.status_changed"],
+  "signing_secret_configured": true,
+  "message": "Success"
+}
+```
+
+</ResponseExample>
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- **After this:** [Get Webhook](/api-reference/v2/endpoint/get-webhook) — verify your registration
+- **Troubleshooting:** [Test Webhook](/api-reference/v2/endpoint/test-webhook) — verify your endpoint receives deliveries
+- **Concept:** [Webhooks guide](/essentials/v2/webhooks)

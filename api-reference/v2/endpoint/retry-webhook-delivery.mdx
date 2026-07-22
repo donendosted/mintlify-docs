@@ -1,0 +1,42 @@
+---
+title: "Retry Webhook Delivery"
+description: "Queue a failed or permanently-failed delivery for retry."
+openapi: "api-reference/v2/openapi.json POST /webhooks/indexing/deliveries/{delivery_id}/retry"
+---
+
+Queue a failed or permanently-failed delivery for retry. This schedules the delivery for another attempt without waiting for the automatic retry schedule.
+
+<RequestExample>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/webhooks/indexing/deliveries/dlv_9f8e7d6c/retry' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+## Path parameters
+
+| Name | Description |
+| --- | --- |
+| `delivery_id` | Delivery attempt ID to retry. |
+
+<ResponseExample>
+
+```json 200
+{
+  "queued": true,
+  "delivery_id": "dlv_9f8e7d6c",
+  "message": "Success"
+}
+```
+
+</ResponseExample>
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [Get Delivery](/api-reference/v2/endpoint/webhook-delivery-detail) — inspect the delivery before retrying
+- [List Deliveries](/api-reference/v2/endpoint/webhook-deliveries) — browse delivery history

@@ -1,0 +1,40 @@
+---
+title: "Preview Provider Resources"
+description: "Test-drive credentials by listing a provider's available resources before creating a connector."
+openapi: "api-reference/v2/openapi.json POST /connector-discovery"
+---
+
+List a provider's resources directly from supplied credentials, **before** creating a connector. Use this to validate credentials, see what's available, and verify scope before committing to a connector configuration.
+
+<RequestExample>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/connector-discovery' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "slack",
+    "credentials": {
+      "api_token": "xoxb-..."
+    },
+    "auth_type": "api_token"
+  }'
+```
+
+</RequestExample>
+
+## Request body
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `provider` | string | yes | External provider to preview (e.g. `slack`, `github`, `linear`, `notion`, `gmail`). |
+| `credentials` | object | yes | Provider-specific credentials, typically `{"api_token": "..."}` or `{"access_token": "..."}`. |
+| `auth_type` | string | no | Authentication method (e.g. `api_token`, `oauth`). |
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- **Before this:** [Connector Providers](/api-reference/v2/endpoint/connector-providers) — find your provider and its credential schema
+- **After this:** [Create Connector](/api-reference/v2/endpoint/create-connector) — create a connector with valid credentials

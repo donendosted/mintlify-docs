@@ -1,182 +1,98 @@
 ---
 title: "Update Source Metadata"
-description: "Merge tenant metadata and additional metadata for one existing source without re-ingesting its content."
+description: "Merge metadata onto an existing source without re-ingesting."
+openapi: "api-reference/v2/openapi.json PATCH /context/{id}/metadata"
 ---
 
-import { Field } from "/snippets/field.jsx";
+Merge or upsert `database_metadata` and `additional_metadata` onto a previously ingested source. Use this when you need to update metadata after ingestion — correcting a source's department tag, adding a priority flag, or enriching `additional_metadata` — without re-uploading the original content.
 
-Use this endpoint when you know a source ID and need to update its metadata in place. It updates both the source row and indexed chunk metadata used by query/list filters.
-
-```http
-PATCH /context/sources/{source_id}/metadata
-```
+<Note>
+This endpoint only updates metadata. The source's content and graph are not affected. To update content, re-ingest with the same `id` and `upsert: true`.
+</Note>
 
 <RequestExample>
 
 ```bash cURL
-curl -X PATCH 'https://api.hydradb.com/context/sources/policy_main/metadata' \
+curl -X PATCH 'https://api.hydradb.com/context/{source_id}/metadata' \
   -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
   -H "API-Version: 2" \
   -H "Content-Type: application/json" \
   -d '{
     "database": "acme_corp",
     "collection": "team_docs",
-    "tenant_metadata": {
+    "database_metadata": {
       "department": "legal",
       "priority": 7
     },
     "additional_metadata": {
-      "author": "Legal Team",
+      "reviewed_by": "alice",
       "doc_version": 3
     }
   }'
 ```
 
-```python Python
-import requests
+```python Python SDK
+# The SDK does not expose this endpoint directly.
+# Use the raw REST call:
+import requests, json
 
 response = requests.patch(
-    "https://api.hydradb.com/context/sources/policy_main/metadata",
+    f"https://api.hydradb.com/context/{source_id}/metadata",
     headers={
-        "Authorization": f"Bearer {HYDRA_DB_API_KEY}",
+        "Authorization": f"Bearer {os.environ['HYDRA_DB_API_KEY']}",
         "API-Version": "2",
         "Content-Type": "application/json",
     },
     json={
         "database": "acme_corp",
         "collection": "team_docs",
-        "tenant_metadata": {
-            "department": "legal",
-            "priority": 7,
-        },
-        "additional_metadata": {
-            "author": "Legal Team",
-            "doc_version": 3,
-        },
+        "database_metadata": {"department": "legal", "priority": 7},
+        "additional_metadata": {"reviewed_by": "alice", "doc_version": 3},
     },
 )
-```
-
-```typescript TypeScript
-const response = await fetch("https://api.hydradb.com/context/sources/policy_main/metadata", {
-  method: "PATCH",
-  headers: {
-    Authorization: `Bearer ${process.env.HYDRA_DB_API_KEY}`,
-    "API-Version": "2",
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    database: "acme_corp",
-    collection: "team_docs",
-    tenant_metadata: {
-      department: "legal",
-      priority: 7,
-    },
-    additional_metadata: {
-      author: "Legal Team",
-      doc_version: 3,
-    },
-  }),
-});
+response.raise_for_status()
 ```
 
 </RequestExample>
 
-## Request
-
-### Path parameters
+## Path parameters
 
 | Name | Description |
 | --- | --- |
-| <Field name="source_id" type="string" required /> | Existing source ID to update. This is the `id` you supplied at ingest, or the source ID returned by HydraDB. |
+| `id` | Source ID returned by `POST /context/ingest`. |
 
-### Body
+## Request body
 
-| Name | Description |
-| --- | --- |
-| <Field name="database" type="string" required /> | Owning database. (deprecated alias: `tenant_id`) |
-| <Field name="collection" type="string" required /> | Collection that contains the source. This endpoint does not default it. (deprecated alias: `sub_tenant_id`) |
-| <Field name="tenant_metadata" type="object" /> | Schema-backed metadata fields to merge into the source's `metadata`. Keys must satisfy the tenant metadata schema when one exists. |
-| <Field name="additional_metadata" type="object" /> | Free-form metadata fields to merge into the source's `additional_metadata`. |
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>database</code> | string | Target database. Required. |
+| <code>collection</code> | string | Collection scope. Defaults to the default collection when omitted. Formerly `sub_tenant_id` (deprecated alias still accepted). |
+| <code>database_metadata</code> | object | Schema-backed metadata fields to merge onto the source's `metadata`. Keys must match the database metadata schema. Formerly `tenant_metadata` (deprecated alias still accepted). |
+| <code>additional_metadata</code> | object | Free-form key-value pairs to merge into the source's `additional_metadata`. |
+| <code>tenant_id</code> | string | Deprecated — use `database`. |
+| <code>sub_tenant_id</code> | string | Deprecated — use `collection`. |
+| <code>tenant_metadata</code> | object | Deprecated — use `database_metadata`. |
+| <code>document_metadata</code> | object | Deprecated — use `additional_metadata`. |
 
-At least one of `tenant_metadata` or `additional_metadata` is required.
-
-<Warning>
-  This edit endpoint intentionally uses `tenant_metadata` for schema-backed source metadata. The shorter `metadata` field used by ingestion/list examples is not accepted in this PATCH body. `document_metadata` is also not accepted; use `additional_metadata`.
-</Warning>
-
-## Behavior
-
-- The update is a **merge/upsert**:
-  - keys present in the request are inserted or overwritten
-  - keys omitted from the request are preserved
-- The source must already exist. This endpoint does not create sources.
-- The endpoint edits one source at a time. Bulk metadata edits are not supported.
-- Updated metadata is visible to [`/query`](/api-reference/v2/endpoint/query) metadata filters and [`/context/list`](/api-reference/v2/endpoint/list-documents) filters.
-- If an edited tenant metadata field has `enable_dense_embedding` or `enable_sparse_embedding`, HydraDB synchronously refreshes the relevant Milvus metadata search lane.
-- If the edited fields are `enable_match`-only, the edit remains MongoDB-only and `milvus_sync_required` is `false`.
-
-## Response
+<Info>
+**Merge semantics.** Fields are merged, not replaced. Sending `{"database_metadata": {"priority": 7}}` adds or updates the `priority` key while leaving other metadata keys intact. To remove a key, set it to `null`.
+</Info>
 
 <ResponseExample>
 
-```json Success
+```json 200
 {
   "success": true,
   "data": {
-    "id": "policy_main",
-    "tenant_id": "acme_corp",
-    "sub_tenant_id": "team_docs",
-    "updated": true,
-    "tenant_metadata_keys": ["department", "priority"],
-    "additional_metadata_keys": ["author", "doc_version"],
-    "milvus_sync_required": false,
-    "chunk_rows_matched": 4,
-    "chunk_rows_modified": 4
+    "chunk_rows_matched": 1,
+    "chunk_rows_modified": 1,
+    "database_metadata_keys": ["department", "priority"],
+    "additional_metadata_keys": ["reviewed_by", "doc_version"]
   },
   "error": null,
   "meta": {
     "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
-    "latency_ms": 12.3
-  }
-}
-```
-
-```json Dense or sparse metadata sync
-{
-  "success": true,
-  "data": {
-    "id": "policy_main",
-    "tenant_id": "acme_corp",
-    "sub_tenant_id": "team_docs",
-    "updated": true,
-    "tenant_metadata_keys": ["summary_label"],
-    "additional_metadata_keys": [],
-    "milvus_sync_required": true,
-    "milvus_synced": true,
-    "milvus_rows_synced": 4,
-    "chunk_rows_matched": 4,
-    "chunk_rows_modified": 4
-  },
-  "error": null,
-  "meta": {
-    "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
-    "latency_ms": 28.9
-  }
-}
-```
-
-```json Failure
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "BAD_REQUEST",
-    "message": "invalid metadata edit: tenant_metadata.department must be of type VARCHAR"
-  },
-  "meta": {
-    "request_id": "9d13aef4-02f4-4e73-8c62-4c2601d04f9d",
-    "latency_ms": 4.8
+    "latency_ms": 8.2
   }
 }
 ```
@@ -185,29 +101,15 @@ At least one of `tenant_metadata` or `additional_metadata` is required.
 
 | Field | Description |
 | --- | --- |
-| <Field name="id" type="string" /> | Updated source ID. |
-| <Field name="tenant_id" type="string" /> | Public tenant ID. |
-| <Field name="sub_tenant_id" type="string" /> | Sub-tenant that contained the source. |
-| <Field name="updated" type="boolean" /> | `true` when the source metadata was updated. |
-| <Field name="tenant_metadata_keys" type="string[]" /> | Tenant metadata keys included in the request. |
-| <Field name="additional_metadata_keys" type="string[]" /> | Additional metadata keys included in the request. |
-| <Field name="milvus_sync_required" type="boolean" /> | `true` when at least one changed tenant metadata field has dense/sparse embedding enabled. |
-| <Field name="milvus_synced" type="boolean" /> | Present when sync was required. `true` means the sync completed. |
-| <Field name="milvus_rows_synced" type="integer" /> | Number of chunk rows synced to Milvus when sync was required. |
-| <Field name="chunk_rows_matched" type="integer" /> | Number of MongoDB chunk rows matched by the source update. |
-| <Field name="chunk_rows_modified" type="integer" /> | Number of MongoDB chunk rows modified by the source update. |
+| `chunk_rows_matched` | Number of chunk rows matched by the source ID. |
+| `chunk_rows_modified` | Number of chunk rows actually modified. |
+| `database_metadata_keys` | Metadata keys that were included in the update. |
+| `additional_metadata_keys` | Additional metadata keys that were included in the update. |
 
-## Validation and errors
+<div className="api-before-related-resources" />
 
-| Status | When it happens |
-| --- | --- |
-| `400` | Missing `tenant_id`, missing `sub_tenant_id`, empty metadata payload, `document_metadata` supplied, unknown tenant metadata key when a schema exists, wrong type, reserved key, over-size value, too-deep nesting, or `null` for a dense/sparse-enabled field. |
-| `404` | Source does not exist for the `(tenant_id, sub_tenant_id, source_id)` scope. |
-| `500` | Metadata was written to MongoDB but dense/sparse Milvus sync failed. Retry the same idempotent edit to converge. |
+## Related Resources
 
-## Related
-
-- [Scoping using metadata](/essentials/v2/metadata)
-- [Ingest Context](/api-reference/v2/endpoint/ingest-context)
-- [List Context](/api-reference/v2/endpoint/list-documents)
-- [Query](/api-reference/v2/endpoint/query)
+- **Before this:** [Ingest Context](/api-reference/v2/endpoint/ingest-context) — ingest sources with initial metadata
+- **Before this:** [List Documents](/api-reference/v2/endpoint/list-documents) — find source IDs by type and collection
+- [Metadata guide](/essentials/v2/metadata) — designing filterable metadata schemas

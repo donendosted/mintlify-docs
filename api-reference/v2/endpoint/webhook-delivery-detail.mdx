@@ -1,0 +1,49 @@
+---
+title: "Get Webhook Delivery"
+description: "Inspect a single webhook delivery attempt by ID."
+openapi: "api-reference/v2/openapi.json GET /webhooks/indexing/deliveries/{delivery_id}"
+---
+
+Get a single webhook delivery attempt by its unique ID. Use this to inspect the full record of a specific delivery, including error details and attempt count.
+
+<RequestExample>
+
+```bash cURL
+curl -X GET 'https://api.hydradb.com/webhooks/indexing/deliveries/dlv_9f8e7d6c' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+## Path parameters
+
+| Name | Description |
+| --- | --- |
+| `delivery_id` | Delivery attempt ID (e.g. `dlv_9f8e7d6c`). |
+
+<ResponseExample>
+
+```json 200
+{
+  "delivery_id": "dlv_9f8e7d6c",
+  "doc_id": "HydraDoc1234",
+  "event_type": "indexing.status_changed",
+  "indexing_status": "failed",
+  "status": "failed",
+  "attempts": 3,
+  "error_code": "timeout",
+  "error_message": "Endpoint did not respond within 10 seconds",
+  "created_at": "2026-07-02T10:00:00Z",
+  "updated_at": "2026-07-02T10:01:30Z"
+}
+```
+
+</ResponseExample>
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- [List Deliveries](/api-reference/v2/endpoint/webhook-deliveries) — browse delivery history
+- [Retry Delivery](/api-reference/v2/endpoint/retry-webhook-delivery) — retry after inspecting the error

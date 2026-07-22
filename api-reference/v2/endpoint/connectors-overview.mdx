@@ -9,7 +9,11 @@ Connectors continuously sync external app data (Slack, GitHub, Linear, Notion, G
 
 | Endpoint | Method | Purpose |
 | --- | --- | --- |
+| [`/connector-catalog`](/api-reference/v2/endpoint/connector-provider-catalog) | `GET` | List supported providers and their configuration |
+| [`/connectors/providers`](/api-reference/v2/endpoint/connector-providers) | `GET` | List providers or inspect one in detail |
+| [`/connector-discovery`](/api-reference/v2/endpoint/connector-discovery) | `POST` | Preview resources with supplied credentials |
 | [`/connectors`](/api-reference/v2/endpoint/create-connector) | `POST` | Create a new connector |
+| [`/connectors/:id/credentials`](/api-reference/v2/endpoint/rotate-connector-credentials) | `PATCH` | Rotate OAuth refresh token (internal) |
 | [`/connectors`](/api-reference/v2/endpoint/list-connectors) | `GET` | List all connectors for the organization |
 | [`/connectors/:id`](/api-reference/v2/endpoint/get-connector) | `GET` | Get a single connector |
 | [`/connectors/:id`](/api-reference/v2/endpoint/delete-connector) | `DELETE` | Delete a connector |
@@ -23,6 +27,7 @@ Connectors continuously sync external app data (Slack, GitHub, Linear, Notion, G
 ## Typical call sequence
 
 ```text
+GET  /connector-catalog              -> discover available providers and credential schemas
 POST /connectors                     -> create connector with credentials
 GET  /connectors/:id/discover        -> inspect what resources are available
 POST /connectors/:id/configure       -> activate resources, set lookback_days

@@ -1,0 +1,41 @@
+---
+title: "Test Webhook"
+description: "Send a test event to verify your webhook endpoint is reachable."
+openapi: "api-reference/v2/openapi.json POST /webhooks/indexing/test"
+---
+
+Send a test webhook event to the registered endpoint. Use this during initial setup to verify connectivity, validate payload format, and confirm your endpoint returns a 2xx status.
+
+<RequestExample>
+
+```bash cURL
+curl -X POST 'https://api.hydradb.com/webhooks/indexing/test' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "delivered": true,
+  "status_code": 200,
+  "message": "Success"
+}
+```
+
+</ResponseExample>
+
+| Field | Description |
+| --- | --- |
+| `delivered` | Whether the test delivery was accepted by the endpoint. |
+| `status_code` | HTTP status code returned by the webhook endpoint. |
+
+<div className="api-before-related-resources" />
+
+## Related Resources
+
+- **Before this:** [Register Webhook](/api-reference/v2/endpoint/register-webhook) — set up your endpoint URL
+- **Monitoring:** [Webhook Deliveries](/api-reference/v2/endpoint/webhook-deliveries) — inspect real event deliveries
