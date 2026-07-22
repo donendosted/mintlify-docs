@@ -1,0 +1,365 @@
+---
+title: "Security Best Practices"
+description: "API key management, least-privilege scoping, webhook verification, and handling sensitive data."
+---
+
+Security is a shared responsibility. HydraDB provides the tools — encryption at rest and in transit, signed webhooks, and granular scoping — but your integration must use them correctly. This guide covers the practices that keep your data safe.
+
+---
+
+## 1. API key management
+
+Your API key is the root credential for your HydraDB account. Treat it like a password.
+
+### Never hardcode keys
+
+Keys committed to git are compromised. Anyone with repository access — internal or external — can use them.
+
+<CodeGroup>
+```python Dangerous
+# Never do this:
+client = HydraDB(token="hydra_abc123def456")
+```
+
+```python Safe
+# Use an environment variable instead:
+import os
+client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
+```
+</CodeGroup>
+
+```bash
+# Export the key in your shell, never paste it inline.
+export HYDRA_DB_API_KEY="your_api_key"
+```
+
+Same rule applies to TypeScript:
+
+```typescript
+// Safe
+const client = new HydraDBClient({
+  token: process.env.HYDRA_DB_API_KEY,
+});
+```
+
+### Rotate keys regularly
+
+- Rotate API keys every **90 days** at minimum.
+- Rotate **immediately** if you suspect exposure — push a new key, update all consumers, revoke the old one.
+- Keep a rotation calendar entry so it is not forgotten.
+
+### Use separate keys per environment
+
+| Environment | Key | Database |
+|-------------|-----|----------|
+| Production | `HYDRA_DB_API_KEY_PROD` | `acme_corp_prod` |
+| Staging | `HYDRA_DB_API_KEY_STAGING` | `acme_corp_staging` |
+| Development | `HYDRA_DB_API_KEY_DEV` | `acme_corp_dev` |
+
+This prevents accidental writes to production data during development.
+
+<Warning>
+An API key has full access to every database on the account. Protect it accordingly. There is currently no per-database or read-only key scoping.
+</Warning>
+
+---
+
+## 2. Least-privilege scoping at the application layer
+
+Because every API key is account-wide, access control must be enforced in your application.
+
+### Scoping by database
+
+```python
+# Each tenant/environment gets its own database.
+# Your app selects the database based on the authenticated user.
+def get_database_for_user(user):
+    if user.plan == "enterprise":
+        return "enterprise_db"
+    return "default_db"
+
+database = get_database_for_user(current_user)
+client.databases.create(database=database)
+```
+
+### Scoping by collection
+
+Use `collection` (formerly `sub_tenant_id`) to partition data within a database:
+
+- **B2B SaaS**: one database per customer, `collection` per workspace/team/user
+- **B2C app**: one database per app, `collection = user_id`
+- **Environment isolation**: separate databases for prod/staging
+
+```python
+# User-specific collection
+client.context.ingest(
+    type="memory",
+    database="acme_corp",
+    collection=current_user.id,  # ← scoped to this user
+    memories=json.dumps([{"text": "Prefers dark mode."}]),
+)
+```
+
+<Info>
+Data written under one `collection` does not appear when querying another. Always pass the same `collection` on writes and reads.
+</Info>
+
+### Avoid using `metadata_filters` as a security boundary
+
+`metadata_filters` narrows search results but is **not** a substitute for `collection`. A malicious actor who knows a valid `database` could query data from another user's `collection` if your application does not enforce the collection mapping server-side.
+
+```python
+# ❌ Insecure — metadata_filters are not an access control mechanism.
+results = client.query(
+    database="acme_corp",
+    type="knowledge",
+    query="revenue data",
+    metadata_filters={"department": "finance"},
+)
+
+# ✅ Secure — scoped by collection at the application layer.
+results = client.query(
+    database="acme_corp",
+    collection=current_user.collection,
+    type="knowledge",
+    query="revenue data",
+    metadata_filters={"department": "finance"},
+)
+```
+
+---
+
+## 3. Webhook security
+
+Webhooks notify your application when indexing completes. If you configure a `signing_secret`, HydraDB signs every payload so you can verify it came from HydraDB.
+
+### Set up a signing secret
+
+When creating or updating a webhook, provide a `signing_secret`:
+
+```bash
+curl -X POST 'https://api.hydradb.com/webhooks/indexing' \
+  -H "Authorization: Bearer $HYDRA_DB_API_KEY" \
+  -H "API-Version: 2" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-app.com/webhooks/hydradb",
+    "event_types": ["indexing.status_changed"],
+    "signing_secret": "whsec_your_secret_here"
+  }'
+```
+
+### Verify signatures on every webhook
+
+HydraDB sends the signature in the `X-HydraDB-Signature` header. Verify it before acting on the payload.
+
+<CodeGroup>
+```python Python
+import hashlib
+import hmac
+import json
+
+def verify_webhook_signature(payload_body: bytes, signature_header: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        payload_body,
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature_header)
+
+# In your webhook handler:
+@app.post("/webhooks/hydradb")
+async def handle_webhook(request):
+    body = await request.body()
+    signature = request.headers.get("X-HydraDB-Signature", "")
+
+    if not verify_webhook_signature(body, signature, WEBHOOK_SECRET):
+        return {"error": "invalid signature"}, 401
+
+    payload = json.loads(body)
+    # Process the webhook...
+    return {"status": "ok"}
+```
+
+```typescript TypeScript
+import { createHmac, timingSafeEqual } from "crypto";
+
+function verifyWebhookSignature(
+  payload: Buffer,
+  signatureHeader: string,
+  secret: string
+): boolean {
+  const expected = createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  const expectedSig = `sha256=${expected}`;
+  if (expectedSig.length !== signatureHeader.length) return false;
+
+  return timingSafeEqual(Buffer.from(expectedSig), Buffer.from(signatureHeader));
+}
+
+// In your webhook handler:
+app.post("/webhooks/hydradb", (req, res) => {
+  const signature = req.headers["x-hydradb-signature"] as string;
+  if (!verifyWebhookSignature(req.body, signature, process.env.WEBHOOK_SECRET!)) {
+    return res.status(401).json({ error: "invalid signature" });
+  }
+  const payload = JSON.parse(req.body.toString());
+  // Process the webhook...
+  res.json({ status: "ok" });
+});
+```
+</CodeGroup>
+
+### Handling webhook failures
+
+- Respond with `2xx` within 5 seconds to acknowledge delivery.
+- Non-`2xx` responses trigger retries with exponential backoff over 24 hours.
+- Monitor delivery failures via `GET /webhooks/indexing/deliveries`.
+- Use `POST /webhooks/indexing/deliveries/{delivery_id}/retry` to manually retry failed deliveries.
+
+<Warning>
+Never skip webhook signature verification, even during development. Signatures are your only guarantee the payload came from HydraDB and was not tampered with in transit.
+</Warning>
+
+---
+
+## 4. Handling sensitive data
+
+### Do not store secrets in documents or metadata
+
+HydraDB indexes ingested content and makes it searchable. Treat anything sent to HydraDB as queryable.
+
+```python
+# ❌ Dangerous — indexable and retrievable.
+client.context.ingest(
+    type="memory",
+    database="acme_corp",
+    memories=json.dumps([{
+        "text": "Refund policy for Stripe key sk_live_abc123",
+    }]),
+)
+
+# ✅ Safe — store only content meant to be searchable.
+client.context.ingest(
+    type="memory",
+    database="acme_corp",
+    memories=json.dumps([{
+        "text": "Refund policy: 30-day full refund window.",
+    }]),
+)
+```
+
+### Metadata vs. sensitive fields
+
+| Layer | Content | Searchable | Best for |
+|-------|---------|------------|----------|
+| `metadata` | Schema-declared fields | Filterable via `metadata_filters` | Structured, non-sensitive fields (department, region, status) |
+| `additional_metadata` | Free-form key-value pairs | Filterable via `metadata_filters.additional_metadata` | Display-only fields, bookkeeping IDs |
+| Document text / memory text | Full content | Full-text + semantic search | Content meant to be retrieved |
+
+If a field contains PII (personally identifiable information), evaluate whether it belongs in searchable content at all. Consider storing PII references (opaque IDs) instead of raw PII values.
+
+### Memory expiry for temporary data
+
+Use `expiry_time` to automatically remove sensitive memories after a set period:
+
+```python
+client.context.ingest(
+    type="memory",
+    database="acme_corp",
+    collection="user_123",
+    memories=json.dumps([{
+        "text": "Session-specific preference: working on Q3 planning.",
+        "expiry_time": 86400,  # Auto-delete after 24 hours
+    }]),
+)
+```
+
+---
+
+## 5. Rate limits and backoff
+
+Rate limits protect the API from abuse and ensure fair resource usage.
+
+| Status code | Meaning | Response header |
+|-------------|---------|-----------------|
+| `429` | Rate limit exceeded | `Retry-After: <seconds>` |
+
+### Recommended backoff strategy
+
+```python
+import time
+from urllib.error import HTTPError
+
+def api_call_with_retry(client, fn, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except HTTPError as exc:
+            if exc.code != 429:
+                raise
+            retry_after = int(exc.headers.get("Retry-After", 5))
+            wait = retry_after * (2 ** attempt)  # Exponential backoff
+            print(f"Rate limited. Retrying in {wait}s...")
+            time.sleep(wait)
+    raise RuntimeError("Max retries exceeded")
+```
+
+```typescript
+async function apiCallWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (err.status !== 429) throw err;
+      const retryAfter = parseInt(err.headers?.["retry-after"] ?? "5", 10);
+      const wait = retryAfter * Math.pow(2, attempt);
+      console.log(`Rate limited. Retrying in ${wait}ms...`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+```
+
+---
+
+## 6. Common security mistakes
+
+| Mistake | Risk | Fix |
+|---------|------|-----|
+| Hardcoding API keys in source code | Credential leak via git history | Use environment variables. Add `.env` to `.gitignore`. |
+| Using same key for dev and prod | Accidental production data corruption | Separate keys per environment. |
+| Skipping webhook signature verification | Accepting forged webhook payloads | Verify `X-HydraDB-Signature` on every request. |
+| Storing secrets or PII in document metadata | Secrets become searchable via API | Store opaque references, not raw values. |
+| Treating `metadata_filters` as authz | Users can access other users' data | Enforce scoping via `collection` in your application layer. |
+| Omitting `collection` on queries | Results leak across user boundaries | Always pass the correct `collection` for the authenticated user. |
+| Disabling `upsert` globally without testing | Duplicate source IDs cause 409 errors | Keep `upsert: true` (the default) unless you explicitly need conflict detection. |
+| Polling without exponential backoff | Rate-limited by 429 responses or exhausting API quota | Implement exponential backoff with jitter. |
+
+---
+
+## 7. Reporting vulnerabilities
+
+If you discover a security vulnerability in HydraDB or this documentation:
+
+1. **Do not** open a public GitHub issue.
+2. Email **security@hydradb.com** with details.
+3. You will receive acknowledgment within 3 business days.
+4. We aim to ship a fix within 30 days.
+
+See [SECURITY.md](/SECURITY.md) for the full policy.
+
+---
+
+## Related
+
+- [Webhooks](/essentials/v2/webhooks) — signing secrets and delivery lifecycle
+- [Metadata](/essentials/v2/metadata) — structuring filterable fields safely
+- [Rate Limits](/essentials/v2/rate-limits-and-backoff) — guide to rate limit handling
+- [Multi-Tenant](/essentials/v2/multi-tenant) — database/collection scoping patterns

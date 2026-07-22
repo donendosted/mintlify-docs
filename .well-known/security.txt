@@ -1,0 +1,8 @@
+# Security contact for HydraDB documentation (mintlify-docs)
+# https://docs.hydradb.com/.well-known/security.txt
+
+Contact: mailto:security@hydradb.com
+Expires: 2027-07-22T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://docs.hydradb.com/.well-known/security.txt
+Policy: https://github.com/usecortex/mintlify-docs/blob/main/SECURITY.md
