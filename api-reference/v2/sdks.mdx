@@ -565,6 +565,7 @@ Set a client-level timeout so a slow or stalled request does not block your appl
 
 <CodeGroup>
 ```python Python SDK
+import os
 from hydra_db import HydraDB, AsyncHydraDB
 
 # Synchronous — every call waits at most 30 seconds.
@@ -599,6 +600,9 @@ The SDK retries transient failures (429, 500, 503) with exponential backoff and 
 
 <CodeGroup>
 ```python Python SDK
+import os
+from hydra_db import HydraDB
+
 client = HydraDB(
     token=os.environ["HYDRA_DB_API_KEY"],
     max_retries=3,
@@ -628,6 +632,9 @@ Creating a new network connection for every request wastes latency and resources
 
 <CodeGroup>
 ```python Python SDK
+import os
+from hydra_db import HydraDB
+
 # Good — create once, reuse everywhere.
 client = HydraDB(token=os.environ["HYDRA_DB_API_KEY"])
 
@@ -675,6 +682,7 @@ const client = new HydraDBClient({
 
 ```python Python SDK
 import time
+from hydra_db.errors import TooManyRequestsError, ServiceUnavailableError
 
 class CircuitBreaker:
     def __init__(self, threshold=5, cooldown=30):
